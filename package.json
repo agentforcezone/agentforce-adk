@@ -1,0 +1,16 @@
+{
+  "name": "agentforce-sdk",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "example-debug": "bun run ./examples/agents/debug.ts",
+    "test": "bun test"
+  }
+}
