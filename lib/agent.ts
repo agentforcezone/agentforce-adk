@@ -1,5 +1,6 @@
 import {
-    debug
+    debug,
+    useLLM
 } from '@agentforce-sdk/mod';
 
 /**
@@ -93,5 +94,6 @@ export default class AgentForceAgent {
     }
 
     debug = debug.bind(this);
+    useLLM = useLLM.bind(this);
 
 }
