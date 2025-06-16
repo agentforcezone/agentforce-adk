@@ -13,6 +13,36 @@ export type AgentConfig = {
     type: string;
 };
 
+/**
+ * Represents an AI agent within the AgentForce framework.
+ * This class provides the core functionality for creating and managing AI agents,
+ * including configuration of name, type, AI provider, and model.
+ *
+ * @class AgentForceAgent
+ * @example
+ * ```typescript
+ * import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+ *
+ * // Define the agent's configuration
+ * const agentConfig: AgentConfig = {
+ *   name: "MyAwesomeAgent",
+ *   type: "TaskExecutionAgent"
+ * };
+ *
+ * // Create a new agent instance
+ * const agent = new AgentForceAgent(agentConfig);
+ *
+ * // Log agent's name and type
+ * console.log(`Agent Name: ${agent.name}`);
+ * console.log(`Agent Type: ${agent.type}`);
+ *
+ * // Get debug information
+ * const debugInfo = agent.debug();
+ * console.log("Debug Info:", debugInfo);
+ * // Expected output:
+ * // Debug Info: { name: 'MyAwesomeAgent', type: 'TaskExecutionAgent', provider: 'ollama', model: 'gemma3:4b' }
+ * ```
+ */
 export default class AgentForceAgent {
 
     name: string;
