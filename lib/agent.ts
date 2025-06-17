@@ -3,7 +3,8 @@ import {
     useLLM,
     serve,
     systemPrompt,
-    prompt
+    prompt,
+    output
 } from '@agentforce-sdk/mod';
 
 /**
@@ -142,5 +143,6 @@ export default class AgentForceAgent {
     serve = serve.bind(this);
     systemPrompt = systemPrompt.bind(this);
     prompt = prompt.bind(this);
+    output = output.bind(this);
 
 }

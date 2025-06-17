@@ -1,7 +1,7 @@
 # AgentForce SDK
 
 <div align="center">
-  <img src="https://via.placeholder.com/200x200?text=AgentForce" alt="AgentForce Logo" width="200" height="200">
+  <img src="https://avatars.githubusercontent.com/u/212582904?s=200" alt="AgentForce Logo" width="200" height="200">
   
   <p><strong>A powerful TypeScript framework for building AI agents</strong></p>
 
@@ -38,7 +38,7 @@ bun add agentforce-sdk
 Create your first agent in just a few lines of code:
 
 ```typescript
-import AiAgent, { type AgentConfig } from "agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
 
 // Configure your agent
 const agentConfig: AgentConfig = {
@@ -46,58 +46,84 @@ const agentConfig: AgentConfig = {
   type: "assistant"
 };
 
-// Create an instance
-const agent = new AiAgent(agentConfig);
-
-// Use the agent
-const debugInfo = agent.debug();
-console.log("Agent Info:", debugInfo);
+// Create and configure your agent with method chaining
+const agent = new AgentForceAgent(agentConfig)
+  .useLLM("openai", "gpt-4")
+  .systemPrompt("You are a helpful AI assistant")
+  .prompt("Hello, how can I help you today?")
+  .debug()
+  .output("json");
 ```
 
 ## Features
 
 - 🚀 **Simple API**: Create agents with minimal code
-- 🔌 **Provider Agnostic**: Works with various AI providers (default: Ollama)
-- 🔄 **Model Switching**: Easily switch between different models
-- 🧩 **Extensible**: Build custom workflows and agent behaviors
+- � **Method Chaining**: Fluent interface for configuring agents
+- �🔌 **Provider Agnostic**: Support for multiple AI providers (OpenAI, Anthropic, Ollama, Google)
+- 🤖 **Model Switching**: Easily switch between different models with `useLLM()`
+- 💬 **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
+- 📄 **Multiple Output Formats**: Support for text, JSON, and Markdown output formats
+- 🛡️ **Type Safe**: Full TypeScript support with proper type definitions
 - 📊 **Debug Support**: Built-in debugging capabilities
-- 🧪 **Test-Friendly**: Designed with testability in mind
+- 🧪 **Test-Friendly**: Comprehensive test coverage and designed for testability
+- 🌐 **Server Mode**: Built-in server functionality for agent deployment
 
 ## Examples
 
-### Basic Agent
+### Basic Agent with Method Chaining
 
 ```typescript
-import AiAgent from "agentforce-sdk/agent";
+import AgentForceAgent from "@agentforce-sdk/agent";
 
-const agent = new AiAgent({
-  name: "SimpleAgent",
-  type: "general-purpose"
-});
-
-// Change the provider and model
-agent.setProvider("openai");
-agent.setModel("gpt-4");
+const agent = new AgentForceAgent({
+  name: "ChatBot",
+  type: "conversational-agent"
+})
+  .useLLM("openai", "gpt-4")
+  .systemPrompt("You are a friendly chatbot")
+  .prompt("Tell me a joke")
+  .debug()
+  .output("text");
 ```
 
-### Debug Information
+### Different Output Formats
 
 ```typescript
-const agent = new AiAgent({
-  name: "DebugAgent",
-  type: "development-agent"
-});
+const agent = new AgentForceAgent({
+  name: "DataAgent",
+  type: "data-processor"
+})
+  .useLLM("anthropic", "claude-3")
+  .systemPrompt("You are a data analysis expert")
+  .prompt("Analyze this dataset");
 
-const debugInfo = agent.debug();
-console.log(debugInfo);
-// Output: { name: "DebugAgent", type: "development-agent", provider: "ollama", model: "gemma3:4b" }
+// Text output
+agent.output("text");
+
+// JSON output
+agent.output("json");
+
+// Markdown output
+agent.output("md");
+```
+
+### Server Deployment
+
+```typescript
+const agent = new AgentForceAgent({
+  name: "WebAgent",  
+  type: "web-service"
+})
+  .useLLM("ollama", "phi4-mini:latest")
+  .systemPrompt("You are a web API assistant")
+  .serve("localhost", 3000); // Starts server on localhost:3000
 ```
 
 ## API Reference
 
 ### `AgentForceAgent`
 
-Main class for creating agents.
+Main class for creating and managing AI agents with chainable methods.
 
 #### Constructor
 
@@ -109,21 +135,62 @@ constructor(config: AgentConfig)
   - `name`: Name of the agent (string)
   - `type`: Type of the agent (string)
 
-#### Methods
+#### Chainable Methods
 
-- `getModel()`: Returns the current model name
-- `setModel(model: string)`: Sets the model name
-- `getProvider()`: Returns the current provider name
-- `setProvider(provider: string)`: Sets the provider name
-- `debug()`: Returns debug information for the agent
+All methods return the agent instance for fluent chaining:
+
+- **`.useLLM(provider, model)`**: Configure AI provider and model
+  - `provider`: AI provider ("openai", "anthropic", "ollama", "google")
+  - `model`: Model name (e.g., "gpt-4", "claude-3", "phi4-mini:latest")
+
+- **`.systemPrompt(prompt)`**: Set the system prompt
+  - `prompt`: System instruction string
+
+- **`.prompt(userPrompt)`**: Set the user prompt  
+  - `userPrompt`: User input string
+
+- **`.output(format)`**: Generate output in specified format
+  - `format`: Output type ("text", "json", "md")
+
+- **`.debug()`**: Log debug information and return agent instance
+
+- **`.serve(host?, port?)`**: Start agent as web server
+  - `host`: Server host (default: "0.0.0.0")
+  - `port`: Server port (default: 3000)
+
+#### Example Usage
+
+```typescript
+// Method chaining
+const agent = new AgentForceAgent(config)
+  .useLLM("openai", "gpt-4")
+  .systemPrompt("You are helpful")
+  .prompt("Hello")
+  .debug()
+  .output("json");
+
+// Multiple configurations
+agent
+  .useLLM("anthropic", "claude-3")
+  .systemPrompt("New system prompt")
+  .output("text")
+  .output("md");
+```
 
 ## Roadmap
 
-- [ ] Add support for more AI providers
-- [ ] Implement agent workflows and multi-agent communication
-- [ ] Add streaming responses
-- [ ] Provide tools and function-calling capabilities
-- [ ] Create more examples and documentation
+- [x] Method chaining with fluent interface
+- [x] Multiple AI provider support (OpenAI, Anthropic, Ollama, Google)
+- [x] Prompt management (system and user prompts)
+- [x] Multiple output formats (text, JSON, markdown)
+- [x] Server deployment capabilities
+- [x] Comprehensive test coverage
+- [ ] Streaming responses
+- [ ] Function calling and tool integration
+- [ ] Multi-agent workflows and communication
+- [ ] Plugin system for extensibility
+- [ ] Advanced error handling and retry mechanisms
+- [ ] Performance monitoring and analytics
 
 ## Contributing
 

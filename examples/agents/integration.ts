@@ -9,6 +9,4 @@ const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
     .systemPrompt("you are a helpful Assistant")
     .prompt("tell me a Joke!")
-    .debug();
-
-console.log("Agent:", agent);
+    .output("json");
