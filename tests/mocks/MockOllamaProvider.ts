@@ -1,8 +1,10 @@
+import type { OllamaProviderInterface } from '../../lib/provider/ollama';
+
 /**
  * Mock implementation of OllamaProvider for testing
  * This replaces the actual Ollama API calls with mock responses
  */
-export class MockOllamaProvider {
+export class MockOllamaProvider implements OllamaProviderInterface {
     private model: string;
 
     constructor(model: string) {

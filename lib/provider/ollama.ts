@@ -1,10 +1,16 @@
 import ollama from 'ollama';
 
+// Type for Ollama provider interface
+export interface OllamaProviderInterface {
+    chat(messages: Array<{ role: string; content: string }>): Promise<string>;
+    getModel(): string;
+}
+
 /**
  * Ollama provider implementation for the AgentForce SDK
  * Handles communication with locally running Ollama models
  */
-export class OllamaProvider {
+export class OllamaProvider implements OllamaProviderInterface {
     private model: string;
 
     constructor(model: string) {

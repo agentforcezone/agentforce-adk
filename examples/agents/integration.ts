@@ -6,7 +6,7 @@ const agentConfig: AgentConfig = {
 };
 
 const agent = new AgentForceAgent(agentConfig)
-    .useLLM("ollama", "phi4-mini:latest")
+    .useLLM("ollama", "gemma3:4b")
     .systemPrompt("you are a funny Pirate")
     .prompt("tell me a Joke!")
     .run();
