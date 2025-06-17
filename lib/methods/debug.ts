@@ -1,17 +1,23 @@
 import AgentForceAgent from "@agentforce-sdk/agent";
 
 /**
- * Returns a debug representation of the object.
+ * Logs debug information about the agent and returns the agent instance for chaining.
+ * This method is chainable and logs agent details to the console.
  *
  * @memberof AgentForceAgent
  * @function debug
- * @returns {Object} An object containing debug information.
+ * @returns {AgentForceAgent} Returns the agent instance for method chaining
  */
-export function debug(this: AgentForceAgent): object {
-    return {
-        name: this.name,
-        type: this.type,
+export function debug(this: AgentForceAgent): AgentForceAgent {
+    const debugInfo = {
+        name: this.getName(),
+        type: this.getType(),
         provider: this.getProvider(),
         model: this.getModel()
     };
+    
+    // Log debug info to console for development purposes
+    console.log('AgentForce Debug:', debugInfo);
+    
+    return this;
 }

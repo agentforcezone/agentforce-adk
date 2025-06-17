@@ -33,21 +33,14 @@ export type AgentConfig = {
  * // Create a new agent instance
  * const agent = new AgentForceAgent(agentConfig);
  *
- * // Log agent's name and type
- * console.log(`Agent Name: ${agent.name}`);
- * console.log(`Agent Type: ${agent.type}`);
- *
- * // Get debug information
- * const debugInfo = agent.debug();
- * console.log("Debug Info:", debugInfo);
- * // Expected output:
- * // Debug Info: { name: 'MyAwesomeAgent', type: 'TaskExecutionAgent', provider: 'ollama', model: 'gemma3:4b' }
+ * // Debug method is chainable and logs information
+ * agent.useLLM("openai", "gpt-4").debug();
  * ```
  */
 export default class AgentForceAgent {
 
-    name: string;
-    type: string;
+    private name: string;
+    private type: string;
 
     private logging: boolean = true;
 
@@ -64,9 +57,23 @@ export default class AgentForceAgent {
     }
 
     /**
+     * Get the name of the agent.
+     */
+    protected getName() {
+        return this.name;
+    }
+
+    /**
+     * Get the type of the agent.
+     */
+    protected getType() {
+        return this.type;
+    }
+
+    /**
      * Get the name of the AgentForceAgent model.
      */
-    getModel() {
+    protected getModel() {
         return this.model;
     }
 
@@ -74,14 +81,14 @@ export default class AgentForceAgent {
      * Set the name of the AgentForceAgent model.
      * @param model
      */
-    setModel(model: string) {
+    protected setModel(model: string) {
         this.model = model;
     }
 
     /**
      * Get the name of the AgentForceAgent provider.
      */
-    getProvider() {
+    protected getProvider() {
         return this.provider;
     }
 
@@ -89,9 +96,11 @@ export default class AgentForceAgent {
      * Set the name of the AgentForceAgent provider.
      * @param provider
      */
-    setProvider(provider: string) {
+    protected setProvider(provider: string) {
         this.provider = provider;
     }
+
+    // Functions for chaining methods from lib/methods
 
     debug = debug.bind(this);
     useLLM = useLLM.bind(this);

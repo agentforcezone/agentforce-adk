@@ -6,7 +6,7 @@ const agentConfig: AgentConfig = {
 };
 
 const agent = new AgentForceAgent(agentConfig)
-    .useLLM("ollama:phi4:latest")
+    .useLLM("ollama", "phi4-mini:latest")
     .debug();
 
 console.log("Agent:", agent);
