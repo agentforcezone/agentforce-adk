@@ -13,5 +13,8 @@
     "integration": "bun run ./examples/agents/integration.ts",
     "server": "bun run ./examples/agents/server.ts",
     "test": "bun test"
+  },
+  "dependencies": {
+    "ollama": "^0.5.16"
   }
 }

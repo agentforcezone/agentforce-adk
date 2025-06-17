@@ -1,0 +1,44 @@
+import ollama from 'ollama';
+
+/**
+ * Ollama provider implementation for the AgentForce SDK
+ * Handles communication with locally running Ollama models
+ */
+export class OllamaProvider {
+    private model: string;
+
+    constructor(model: string) {
+        this.model = model;
+    }
+
+    /**
+     * Chat with the Ollama model
+     * @param messages - Array of messages for the conversation
+     * @returns Promise with the model's response
+     */
+    async chat(messages: Array<{ role: string; content: string }>) {
+        try {
+            const response = await ollama.chat({
+                model: this.model,
+                messages: messages,
+            });
+            return response.message.content;
+        } catch (error) {
+            throw new Error(`Ollama provider error: ${error}`);
+        }
+    }
+
+    /**
+     * Get the current model name
+     */
+    getModel(): string {
+        return this.model;
+    }
+
+    /**
+     * Set a new model
+     */
+    setModel(model: string): void {
+        this.model = model;
+    }
+}

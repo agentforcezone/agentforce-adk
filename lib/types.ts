@@ -17,3 +17,8 @@ export type AgentConfig = {
  * Type definition for output formats
  */
 export type OutputType = 'text' | 'json' | 'md';
+
+/**
+ * Type definition for supported AI providers
+ */
+export type ProviderType = 'ollama' | 'openai' | 'anthropic' | 'google';
