@@ -14,7 +14,8 @@ export async function run(this: AgentForceAgent): Promise<AgentForceAgent> {
     const userPrompt = this.getUserPrompt();
     const agentName = this.getName();
 
-    console.log(`🚀 Running agent "${agentName}" with ${provider}/${model}`);
+    // Store the user prompt in chat history
+    this.pushToChatHistory('user', userPrompt);
 
     try {
         let response: string;
@@ -32,37 +33,32 @@ export async function run(this: AgentForceAgent): Promise<AgentForceAgent> {
                 ];
 
                 response = await ollamaProvider.chat(messages);
-                
-                console.log(`Response from Ollama:`);
-                console.log(response);
                 break;
 
             case "openai":
-                console.log(`⚠️  OpenAI provider not implemented yet. Would call with:`);
                 response = "OpenAI integration not implemented yet.";
                 break;
 
             case "anthropic":
-                console.log(`⚠️  Anthropic provider not implemented yet. Would call with:`);
                 response = "Anthropic integration not implemented yet.";
                 break;
 
             case "google":
-                console.log(`⚠️  Google provider not implemented yet. Would call with:`);
                 response = "Google integration not implemented yet.";
                 break;
 
             default:
-                console.log(`⚠️  Unknown provider: ${provider}. Would call with:`);
                 response = `Unknown provider integration not available: ${provider}`;
                 break;
         }
 
+        // Store the assistant response in chat history for all providers
+        this.pushToChatHistory('assistant', response);
+
     } catch (error) {
-        console.error(`❌ Error running agent "${agentName}":`, error);
-        console.log(`   Provider: ${provider}`);
-        console.log(`   Model: ${model}`);
-        console.log(`   Error: ${error}\n`);
+        // Store error in chat history as well
+        const errorMessage = `Error: ${error}`;
+        this.pushToChatHistory('assistant', errorMessage);
     }
 
     // Return 'this' for method chaining

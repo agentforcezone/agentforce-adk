@@ -37,7 +37,7 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
         case "ollama":
             // Initialize Ollama provider
             const ollamaProvider = new OllamaProvider(model);
-            console.log(`✅ Ollama provider initialized with model: ${model}`);
+            //console.log(`✅ Ollama provider initialized with model: ${model}`);
             break;
         
         case "openai":

@@ -40,6 +40,7 @@ export default class AgentForceAgent {
     private _type: string;
     private _systemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
     private _userPrompt: string = "";
+    private _chatHistory: {role: string, content: string}[] = [];
 
     private logging: boolean = true;
 
@@ -129,14 +130,34 @@ export default class AgentForceAgent {
         this.provider = provider;
     }
 
-    // Functions for chaining methods from lib/methods
+    /**
+     * Push a response to the chat history.
+     * @param role - The role of the message sender ('user' or 'assistant')
+     * @param content - The content of the message
+     */
+    protected pushToChatHistory(role: string, content: string) {
+        this._chatHistory.push({ role, content });
+    }
+
+    /**
+     * Get the chat history.
+     * @returns Array of chat messages with role and content
+     */
+    protected getChatHistory() {
+        return this._chatHistory;
+    }
+
+    // Chainable methods
 
     debug = debug.bind(this);
     useLLM = useLLM.bind(this);
-    serve = serve.bind(this);
     systemPrompt = systemPrompt.bind(this);
     prompt = prompt.bind(this);
-    output = output.bind(this);
     run = run.bind(this);
+
+    // Terminal/Non-chainable methods (return output, not this)
+    
+    serve = serve.bind(this);
+    output = output.bind(this);
 
 }

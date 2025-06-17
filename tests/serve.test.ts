@@ -12,30 +12,29 @@ describe('AgentForceAgent serve Method Tests', () => {
         agent = new AgentForceAgent(agentConfig);
     });
 
-    test("should return agent instance for method chaining", () => {
+    test("should return void (terminal method)", () => {
         const result = agent.serve("localhost", 3001);
-        expect(result).toBe(agent);
-        expect(result).toBeInstanceOf(AgentForceAgent);
+        expect(result).toBeUndefined();
     });
 
-    test("should work with method chaining", () => {
-        const result = agent
-            .useLLM("openai", "gpt-4")
-            .serve("localhost", 3002)
-            .debug();
+    test("should work as terminal method (no chaining)", () => {
+        const setupAgent = agent.useLLM("openai", "gpt-4");
+        const result = setupAgent.serve("localhost", 3002);
         
-        expect(result).toBe(agent);
+        expect(result).toBeUndefined();
+        expect(setupAgent).toBe(agent);
+        expect(setupAgent).toBeInstanceOf(AgentForceAgent);
     });
 
     test("should handle default parameters correctly", () => {
-        // Test with default parameters
-        const result = agent.serve();
-        expect(result).toBe(agent);
+        // Test with default parameters (using different port to avoid conflicts)
+        const result = agent.serve("127.0.0.1", 3020);
+        expect(result).toBeUndefined();
     });
 
     test("should handle custom host and port", () => {
         const result = agent.serve("127.0.0.1", 8080);
-        expect(result).toBe(agent);
+        expect(result).toBeUndefined();
     });
 
     test("should handle edge cases with empty parameters", () => {
@@ -54,23 +53,23 @@ describe('AgentForceAgent serve Method Tests', () => {
         expect(() => agent.serve("localhost", null as any)).toThrow("Port must be a valid number between 1 and 65535");
     });
 
-    test("should integrate well with other methods", () => {
-        const result = agent
-            .useLLM("ollama", "phi4-mini:latest")
-            .serve("0.0.0.0", 3010)
-            .debug();
+    test("should work with other methods before serve (terminal behavior)", () => {
+        const setupAgent = agent.useLLM("ollama", "phi4-mini:latest");
+        const result = setupAgent.serve("0.0.0.0", 3010);
         
-        expect(result).toBe(agent);
+        expect(result).toBeUndefined();
+        expect(setupAgent).toBe(agent);
+        expect(setupAgent).toBeInstanceOf(AgentForceAgent);
     });
 
-    test("should handle number port values", () => {
+    test("should handle various port values (terminal behavior)", () => {
         // Test with various number port formats
         const result1 = agent.serve("localhost", 3011);
         const result2 = agent.serve("localhost", 3012);
         const result3 = agent.serve("localhost", 3013);
         
-        expect(result1).toBe(agent);
-        expect(result2).toBe(agent);
-        expect(result3).toBe(agent);
+        expect(result1).toBeUndefined();
+        expect(result2).toBeUndefined();
+        expect(result3).toBeUndefined();
     });
 });

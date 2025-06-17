@@ -2,12 +2,12 @@ import type AgentForceAgent from '@agentforce-sdk/agent';
 import type { OutputType } from '../types';
 
 /**
- * Outputs the agent's response in the specified format
+ * Outputs the agent's response in the specified format (terminal method)
  * @param this - The AgentForceAgent instance (bound context)
  * @param outputType - The output format type ('text', 'json', 'md')
- * @returns {AgentForceAgent} Returns the agent instance for method chaining
+ * @returns {string|object} Returns the formatted output - NOT the agent instance (terminal method)
  */
-export function output(this: AgentForceAgent, outputType: OutputType): AgentForceAgent {
+export function output(this: AgentForceAgent, outputType: OutputType): string | object {
     // Validate input
     if (!outputType || typeof outputType !== 'string') {
         throw new Error('Output type must be a string');
@@ -24,15 +24,17 @@ export function output(this: AgentForceAgent, outputType: OutputType): AgentForc
     const userPrompt = this.getUserPrompt();
     const provider = this.getProvider();
     const model = this.getModel();
+    const chatHistory = this.getChatHistory();
     
-    // Generate dummy output based on the output type
+    // Get the latest assistant response from chat history
+    const latestAssistantMessage = chatHistory.findLast(msg => msg.role === 'assistant');
+    const assistantResponse = latestAssistantMessage ? latestAssistantMessage.content : 'No response available';
+    
+    // Generate output based on the output type using actual chat history
     switch (outputType) {
         case 'text':
-            console.log(`=== Agent ${agentName} Output (Text Format) ===`);
-            console.log(`System: ${systemPrompt}`);
-            console.log(`User: ${userPrompt}`);
-            console.log(`Response: This is a dummy text response from ${provider}/${model}. The agent would normally process the prompts and generate a meaningful response here.`);
-            break;
+            const textOutput = `=== Agent ${agentName} Output (Text Format) ===\nSystem: ${systemPrompt}\nUser: ${userPrompt}\nResponse: ${assistantResponse}`;
+            return textOutput;
             
         case 'json':
             const jsonOutput = {
@@ -41,29 +43,18 @@ export function output(this: AgentForceAgent, outputType: OutputType): AgentForc
                 model: model,
                 systemPrompt: systemPrompt,
                 userPrompt: userPrompt,
-                response: "This is a dummy JSON response from the agent. The agent would normally process the prompts and generate a meaningful response here.",
+                response: assistantResponse,
+                chatHistory: chatHistory,
                 timestamp: new Date().toISOString(),
                 status: "success"
             };
-            console.log(JSON.stringify(jsonOutput, null, 2));
-            break;
+            return jsonOutput;
             
         case 'md':
-            console.log(`=== Agent ${agentName} Output (Markdown Format) ===`);
-            console.log(`# Agent Response\n`);
-            console.log(`**Agent:** ${agentName}`);
-            console.log(`**Provider:** ${provider}`);
-            console.log(`**Model:** ${model}\n`);
-            console.log(`## System Prompt`);
-            console.log(`${systemPrompt}\n`);
-            console.log(`## User Prompt`);
-            console.log(`${userPrompt}\n`);
-            console.log(`## Response`);
-            console.log(`This is a **dummy markdown response** from the agent. The agent would normally process the prompts and generate a meaningful response here.\n`);
-            console.log(`*Generated at: ${new Date().toISOString()}*`);
-            break;
+            const mdOutput = `=== Agent ${agentName} Output (Markdown Format) ===\n# Agent Response\n\n**Agent:** ${agentName}\n**Provider:** ${provider}\n**Model:** ${model}\n\n## System Prompt\n${systemPrompt}\n\n## User Prompt\n${userPrompt}\n\n## Response\n${assistantResponse}\n\n*Generated at: ${new Date().toISOString()}*`;
+            return mdOutput;
+            
+        default:
+            throw new Error(`Unsupported output type: ${outputType}`);
     }
-    
-    // Return 'this' for method chaining
-    return this;
 }

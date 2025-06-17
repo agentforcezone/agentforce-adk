@@ -1,13 +1,13 @@
 import type AgentForceAgent from '../agent';
 
 /**
- * Starts a Bun HTTP server for the agent
+ * Starts a Bun HTTP server for the agent (terminal method)
  * @param this - The AgentForceAgent instance (bound context)
  * @param host - The host address to bind the server to (default: "0.0.0.0")
  * @param port - The port number to listen on (default: 3000)
- * @returns {AgentForceAgent} Returns the agent instance for method chaining
+ * @returns {void} This is a terminal method that starts the server - does not return the agent
  */
-export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: number = 3000): AgentForceAgent {
+export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: number = 3000): void {
     // Validate inputs
     if (!host || typeof host !== 'string') {
         throw new Error('Host must be a non-empty string');
@@ -41,6 +41,5 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
 
     console.log(`🚀 Agent server running at http://${server.hostname}:${server.port}`);
 
-    // Return 'this' for method chaining
-    return this;
+    // Terminal method - does not return the agent (server runs indefinitely)
 }

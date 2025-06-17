@@ -13,6 +13,9 @@ async function testRun(this: AgentForceAgent): Promise<AgentForceAgent> {
 
     console.log(`🚀 Running agent "${agentName}" with ${provider}/${model}`);
 
+    // Store the user prompt in chat history
+    this.pushToChatHistory('user', userPrompt);
+
     try {
         let response: string;
 
@@ -70,6 +73,9 @@ async function testRun(this: AgentForceAgent): Promise<AgentForceAgent> {
                 response = `Unknown provider integration not available: ${provider}`;
                 break;
         }
+
+        // Store the response in chat history
+        this.pushToChatHistory('assistant', response);
 
         console.log(`✅ Agent "${agentName}" execution completed successfully\n`);
 
@@ -361,5 +367,119 @@ describe('AgentForceAgent run Method Tests (Mocked)', () => {
             .run();
         
         expect(logMessages.some(msg => msg.includes('Mock response to: "What is the weather like?"'))).toBe(true);
+    });
+
+    describe('Chat History Integration Tests', () => {
+        test("should track chat history during run() execution", async () => {
+            await agent
+                .useLLM("ollama", "llama2")
+                .systemPrompt("You are helpful")
+                .prompt("Hello from run test")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            expect(history.length).toBe(2);
+            expect(history[0]).toEqual({ role: 'user', content: 'Hello from run test' });
+            expect(history[1].role).toBe('assistant');
+            expect(history[1].content).toBeTruthy();
+        });
+
+        test("should track chat history for different providers", async () => {
+            // Test Ollama
+            await agent
+                .useLLM("ollama", "llama2")
+                .prompt("Test Ollama")
+                .run();
+
+            // Test OpenAI
+            await agent
+                .useLLM("openai", "gpt-4")
+                .prompt("Test OpenAI")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            expect(history.length).toBe(4);
+            
+            expect(history[0]).toEqual({ role: 'user', content: 'Test Ollama' });
+            expect(history[1].role).toBe('assistant');
+            expect(history[2]).toEqual({ role: 'user', content: 'Test OpenAI' });
+            expect(history[3].role).toBe('assistant');
+            expect(history[3].content).toBe('OpenAI integration not implemented yet.');
+        });
+
+        test("should maintain chat history across multiple run() calls", async () => {
+            // First run
+            await agent
+                .useLLM("ollama", "llama2")
+                .prompt("First message")
+                .run();
+
+            // Second run
+            await agent
+                .prompt("Second message")
+                .run();
+
+            // Third run
+            await agent  
+                .prompt("Third message")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            expect(history.length).toBe(6);
+            
+            // Verify chronological order
+            expect(history[0]).toEqual({ role: 'user', content: 'First message' });
+            expect(history[1].role).toBe('assistant');
+            expect(history[2]).toEqual({ role: 'user', content: 'Second message' });
+            expect(history[3].role).toBe('assistant');
+            expect(history[4]).toEqual({ role: 'user', content: 'Third message' });
+            expect(history[5].role).toBe('assistant');
+        });
+
+        test("should track chat history with Ollama mock responses", async () => {
+            // Test specific mock response for jokes
+            await agent
+                .useLLM("ollama", "llama2")
+                .systemPrompt("You are a comedian")
+                .prompt("Tell me a joke")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            expect(history.length).toBe(2);
+            expect(history[0]).toEqual({ role: 'user', content: 'Tell me a joke' });
+            expect(history[1].role).toBe('assistant');
+            expect(history[1].content).toContain('Why don\'t pirates use computers');
+        });
+
+        test("should handle empty prompts in chat history", async () => {
+            await agent
+                .useLLM("ollama", "llama2")
+                .systemPrompt("")
+                .prompt("")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            expect(history.length).toBe(2);
+            expect(history[0]).toEqual({ role: 'user', content: '' });
+            expect(history[1].role).toBe('assistant');
+            expect(history[1].content).toContain('I\'m here and ready to assist');
+        });
+
+        test("should preserve chat history structure", async () => {
+            await agent
+                .useLLM("anthropic", "claude-3")
+                .prompt("Structure test")
+                .run();
+
+            const history = (agent as any).getChatHistory();
+            
+            history.forEach((entry: any) => {
+                expect(entry).toHaveProperty('role');
+                expect(entry).toHaveProperty('content');
+                expect(typeof entry.role).toBe('string');
+                expect(typeof entry.content).toBe('string');
+                expect(['user', 'assistant'].includes(entry.role)).toBe(true);
+            });
+        });
     });
 });

@@ -5,8 +5,8 @@ const agentConfig: AgentConfig = {
     type: "http-server-agent"
 };
 
-// Create an agent and start a web server
+// Create an agent and start a web server (serve is terminal - doesn't return agent)
 const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
     .debug()
-    .serve("0.0.0.0", 3000);
+    .serve("0.0.0.0", 3000); // Terminal method - starts server

@@ -10,8 +10,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "integration": "bun run ./examples/agents/integration.ts",
-    "server": "bun run ./examples/agents/server.ts",
+    "example-integration": "bun run ./examples/agents/integration.ts",
+    "example-server": "bun run ./examples/agents/server.ts",
     "test": "bun test"
   },
   "dependencies": {

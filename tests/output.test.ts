@@ -12,31 +12,45 @@ describe('AgentForceAgent output Method Tests', () => {
         agent = new AgentForceAgent(agentConfig);
     });
 
-    test("should return agent instance for method chaining", () => {
-        const result = agent.output("text");
-        expect(result).toBe(agent);
-        expect(result).toBeInstanceOf(AgentForceAgent);
-    });
-
-    test("should work with method chaining", () => {
+    test("should return formatted output (not agent instance) as terminal method", () => {
         const result = agent
-            .useLLM("openai", "gpt-4")
             .systemPrompt("You are a helpful assistant")
             .prompt("tell me a joke")
-            .output("text")
-            .debug();
-        
-        expect(result).toBe(agent);
-        expect(result).toBeInstanceOf(AgentForceAgent);
+            .output("text");
+        expect(typeof result).toBe("string");
+        expect(result).not.toBe(agent);
+        expect(result).not.toBeInstanceOf(AgentForceAgent);
     });
 
-    test("should handle all valid output types", () => {
+    test("should work as terminal method (no chaining)", () => {
+        const setupAgent = agent
+            .useLLM("openai", "gpt-4")
+            .systemPrompt("You are a helpful assistant")
+            .prompt("tell me a joke");
+        
+        const result = setupAgent.output("text");
+        
+        expect(typeof result).toBe("string");
+        expect(result).not.toBe(agent);
+        expect(result).not.toBeInstanceOf(AgentForceAgent);
+        
+        // Agent should still be accessible for debugging
+        expect(setupAgent).toBe(agent);
+        expect(setupAgent).toBeInstanceOf(AgentForceAgent);
+    });
+
+    test("should handle all valid output types and return correct format", () => {
         const validTypes = ['text', 'json', 'md'];
         
         validTypes.forEach(type => {
             expect(() => agent.output(type as any)).not.toThrow();
             const result = agent.output(type as any);
-            expect(result).toBe(agent);
+            if (type === 'json') {
+                expect(typeof result).toBe("object");
+            } else {
+                expect(typeof result).toBe("string");
+            }
+            expect(result).not.toBe(agent);
         });
     });
 
@@ -62,7 +76,8 @@ describe('AgentForceAgent output Method Tests', () => {
         // Test that text output doesn't throw
         expect(() => agent.output("text")).not.toThrow();
         const result = agent.output("text");
-        expect(result).toBe(agent);
+        expect(typeof result).toBe("string");
+        expect(result).not.toBe(agent);
     });
 
     test("should output json format correctly", () => {
@@ -73,7 +88,8 @@ describe('AgentForceAgent output Method Tests', () => {
         // Test that json output doesn't throw
         expect(() => agent.output("json")).not.toThrow();
         const result = agent.output("json");
-        expect(result).toBe(agent);
+        expect(typeof result).toBe("object");
+        expect(result).not.toBe(agent);
     });
 
     test("should output markdown format correctly", () => {
@@ -84,34 +100,46 @@ describe('AgentForceAgent output Method Tests', () => {
         // Test that md output doesn't throw
         expect(() => agent.output("md")).not.toThrow();
         const result = agent.output("md");
-        expect(result).toBe(agent);
+        expect(typeof result).toBe("string");
+        expect(result).not.toBe(agent);
     });
 
-    test("should integrate well with other methods", () => {
-        const result = agent
+    test("should work with other methods before output (terminal behavior)", () => {
+        const setupAgent = agent
             .useLLM("ollama", "phi4-mini:latest")
             .systemPrompt("You are a helpful assistant")
-            .prompt("tell me a joke")
-            .output("json")
-            .debug();
+            .prompt("tell me a joke");
         
-        expect(result).toBe(agent);
-        expect(result).toBeInstanceOf(AgentForceAgent);
+        const result = setupAgent.output("json");
+        
+        expect(typeof result).toBe("object");
+        expect(result).not.toBe(agent);
+        expect(result).not.toBeInstanceOf(AgentForceAgent);
+        
+        // Can still use debug on the agent separately
+        const debugResult = setupAgent.debug();
+        expect(debugResult).toBe(agent);
     });
 
-    test("should work in complex method chains", () => {
-        const result = agent
+    test("should work with multiple output calls separately", () => {
+        const setupAgent = agent
             .useLLM("openai", "gpt-4")
             .systemPrompt("You are a comedian")
-            .prompt("tell me a joke")
-            .output("text")
-            .useLLM("anthropic", "claude-3")
-            .prompt("tell me another joke")
-            .output("json")
-            .output("md");
+            .prompt("tell me a joke");
         
-        expect(result).toBe(agent);
-        expect(result).toBeInstanceOf(AgentForceAgent);
+        // Each output call should return the formatted result
+        const textResult = setupAgent.output("text");
+        const jsonResult = setupAgent.output("json");
+        const mdResult = setupAgent.output("md");
+        
+        expect(typeof textResult).toBe("string");
+        expect(typeof jsonResult).toBe("object");
+        expect(typeof mdResult).toBe("string");
+        
+        // None should return the agent
+        expect(textResult).not.toBe(agent);
+        expect(jsonResult).not.toBe(agent);
+        expect(mdResult).not.toBe(agent);
     });
 
     test("should handle case sensitivity", () => {
@@ -135,21 +163,23 @@ describe('AgentForceAgent output Method Tests', () => {
 
     test("should work with different LLM configurations", () => {
         const configurations = [
-            { provider: "openai", model: "gpt-4" },
-            { provider: "anthropic", model: "claude-3" },
-            { provider: "ollama", model: "phi4-mini:latest" },
-            { provider: "google", model: "gemini-pro" }
+            { provider: "openai" as const, model: "gpt-4" },
+            { provider: "anthropic" as const, model: "claude-3" },
+            { provider: "ollama" as const, model: "phi4-mini:latest" },
         ];
 
         configurations.forEach(config => {
             const testAgent = new AgentForceAgent(agentConfig);
-            const result = testAgent
+            const setupAgent = testAgent
                 .useLLM(config.provider, config.model)
                 .systemPrompt("You are a helpful assistant")
-                .prompt("Hello")
-                .output("text");
+                .prompt("Hello");
             
-            expect(result).toBe(testAgent);
+            const result = setupAgent.output("text");
+            
+            expect(typeof result).toBe("string");
+            expect(result).not.toBe(testAgent);
+            expect(setupAgent).toBe(testAgent);
         });
     });
 });

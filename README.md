@@ -10,6 +10,7 @@
     <a href="#quick-start">Quick Start</a> •
     <a href="#features">Features</a> •
     <a href="#examples">Examples</a> •
+    <a href="#running-examples">Running Examples</a> •
     <a href="#api-reference">API Reference</a> •
     <a href="#contributing">Contributing</a> •
     <a href="#license">License</a>
@@ -167,6 +168,53 @@ const agent = new AgentForceAgent({
   .systemPrompt("You are a web API assistant")
   .serve("localhost", 3000); // Starts server on localhost:3000
 ```
+
+## Running Examples
+
+The SDK comes with ready-to-run examples that demonstrate various capabilities:
+
+### Integration Example
+
+Run the integration example to see how agents interact with different LLM providers:
+
+```bash
+# Using npm
+npm run example-integration
+
+# Using Yarn
+yarn example-integration
+
+# Using Bun (recommended)
+bun example-integration
+```
+
+This example demonstrates:
+- Setting up agents with different configurations
+- Using different LLM providers and models
+- Basic prompt interactions and responses
+
+### Server Example
+
+Run the server example to see how agents can be deployed as web services:
+
+```bash
+# Using npm
+npm run example-server
+
+# Using Yarn
+yarn example-server
+
+# Using Bun (recommended)
+bun example-server
+```
+
+This example demonstrates:
+- Creating an agent with web server capabilities
+- Configuring server host and port
+- Processing requests and generating responses
+- Basic API endpoint structure
+
+After running the server example, you can interact with the agent by sending HTTP requests to the configured endpoints.
 
 ## API Reference
 
