@@ -10,7 +10,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "example": "bun run ./examples/agents/integration.ts",
+    "integration": "bun run ./examples/agents/integration.ts",
+    "server": "bun run ./examples/agents/server.ts",
     "test": "bun test"
   }
 }
