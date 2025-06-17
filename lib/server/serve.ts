@@ -1,4 +1,6 @@
 import type AgentForceAgent from '../agent';
+import { Hono } from 'hono';
+import { createModelsRoute } from './routes/v1/models';
 
 /**
  * Starts a Bun HTTP server for the agent (terminal method)
@@ -26,17 +28,23 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     console.log(`Current config: ${currentProvider}/${currentModel}`);
     console.log(`Server will bind to: ${host}:${port}`);
 
-    // Start the Bun server
+    // Create Hono app
+    const app = new Hono();
+
+    // Mount v1 routes
+    const modelsRoute = createModelsRoute(currentModel, currentProvider);
+    app.route('/v1', modelsRoute);
+
+    // Default route
+    app.get('/', (c) => {
+        return c.json({ status: "ok", agent: agentName });
+    });
+
+    // Start the server using Bun's serve with Hono
     const server = Bun.serve({
         hostname: host,
         port: port,
-        fetch(req) {
-            return new Response(JSON.stringify({ status: "ok" }), {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-        },
+        fetch: app.fetch,
     });
 
     console.log(`🚀 Agent server running at http://${server.hostname}:${server.port}`);

@@ -12,9 +12,11 @@
   "scripts": {
     "example-integration": "bun run ./examples/agents/integration.ts",
     "example-server": "bun run ./examples/agents/server.ts",
+    "example-file": "bun run ./examples/agents/file.ts",
     "test": "bun test"
   },
   "dependencies": {
+    "hono": "^4.7.11",
     "ollama": "^0.5.16"
   }
 }
