@@ -7,16 +7,8 @@ import {
     output
 } from '@agentforce-sdk/mod';
 
-/**
- * define the agent config type
- * @typedef { Object } AgentConfig
- * @property { string } name - Name of the agent
- * @property { string } type - Type of the agent
- */
-export type AgentConfig = {
-    name: string;
-    type: string;
-};
+import type { AgentConfig } from './types';
+export type { AgentConfig };
 
 /**
  * Represents an AI agent within the AgentForce framework.

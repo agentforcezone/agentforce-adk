@@ -1,9 +1,5 @@
 import type AgentForceAgent from '@agentforce-sdk/agent';
-
-/**
- * Type definition for output formats
- */
-export type OutputType = 'text' | 'json' | 'md';
+import type { OutputType } from '../types';
 
 /**
  * Outputs the agent's response in the specified format

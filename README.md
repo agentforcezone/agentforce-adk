@@ -51,7 +51,6 @@ const agent = new AgentForceAgent(agentConfig)
   .useLLM("openai", "gpt-4")
   .systemPrompt("You are a helpful AI assistant")
   .prompt("Hello, how can I help you today?")
-  .debug()
   .output("json");
 ```
 
@@ -82,7 +81,6 @@ const agent = new AgentForceAgent({
   .useLLM("openai", "gpt-4")
   .systemPrompt("You are a friendly chatbot")
   .prompt("Tell me a joke")
-  .debug()
   .output("text");
 ```
 
@@ -152,7 +150,7 @@ All methods return the agent instance for fluent chaining:
 - **`.output(format)`**: Generate output in specified format
   - `format`: Output type ("text", "json", "md")
 
-- **`.debug()`**: Log debug information and return agent instance
+- **`.debug()`**: Log debug information and return agent instance for development
 
 - **`.serve(host?, port?)`**: Start agent as web server
   - `host`: Server host (default: "0.0.0.0")
@@ -191,16 +189,6 @@ agent
 - [ ] Plugin system for extensibility
 - [ ] Advanced error handling and retry mechanisms
 - [ ] Performance monitoring and analytics
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
 
 ## License
 
