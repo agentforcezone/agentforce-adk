@@ -12,11 +12,21 @@ import ollama from 'ollama';
  * 
  * Features:
  * - Fetches actual Ollama models when provider is "ollama" using ollama.list()
+ * - Normalizes model IDs by replacing "/" with "-" for URL compatibility
  * - Includes current model configuration in the response
  * - Falls back to common models for non-Ollama providers
  * - Returns additional Ollama-specific metadata (size, digest, details)
  * - Handles Ollama connection errors gracefully
  * - Supports model-specific lookups with proper 404 handling
+ * - Preserves original model names in the "root" field
+ * 
+ * URL Compatibility:
+ * - Model names with "/" (e.g., "huihui_ai/mistral-small-abliterated:latest") 
+ *   are returned with ID "huihui_ai-mistral-small-abliterated:latest"
+ * - Original names are preserved in the "root" field
+ * - Lookup supports: normalized IDs (dashes), URL-encoded names (%2F), and original names
+ * - Use normalized IDs for URL-safe API calls: /v1/models/huihui_ai-mistral-small-abliterated:latest
+ * - Or use URL-encoded slashes: /v1/models/huihui_ai%2Fmistral-small-abliterated:latest
  * 
  * @param currentModel - The current model configured in the agent
  * @param currentProvider - The current provider configured in the agent
@@ -48,12 +58,12 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                 
                 // Convert Ollama models to OpenAI-compatible format
                 const ollamaModels = ollamaResponse.models.map(model => ({
-                    id: model.name,
+                    id: model.name.replace(/\//g, '-'), // Replace forward slashes with dashes for URL compatibility
                     object: "model",
                     created: Math.floor(new Date(model.modified_at).getTime() / 1000),
                     owned_by: "ollama",
                     permission: [],
-                    root: model.name,
+                    root: model.name, // Keep original name in root field
                     parent: null,
                     // Additional Ollama-specific metadata
                     size: model.size,
@@ -131,18 +141,27 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
             return c.json({ error: "Model ID is required" }, 400);
         }
 
-        // Check if it's the current model first
-        if (currentModel && currentModel === modelId) {
-            const modelInfo = {
-                id: currentModel,
+        // Check if it's the current model first (handle normalized, URL-encoded, and original names)
+        if (currentModel) {
+            const decodedModelId = decodeURIComponent(modelId);
+            const normalizedCurrentModel = currentModel.replace(/\//g, '-');
+            
+            if (currentModel === modelId || // Direct match with original name
+                currentModel === decodedModelId || // Match URL-decoded name
+                normalizedCurrentModel === modelId || // Match normalized name
+                normalizedCurrentModel === decodedModelId // Match normalized decoded name
+            ) {
+                const modelInfo = {
+                id: currentModel.replace(/\//g, '-'), // Return normalized ID
                 object: "model",
                 created: Math.floor(Date.now() / 1000),
                 owned_by: currentProvider || "agentforce",
                 permission: [],
-                root: currentModel,
+                root: currentModel, // Keep original name in root
                 parent: null
             };
             return c.json(modelInfo);
+            }
         }
 
         // If provider is Ollama, search through Ollama models
@@ -150,12 +169,19 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
             try {
                 const ollamaResponse = await ollama.list();
                 
-                // Find the specific model
-                const foundModel = ollamaResponse.models.find(model => model.name === modelId);
+                // Find the specific model by checking both normalized ID and original name
+                // The incoming modelId could be either the normalized version (with dashes) or URL-encoded (with %2F)
+                const decodedModelId = decodeURIComponent(modelId); // Handle URL-encoded slashes (%2F)
+                const foundModel = ollamaResponse.models.find(model => 
+                    model.name === modelId || // Direct match with original name
+                    model.name === decodedModelId || // Match URL-decoded name
+                    model.name.replace(/\//g, '-') === modelId || // Match normalized name
+                    model.name.replace(/\//g, '-') === decodedModelId // Match normalized decoded name
+                );
                 
                 if (foundModel) {
                     const modelInfo = {
-                        id: foundModel.name,
+                        id: foundModel.name.replace(/\//g, '-'), // Return normalized ID
                         object: "model",
                         created: Math.floor(new Date(foundModel.modified_at).getTime() / 1000),
                         owned_by: "ollama",

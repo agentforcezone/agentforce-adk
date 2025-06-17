@@ -9,4 +9,4 @@ const agentConfig: AgentConfig = {
 const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
     .debug()
-    .serve("0.0.0.0", 3000); // Terminal method - starts server
+    .serve("0.0.0.0", 3000);
