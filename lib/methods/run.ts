@@ -26,13 +26,8 @@ export async function run(this: AgentForceAgent): Promise<AgentForceAgent> {
                 // Use the real OllamaProvider for production
                 const ollamaProvider = new OllamaProvider(model);
                 
-                // Prepare messages for Ollama
-                const messages = [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ];
-
-                response = await ollamaProvider.chat(messages);
+                // Use generate method with prompt and system parameters
+                response = await ollamaProvider.generate(userPrompt, systemPrompt);
                 break;
 
             case "openai":

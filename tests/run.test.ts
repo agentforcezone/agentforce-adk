@@ -25,17 +25,11 @@ async function testRun(this: AgentForceAgent): Promise<AgentForceAgent> {
                 // Always use MockOllamaProvider for testing
                 const ollamaProvider = new MockOllamaProvider(model);
                 
-                // Prepare messages for Ollama
-                const messages = [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ];
-
                 console.log(`📤 Sending to Ollama (${model}):`);
                 console.log(`   System: ${systemPrompt}`);
                 console.log(`   User: ${userPrompt}`);
                 
-                response = await ollamaProvider.chat(messages);
+                response = await ollamaProvider.generate(userPrompt, systemPrompt);
                 
                 console.log(`Response from Ollama:`);
                 console.log(response);

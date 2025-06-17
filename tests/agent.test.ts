@@ -23,11 +23,7 @@ async function testRun(this: AgentForceAgent): Promise<AgentForceAgent> {
         switch (provider.toLowerCase()) {
             case "ollama":
                 const ollamaProvider = new MockOllamaProvider(model);
-                const messages = [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ];
-                response = await ollamaProvider.chat(messages);
+                response = await ollamaProvider.generate(userPrompt, systemPrompt);
                 break;
             default:
                 response = `Mock response for ${provider}`;

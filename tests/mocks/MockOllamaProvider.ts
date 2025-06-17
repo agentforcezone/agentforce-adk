@@ -12,22 +12,20 @@ export class MockOllamaProvider implements OllamaProviderInterface {
     }
 
     /**
-     * Mock chat method that returns predefined responses based on input
+     * Mock generate method that returns predefined responses based on input
      */
-    async chat(messages: Array<{ role: string; content: string }>): Promise<string> {
-        const userMessage = messages.find(msg => msg.role === 'user')?.content || '';
-        
+    async generate(prompt: string, system?: string): Promise<string> {
         // Return different mock responses based on the input
-        if (userMessage.toLowerCase().includes('joke')) {
+        if (prompt.toLowerCase().includes('joke')) {
             return "Why don't pirates use computers? Because they prefer to navigate by the stars! Arrr! (Mock response)";
-        } else if (userMessage.toLowerCase().includes('hello')) {
+        } else if (prompt.toLowerCase().includes('hello')) {
             return "Hello there! I'm a mock AI assistant ready to help you.";
-        } else if (userMessage === '') {
+        } else if (prompt === '') {
             return "I'm here and ready to assist! Please let me know what you need.";
-        } else if (userMessage.toLowerCase().includes('test')) {
+        } else if (prompt.toLowerCase().includes('test')) {
             return "This is a mock test response. No real API call was made.";
         } else {
-            return `Mock response to: "${userMessage}"`;
+            return `Mock response to: "${prompt}"`;
         }
     }
 

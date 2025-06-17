@@ -2,7 +2,7 @@ import ollama from 'ollama';
 
 // Type for Ollama provider interface
 export interface OllamaProviderInterface {
-    chat(messages: Array<{ role: string; content: string }>): Promise<string>;
+    generate(prompt: string, system?: string): Promise<string>;
     getModel(): string;
 }
 
@@ -15,6 +15,25 @@ export class OllamaProvider implements OllamaProviderInterface {
 
     constructor(model: string) {
         this.model = model;
+    }
+
+    /**
+     * Generate response using the Ollama model
+     * @param prompt - The user prompt to send to the model
+     * @param system - Optional system prompt to override the model's default
+     * @returns Promise with the model's response
+     */
+    async generate(prompt: string, system?: string): Promise<string> {
+        try {
+            const response = await ollama.generate({
+                model: this.model,
+                prompt: prompt,
+                system: system,
+            });
+            return response.response;
+        } catch (error) {
+            throw new Error(`Ollama provider error: ${error}`);
+        }
     }
 
     /**
