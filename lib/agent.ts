@@ -2,7 +2,8 @@ import {
     debug,
     useLLM,
     serve,
-    systemPrompt
+    systemPrompt,
+    prompt
 } from '@agentforce-sdk/mod';
 
 /**
@@ -75,6 +76,21 @@ export default class AgentForceAgent {
     }
 
     /**
+     * Get the user prompt of the agent.
+     */
+    protected getUserPrompt() {
+        return this._userPrompt;
+    }
+
+    /**
+     * Set the user prompt of the agent.
+     * @param prompt - The user prompt to set
+     */
+    protected setUserPrompt(prompt: string) {
+        this._userPrompt = prompt;
+    }
+
+    /**
      * Get the system prompt of the agent.
      */
     protected getSystemPrompt() {
@@ -125,5 +141,6 @@ export default class AgentForceAgent {
     useLLM = useLLM.bind(this);
     serve = serve.bind(this);
     systemPrompt = systemPrompt.bind(this);
+    prompt = prompt.bind(this);
 
 }
