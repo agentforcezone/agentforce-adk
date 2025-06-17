@@ -6,7 +6,8 @@ import {
     prompt,
     output,
     run,
-    execute
+    execute,
+    saveToFile
 } from '@agentforce-sdk/mod';
 
 import type { AgentConfig } from './types';
@@ -144,5 +145,6 @@ export default class AgentForceAgent {
     // Terminal/Non-chainable methods (return output, not this)
     serve = serve.bind(this);
     output = output.bind(this);
+    saveToFile = saveToFile.bind(this);
 
 }
