@@ -1,7 +1,8 @@
 import {
     debug,
     useLLM,
-    serve
+    serve,
+    systemPrompt
 } from '@agentforce-sdk/mod';
 
 /**
@@ -40,8 +41,10 @@ export type AgentConfig = {
  */
 export default class AgentForceAgent {
 
-    private name: string;
-    private type: string;
+    private _name: string;
+    private _type: string;
+    private _systemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
+    private _userPrompt: string = "";
 
     private logging: boolean = true;
 
@@ -53,22 +56,37 @@ export default class AgentForceAgent {
      * @param config - Configuration object for the agent
      */
     constructor(config: AgentConfig) {
-        this.name = config.name;
-        this.type = config.type;
+        this._name = config.name;
+        this._type = config.type;
     }
 
     /**
      * Get the name of the agent.
      */
     protected getName() {
-        return this.name;
+        return this._name;
     }
 
     /**
      * Get the type of the agent.
      */
     protected getType() {
-        return this.type;
+        return this._type;
+    }
+
+    /**
+     * Get the system prompt of the agent.
+     */
+    protected getSystemPrompt() {
+        return this._systemPrompt;
+    }
+
+    /**
+     * Set the system prompt of the agent.
+     * @param prompt - The system prompt to set
+     */
+    protected setSystemPrompt(prompt: string) {
+        this._systemPrompt = prompt;
     }
 
     /**
@@ -106,5 +124,6 @@ export default class AgentForceAgent {
     debug = debug.bind(this);
     useLLM = useLLM.bind(this);
     serve = serve.bind(this);
+    systemPrompt = systemPrompt.bind(this);
 
 }

@@ -7,6 +7,7 @@ const agentConfig: AgentConfig = {
 
 const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
+    .systemPrompt("you are a helpful Assistant")
     .debug();
 
 console.log("Agent:", agent);

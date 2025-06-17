@@ -5,22 +5,40 @@ const agentConfig: AgentConfig = {
     name: "TestAgent",
     type: "TestType"
 };
+
 describe('AgentForceAgent Class Test', () => {
     test("Constructing a new agent", () => {
         const agent = new AgentForceAgent(agentConfig);
-        expect(agent.name).toBe("TestAgent");
-        expect(agent.type).toBe("TestType");
+        
+        // Test that the agent was created successfully
+        expect(agent).toBeInstanceOf(AgentForceAgent);
+        
+        // Test that the agent has the expected methods
+        expect(typeof agent.useLLM).toBe("function");
+        expect(typeof agent.debug).toBe("function");
+        expect(typeof agent.serve).toBe("function");
+        expect(typeof agent.systemPrompt).toBe("function");
     });
 
-    test("Setting and getting model", () => {
+    test("Agent methods should be chainable", () => {
         const agent = new AgentForceAgent(agentConfig);
-        agent.setModel("testModel");
-        expect(agent.getModel()).toBe("testModel");
+        
+        // Test method chaining
+        const result = agent.useLLM("test-provider", "test-model");
+        expect(result).toBe(agent);
+        expect(result).toBeInstanceOf(AgentForceAgent);
     });
 
-    test("Setting and getting provider", () => {
+    test("Agent should support complex method chaining", () => {
         const agent = new AgentForceAgent(agentConfig);
-        agent.setProvider("testProvider");
-        expect(agent.getProvider()).toBe("testProvider");
+        
+        // Test complex method chaining
+        const result = agent
+            .useLLM("openai", "gpt-4")
+            .systemPrompt("You are a helpful assistant")
+            .debug();
+        
+        expect(result).toBe(agent);
+        expect(result).toBeInstanceOf(AgentForceAgent);
     });
 });
