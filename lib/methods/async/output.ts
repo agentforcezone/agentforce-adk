@@ -1,13 +1,14 @@
 import type AgentForceAgent from '@agentforce-sdk/agent';
-import type { OutputType } from '../types';
+import type { OutputType } from '../../types';
+import { execute } from './execute';
 
 /**
- * Outputs the agent's response in the specified format (terminal method)
+ * Executes the agent and outputs the response in the specified format (terminal method)
  * @param this - The AgentForceAgent instance (bound context)
  * @param outputType - The output format type ('text', 'json', 'md')
- * @returns {string|object} Returns the formatted output - NOT the agent instance (terminal method)
+ * @returns {Promise<string|object>} Returns the formatted output - NOT the agent instance (terminal method)
  */
-export function output(this: AgentForceAgent, outputType: OutputType): string | object {
+export async function output(this: AgentForceAgent, outputType: OutputType): Promise<string | object> {
     // Validate input
     if (!outputType || typeof outputType !== 'string') {
         throw new Error('Output type must be a string');
@@ -16,6 +17,14 @@ export function output(this: AgentForceAgent, outputType: OutputType): string | 
     const validTypes: OutputType[] = ['text', 'json', 'md'];
     if (!validTypes.includes(outputType as OutputType)) {
         throw new Error('Output type must be one of: text, json, md');
+    }
+
+    // Execute the provider call first to get the response
+    try {
+        await execute.call(this);
+    } catch (error) {
+        // Error handling is already done in execute function
+        // Continue with output generation using the error message from chat history
     }
     
     // Get agent information using protected methods

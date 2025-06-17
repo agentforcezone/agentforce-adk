@@ -5,7 +5,8 @@ import {
     systemPrompt,
     prompt,
     output,
-    run
+    run,
+    execute
 } from '@agentforce-sdk/mod';
 
 import type { AgentConfig } from './types';
@@ -17,22 +18,6 @@ export type { AgentConfig };
  * including configuration of name, type, AI provider, and model.
  *
  * @class AgentForceAgent
- * @example
- * ```typescript
- * import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
- *
- * // Define the agent's configuration
- * const agentConfig: AgentConfig = {
- *   name: "MyAwesomeAgent",
- *   type: "TaskExecutionAgent"
- * };
- *
- * // Create a new agent instance
- * const agent = new AgentForceAgent(agentConfig);
- *
- * // Debug method is chainable and logs information
- * agent.useLLM("openai", "gpt-4").debug();
- * ```
  */
 export default class AgentForceAgent {
 
@@ -147,16 +132,16 @@ export default class AgentForceAgent {
         return this._chatHistory;
     }
 
-    // Chainable methods
+    protected execute = execute.bind(this);
 
+    // Chainable methods
     debug = debug.bind(this);
     useLLM = useLLM.bind(this);
     systemPrompt = systemPrompt.bind(this);
     prompt = prompt.bind(this);
     run = run.bind(this);
-
-    // Terminal/Non-chainable methods (return output, not this)
     
+    // Terminal/Non-chainable methods (return output, not this)
     serve = serve.bind(this);
     output = output.bind(this);
 
