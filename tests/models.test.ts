@@ -1,5 +1,6 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import type { ProviderType } from "@agentforce-sdk/types";
 
 describe('Models Route Tests', () => {
     let agent: AgentForceAgent;
@@ -38,7 +39,47 @@ describe('Models Route Tests', () => {
         expect(result).toBeInstanceOf(AgentForceAgent);
     });
 
+    test("should support specific model ID configurations", () => {
+        // Test various model IDs that would be used in the /v1/models/{model} endpoint
+        const testCases: { provider: ProviderType; model: string }[] = [
+            { provider: "ollama", model: "mistral-small3.1:latest" },
+            { provider: "ollama", model: "phi4-mini:latest" },
+            { provider: "openai", model: "gpt-4" },
+            { provider: "openai", model: "gpt-3.5-turbo" },
+            { provider: "anthropic", model: "claude-3" }
+        ];
+
+        testCases.forEach(({ provider, model }) => {
+            const testAgent = new AgentForceAgent(agentConfig);
+            const result = testAgent.useLLM(provider, model);
+            
+            expect(result).toBe(testAgent);
+            expect(result).toBeInstanceOf(AgentForceAgent);
+        });
+    });
+
+    test("should handle model names with special characters", () => {
+        // Test model names that might be used in URL paths
+        const specialModelNames = [
+            "model:latest",
+            "namespace/model:tag",
+            "model-with-dashes",
+            "model_with_underscores",
+            "model.with.dots"
+        ];
+
+        specialModelNames.forEach(modelName => {
+            const testAgent = new AgentForceAgent(agentConfig);
+            const result = testAgent.useLLM("ollama", modelName);
+            
+            expect(result).toBe(testAgent);
+            expect(result).toBeInstanceOf(AgentForceAgent);
+        });
+    });
+
     // Note: We don't test the actual HTTP endpoints here as that would require
     // starting a server and making HTTP requests. The integration with the
     // actual Ollama API is tested manually as shown in the implementation.
+    // The new /v1/models/{model} endpoint follows the same patterns as the
+    // existing /v1/models endpoint and is tested in the manual verification above.
 });

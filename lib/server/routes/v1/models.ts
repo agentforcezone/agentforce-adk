@@ -3,8 +3,12 @@ import type { Context } from 'hono';
 import ollama from 'ollama';
 
 /**
- * Models route handler for /v1/models endpoint
+ * Models route handler for /v1/models endpoints
  * Returns a list of available models in OpenAI-compatible format
+ * 
+ * Endpoints:
+ * - GET /models - List all available models
+ * - GET /models/{model} - Get specific model information by ID
  * 
  * Features:
  * - Fetches actual Ollama models when provider is "ollama" using ollama.list()
@@ -12,10 +16,11 @@ import ollama from 'ollama';
  * - Falls back to common models for non-Ollama providers
  * - Returns additional Ollama-specific metadata (size, digest, details)
  * - Handles Ollama connection errors gracefully
+ * - Supports model-specific lookups with proper 404 handling
  * 
  * @param currentModel - The current model configured in the agent
  * @param currentProvider - The current provider configured in the agent
- * @returns Hono app with /models endpoint
+ * @returns Hono app with /models and /models/{model} endpoints
  */
 export function createModelsRoute(currentModel: string | null, currentProvider: string | null) {
     const app = new Hono();
@@ -117,6 +122,96 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
         };
 
         return c.json(modelsResponse);
+    });
+
+    app.get('/models/:model', async (c: Context) => {
+        const modelId = c.req.param('model');
+        
+        if (!modelId) {
+            return c.json({ error: "Model ID is required" }, 400);
+        }
+
+        // Check if it's the current model first
+        if (currentModel && currentModel === modelId) {
+            const modelInfo = {
+                id: currentModel,
+                object: "model",
+                created: Math.floor(Date.now() / 1000),
+                owned_by: currentProvider || "agentforce",
+                permission: [],
+                root: currentModel,
+                parent: null
+            };
+            return c.json(modelInfo);
+        }
+
+        // If provider is Ollama, search through Ollama models
+        if (currentProvider === "ollama") {
+            try {
+                const ollamaResponse = await ollama.list();
+                
+                // Find the specific model
+                const foundModel = ollamaResponse.models.find(model => model.name === modelId);
+                
+                if (foundModel) {
+                    const modelInfo = {
+                        id: foundModel.name,
+                        object: "model",
+                        created: Math.floor(new Date(foundModel.modified_at).getTime() / 1000),
+                        owned_by: "ollama",
+                        permission: [],
+                        root: foundModel.name,
+                        parent: null,
+                        // Additional Ollama-specific metadata
+                        size: foundModel.size,
+                        digest: foundModel.digest,
+                        details: foundModel.details
+                    };
+                    
+                    console.log(`✅ Found Ollama model: ${modelId}`);
+                    return c.json(modelInfo);
+                }
+                
+                console.log(`⚠️ Ollama model not found: ${modelId}`);
+                return c.json({ error: `Model '${modelId}' not found` }, 404);
+                
+            } catch (error) {
+                console.error(`⚠️ Failed to fetch Ollama model ${modelId}: ${error}`);
+                return c.json({ error: "Failed to fetch model information" }, 500);
+            }
+        } else {
+            // For non-Ollama providers, check against known models
+            const knownModels = [
+                {
+                    id: "gpt-4",
+                    object: "model", 
+                    created: 1687882411,
+                    owned_by: "openai",
+                    permission: [],
+                    root: "gpt-4",
+                    parent: null
+                },
+                {
+                    id: "gpt-3.5-turbo",
+                    object: "model",
+                    created: 1677610602,
+                    owned_by: "openai", 
+                    permission: [],
+                    root: "gpt-3.5-turbo",
+                    parent: null
+                }
+            ];
+
+            const foundModel = knownModels.find(model => model.id === modelId);
+            
+            if (foundModel) {
+                console.log(`✅ Found ${currentProvider || 'fallback'} model: ${modelId}`);
+                return c.json(foundModel);
+            }
+            
+            console.log(`⚠️ Model not found: ${modelId}`);
+            return c.json({ error: `Model '${modelId}' not found` }, 404);
+        }
     });
 
     return app;
