@@ -33,6 +33,24 @@ yarn add agentforce-sdk
 bun add agentforce-sdk
 ```
 
+## Provider Setup
+
+To use the `.run()` method with real AI providers, you'll need to set up the respective services:
+
+### Ollama (Recommended for local development)
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull a model
+ollama pull llama2
+ollama pull codellama
+ollama pull phi4-mini
+```
+
+### OpenAI, Anthropic, Google
+These providers are recognized by the SDK but require additional implementation. Currently, the SDK will show "not implemented" messages for these providers when using `.run()`.
+
 ## Quick Start
 
 Create your first agent in just a few lines of code:
@@ -48,6 +66,13 @@ const agentConfig: AgentConfig = {
 
 // Create and configure your agent with method chaining
 const agent = new AgentForceAgent(agentConfig)
+  .useLLM("ollama", "llama2")
+  .systemPrompt("You are a helpful AI assistant")
+  .prompt("Hello, how can I help you today?")
+  .run(); // Execute the agent and get AI response
+
+// Or use different output formats
+agent
   .useLLM("openai", "gpt-4")
   .systemPrompt("You are a helpful AI assistant")
   .prompt("Hello, how can I help you today?")
@@ -61,6 +86,7 @@ const agent = new AgentForceAgent(agentConfig)
 - �🔌 **Provider Agnostic**: Support for multiple AI providers (OpenAI, Anthropic, Ollama, Google)
 - 🤖 **Model Switching**: Easily switch between different models with `useLLM()`
 - 💬 **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
+- ⚡ **Agent Execution**: Execute agents with real API calls using `.run()`
 - 📄 **Multiple Output Formats**: Support for text, JSON, and Markdown output formats
 - 🛡️ **Type Safe**: Full TypeScript support with proper type definitions
 - 📊 **Debug Support**: Built-in debugging capabilities
@@ -82,6 +108,31 @@ const agent = new AgentForceAgent({
   .systemPrompt("You are a friendly chatbot")
   .prompt("Tell me a joke")
   .output("text");
+```
+
+### Agent Execution with Real AI Responses
+
+```typescript
+// Execute agent with real API calls
+const agent = new AgentForceAgent({
+  name: "AssistantBot",
+  type: "ai-assistant"
+});
+
+// Using Ollama (requires running Ollama locally)
+await agent
+  .useLLM("ollama", "llama2")
+  .systemPrompt("You are a helpful programming assistant")
+  .prompt("Explain the concept of async/await in JavaScript")
+  .run(); // Makes actual API call and logs response
+
+// Chain with other methods
+await agent
+  .useLLM("ollama", "codellama")
+  .systemPrompt("You are a code reviewer")
+  .prompt("Review this function for best practices")
+  .run()
+  .then(agent => agent.debug()); // Log debug info after execution
 ```
 
 ### Different Output Formats
@@ -147,6 +198,11 @@ All methods return the agent instance for fluent chaining:
 - **`.prompt(userPrompt)`**: Set the user prompt  
   - `userPrompt`: User input string
 
+- **`.run()`**: Execute the agent chain with real API calls to the configured provider
+  - Returns: `Promise<AgentForceAgent>` for async chaining
+  - Makes actual API calls to the specified provider (e.g., Ollama, OpenAI)
+  - Logs execution details and AI responses to console
+
 - **`.output(format)`**: Generate output in specified format
   - `format`: Output type ("text", "json", "md")
 
@@ -159,19 +215,27 @@ All methods return the agent instance for fluent chaining:
 #### Example Usage
 
 ```typescript
-// Method chaining
+// Method chaining with execution
 const agent = new AgentForceAgent(config)
-  .useLLM("openai", "gpt-4")
+  .useLLM("ollama", "llama2")
   .systemPrompt("You are helpful")
   .prompt("Hello")
-  .debug()
-  .output("json");
+  .debug();
 
-// Multiple configurations
-agent
+// Execute with real API call
+await agent.run();
+
+// Chain execution with other methods
+await agent
   .useLLM("anthropic", "claude-3")
   .systemPrompt("New system prompt")
-  .output("text")
+  .prompt("Explain machine learning")
+  .run()
+  .then(agent => agent.output("text"));
+
+// Multiple output formats
+agent
+  .output("json")
   .output("md");
 ```
 
@@ -180,9 +244,10 @@ agent
 - [x] Method chaining with fluent interface
 - [x] Multiple AI provider support (OpenAI, Anthropic, Ollama, Google)
 - [x] Prompt management (system and user prompts)
+- [x] Agent execution with real API calls (`.run()` method)
 - [x] Multiple output formats (text, JSON, markdown)
 - [x] Server deployment capabilities
-- [x] Comprehensive test coverage
+- [x] Comprehensive test coverage with mock data support
 - [ ] Streaming responses
 - [ ] Function calling and tool integration
 - [ ] Multi-agent workflows and communication

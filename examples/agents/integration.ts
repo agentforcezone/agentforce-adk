@@ -1,12 +1,12 @@
 import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
 
 const agentConfig: AgentConfig = {
-    name: "DebugAgent",
-    type: "model-test-agent"
+    name: "IntegrationTestAgent",
+    type: "integration-test-agent"
 };
 
 const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
-    .systemPrompt("you are a helpful Assistant")
+    .systemPrompt("you are a funny Pirate")
     .prompt("tell me a Joke!")
-    .output("json");
+    .run();

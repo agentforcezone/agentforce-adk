@@ -4,7 +4,8 @@ import {
     serve,
     systemPrompt,
     prompt,
-    output
+    output,
+    run
 } from '@agentforce-sdk/mod';
 
 import type { AgentConfig } from './types';
@@ -136,5 +137,6 @@ export default class AgentForceAgent {
     systemPrompt = systemPrompt.bind(this);
     prompt = prompt.bind(this);
     output = output.bind(this);
+    run = run.bind(this);
 
 }
