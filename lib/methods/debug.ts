@@ -2,7 +2,7 @@ import AgentForceAgent from "@agentforce-sdk/agent";
 
 /**
  * Logs debug information about the agent and returns the agent instance for chaining.
- * This method is chainable and logs agent details to the console.
+ * This method is chainable and logs agent details using the configured logger.
  *
  * @memberof AgentForceAgent
  * @function debug
@@ -13,11 +13,12 @@ export function debug(this: AgentForceAgent): AgentForceAgent {
         name: this.getName(),
         type: this.getType(),
         provider: this.getProvider(),
-        model: this.getModel()
+        model: this.getModel(),
+        loggerType: this.getLoggerType()
     };
     
-    // Log debug info to console for development purposes
-    console.log('AgentForce Debug:', debugInfo);
+    // Log debug info using the configured pino logger
+    this.getLogger().info(debugInfo, 'AgentForce Debug');
     
     return this;
 }

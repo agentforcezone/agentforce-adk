@@ -2,7 +2,8 @@ import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
 
 const agentConfig: AgentConfig = {
     name: "IntegrationTestAgent",
-    type: "integration-test-agent"
+    type: "integration-test-agent",
+    logger: "pretty"
 };
 
 const output = await new AgentForceAgent(agentConfig)

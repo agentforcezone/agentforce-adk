@@ -2,7 +2,8 @@ import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
 
 const agentConfig: AgentConfig = {
     name: "WebServerAgent",
-    type: "http-server-agent"
+    type: "http-server-agent",
+    logger: "json"
 };
 
 // Create an agent and start a web server (serve is terminal - doesn't return agent)

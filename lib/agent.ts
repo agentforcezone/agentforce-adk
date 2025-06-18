@@ -9,8 +9,9 @@ import {
     execute,
     saveToFile
 } from '@agentforce-sdk/mod';
+import pino from 'pino';
 
-import type { AgentConfig } from './types';
+import type { AgentConfig, LoggerType } from './types';
 export type { AgentConfig };
 
 /**
@@ -28,7 +29,8 @@ export default class AgentForceAgent {
     private _userPrompt: string = "";
     private _chatHistory: {role: string, content: string}[] = [];
 
-    private logging: boolean = true;
+    private logger: LoggerType = "json";
+    private _pinoLogger: pino.Logger;
 
     private provider: string = "ollama";
     private model: string = "gemma3:4b"
@@ -40,6 +42,21 @@ export default class AgentForceAgent {
     constructor(config: AgentConfig) {
         this._name = config.name;
         this._type = config.type;
+        this.logger = config.logger || "json";
+        
+        // Initialize pino logger based on the logger type
+        if (this.logger === "pretty") {
+            this._pinoLogger = pino({
+                transport: {
+                    target: 'pino-pretty',
+                    options: {
+                        colorize: true
+                    }
+                }
+            });
+        } else {
+            this._pinoLogger = pino();
+        }
     }
 
     /**
@@ -131,6 +148,20 @@ export default class AgentForceAgent {
      */
     protected getChatHistory() {
         return this._chatHistory;
+    }
+
+    /**
+     * Get the logger type of the agent.
+     */
+    protected getLoggerType() {
+        return this.logger;
+    }
+
+    /**
+     * Get the pino logger instance.
+     */
+    protected getLogger() {
+        return this._pinoLogger;
     }
 
     protected execute = execute.bind(this);
