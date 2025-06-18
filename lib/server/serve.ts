@@ -33,8 +33,9 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     // Create Pino logger instance
     const log = pino({
         name: "agentforce-sdk-server",
-        level: process.env.LOG_LEVEL || "info", // Use LOG_LEVEL env var or default
+        level: process.env.LOG_LEVEL || "warning", // Use LOG_LEVEL env var or default
         timestamp: pino.stdTimeFunctions.isoTime,
+        base: undefined, // Remove default fields like pid and hostname
         formatters: {
             level: (label) => {
                 return { level: label };
@@ -42,9 +43,26 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
         },
     });
 
-    // Custom logger function for Hono middleware
+    // Custom logger function for Hono middleware that parses HTTP request info
     const customLogger = (message: string, ...rest: string[]) => {
-        log.info(message, ...rest);
+        // Parse the message format: "--> GET /v1/models \u001b[32m200\u001b[0m 12ms"
+        const httpLogPattern = /^--> (\w+) (.+?) (?:\u001b\[\d+m)?(\d+)(?:\u001b\[\d+m)? (\d+)ms$/;
+        const match = message.match(httpLogPattern);
+        
+        if (match && match.length >= 5) {
+            const [, method, route, statusCode, duration] = match;
+            log.info({
+                type: "http_request",
+                method,
+                route,
+                statusCode: parseInt(statusCode || "0"),
+                duration: parseInt(duration || "0"),
+                durationUnit: "ms"
+            });
+        } else {
+            // Fallback for non-HTTP log messages
+            log.info(message, ...rest);
+        }
     };
 
     // Create Hono app with logger middleware
