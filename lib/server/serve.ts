@@ -1,5 +1,7 @@
 import type AgentForceAgent from '../agent';
 import { Hono } from 'hono';
+import { logger as loggerMiddleware } from 'hono/logger';
+import pino from 'pino';
 import { createModelsRoute } from './routes/v1/models';
 
 /**
@@ -28,8 +30,26 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     console.log(`Current config: ${currentProvider}/${currentModel}`);
     console.log(`Server will bind to: ${host}:${port}`);
 
-    // Create Hono app
+    // Create Pino logger instance
+    const log = pino({
+        name: "agentforce-sdk-server",
+        level: process.env.LOG_LEVEL || "info", // Use LOG_LEVEL env var or default
+        timestamp: pino.stdTimeFunctions.isoTime,
+        formatters: {
+            level: (label) => {
+                return { level: label };
+            },
+        },
+    });
+
+    // Custom logger function for Hono middleware
+    const customLogger = (message: string, ...rest: string[]) => {
+        log.info(message, ...rest);
+    };
+
+    // Create Hono app with logger middleware
     const app = new Hono();
+    app.use(loggerMiddleware(customLogger));
 
     // Mount v1 routes
     const modelsRoute = createModelsRoute(currentModel, currentProvider);
@@ -47,7 +67,7 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
         fetch: app.fetch,
     });
 
-    console.log(`🚀 Agent server running at http://${server.hostname}:${server.port}`);
+    log.info(`🚀 Agent server running at http://${server.hostname}:${server.port}`);
 
     // Terminal method - does not return the agent (server runs indefinitely)
 }
