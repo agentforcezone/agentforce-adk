@@ -3,6 +3,8 @@
 <div align="center">
   <img src="https://avatars.githubusercontent.com/u/212582904?s=200" alt="AgentForce Logo" width="200" height="200">
   
+  <br/>
+
   <p><strong>A powerful TypeScript framework for building AI agents</strong></p>
 
   <p>
