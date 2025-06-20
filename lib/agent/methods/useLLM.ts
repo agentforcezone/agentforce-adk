@@ -1,6 +1,6 @@
-import AgentForceAgent from "@agentforce-sdk/agent";
-import { OllamaProvider } from "../provider/ollama";
-import type { ProviderType } from "../types";
+import AgentForceAgent from "@lib/agent";
+import { OllamaProvider } from "@provider/ollama";
+import type { ProviderType } from "@lib/types";
 
 /**
  * Connects the AI agent to a Language Learning Model.

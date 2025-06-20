@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
 import { readFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { MockOllamaProvider } from './mocks/MockOllamaProvider';

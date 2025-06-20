@@ -1,8 +1,7 @@
-import type AgentForceAgent from '../agent';
+import type AgentForceAgent from '@lib/agent';
 import { Hono } from 'hono';
 import { logger as loggerMiddleware } from 'hono/logger';
 import pino from 'pino';
-import { createModelsRoute } from './routes/v1/models';
 
 /**
  * Starts a Bun HTTP server for the agent (terminal method)
@@ -68,10 +67,6 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     // Create Hono app with logger middleware
     const app = new Hono();
     app.use(loggerMiddleware(customLogger));
-
-    // Mount v1 routes
-    const modelsRoute = createModelsRoute(currentModel, currentProvider);
-    app.route('/v1', modelsRoute);
 
     // Default route
     app.get('/', (c) => {

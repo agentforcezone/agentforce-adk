@@ -1,4 +1,4 @@
-import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
 
 const agentConfig: AgentConfig = {
     name: "WebServerAgent",

@@ -21,6 +21,17 @@ export type AgentConfig = {
 };
 
 /**
+ * Configuration object for creating an AgentForce server
+ * @typedef {Object} ServerConfig
+ * @property {string} name - Name of the server
+ * @property {LoggerType} [logger] - Logger format ('json' or 'pretty'), defaults to 'json'
+ */
+export type ServerConfig = {
+    name: string;
+    logger?: LoggerType;
+};
+
+/**
  * Type definition for output formats
  */
 export type OutputType = 'text' | 'json' | 'md';

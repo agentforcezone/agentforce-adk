@@ -1,4 +1,4 @@
-import type AgentForceAgent from '@agentforce-sdk/agent';
+import type AgentForceAgent from '@lib/agent';
 
 /**
  * Sets the user prompt for the agent

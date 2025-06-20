@@ -1,4 +1,4 @@
-import type AgentForceAgent from '@agentforce-sdk/agent';
+import type AgentForceAgent from '@lib/agent';
 import { execute } from './execute';
 
 /**

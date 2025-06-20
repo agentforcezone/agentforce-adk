@@ -8,7 +8,7 @@ import {
     run,
     execute,
     saveToFile
-} from '@agentforce-sdk/mod';
+} from '@lib/agent/mod';
 import pino from 'pino';
 
 import type { AgentConfig, LoggerType } from './types';

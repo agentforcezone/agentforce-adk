@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
 import { MockOllamaProvider } from "./mocks/MockOllamaProvider";
 
 // Test-specific run method that always uses MockOllamaProvider for Ollama

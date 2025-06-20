@@ -1,5 +1,5 @@
-import type AgentForceAgent from '@agentforce-sdk/agent';
-import type { OutputType } from '../../types';
+import type AgentForceAgent from '@lib/agent';
+import type { OutputType } from '@lib/types';
 import { execute } from './execute';
 
 /**

@@ -59,7 +59,7 @@ These providers are recognized by the SDK but require additional implementation.
 Create your first agent in just a few lines of code:
 
 ```typescript
-import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
 
 // Configure your agent
 const agentConfig: AgentConfig = {
@@ -101,7 +101,7 @@ agent
 ### Basic Agent with Method Chaining
 
 ```typescript
-import AgentForceAgent from "@agentforce-sdk/agent";
+import AgentForceAgent from "@lib/agent";
 
 const agent = new AgentForceAgent({
   name: "ChatBot",

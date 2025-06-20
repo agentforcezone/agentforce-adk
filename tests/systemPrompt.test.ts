@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@agentforce-sdk/agent";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
 
 describe('AgentForceAgent systemPrompt Method Tests', () => {
     let agent: AgentForceAgent;

@@ -71,7 +71,7 @@ resetOllamaProvider();
 
 ### In Tests
 ```typescript
-import { injectOllamaProvider, resetOllamaProvider } from "@agentforce-sdk/methods/run";
+import { injectOllamaProvider, resetOllamaProvider } from "@lib/methods/run";
 import { MockOllamaProvider } from "./mocks/MockOllamaProvider";
 
 beforeEach(() => {

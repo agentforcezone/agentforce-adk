@@ -27,7 +27,8 @@
     "noPropertyAccessFromIndexSignature": false,
     "baseUrl": ".",
     "paths": {
-      "@agentforce-sdk/*": ["lib/*"]
+      "@lib/*": ["lib/*"],
+      "@provider/*": ["lib/provider/*"]
     },
   }
 }
