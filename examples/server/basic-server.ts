@@ -5,5 +5,5 @@ const serverConfig: ServerConfig = {
     logger: "json",
 };
 
-await new AgentForceServer(serverConfig)
+new AgentForceServer(serverConfig)
     .serve("localhost", 3000);
