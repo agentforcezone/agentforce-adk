@@ -1,6 +1,7 @@
 import type AgentForceServer from '@lib/server';
 import { Hono } from 'hono';
 import { logger as loggerMiddleware } from 'hono/logger';
+import { createAgentRouteHandler } from './addRouteAgent';
 
 /**
  * Starts a Bun HTTP server for the AgentForceServer (terminal method)
@@ -76,6 +77,65 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
             server: serverName,
             timestamp: new Date().toISOString()
         });
+    });
+
+    // Add dynamic route agents
+    const routeAgents = this.getRouteAgents();
+    log.info({
+        serverName,
+        routeAgentsCount: routeAgents.length,
+        action: 'registering_route_agents'
+    }, `Registering ${routeAgents.length} route agents`);
+
+    routeAgents.forEach(routeAgent => {
+        const { method, path, agent } = routeAgent;
+        const handler = createAgentRouteHandler(agent, method, path);
+        
+        // Register the route based on HTTP method
+        switch (method) {
+            case 'GET':
+                app.get(path, handler);
+                break;
+            case 'POST':
+                app.post(path, handler);
+                break;
+            case 'PUT':
+                app.put(path, handler);
+                break;
+            case 'DELETE':
+                app.delete(path, handler);
+                break;
+            case 'PATCH':
+                app.patch(path, handler);
+                break;
+            case 'HEAD':
+                // Hono doesn't have a dedicated head method, use all()
+                app.all(path, (c) => {
+                    if (c.req.method === 'HEAD') {
+                        return handler(c);
+                    }
+                    return c.notFound();
+                });
+                break;
+            case 'OPTIONS':
+                app.options(path, handler);
+                break;
+            default:
+                log.warn({
+                    serverName,
+                    method,
+                    path,
+                    action: 'unsupported_method'
+                }, `Unsupported HTTP method: ${method} for path: ${path}`);
+        }
+        
+        log.info({
+            serverName,
+            method,
+            path,
+            agentName: 'AgentForce Agent',
+            action: 'route_registered'
+        }, `Registered route: ${method} ${path}`);
     });
 
     // Start the server using Bun's serve with Hono

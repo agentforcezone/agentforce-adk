@@ -1,6 +1,8 @@
 import pino from 'pino';
 import {
     serve,
+    addRouteAgent,
+    type RouteAgent,
 } from '@lib/server/mod';
 
 import type { ServerConfig, LoggerType } from './types';
@@ -18,6 +20,7 @@ export default class AgentForceServer {
     private _name: string;
     private logger: LoggerType = "json";
     private _pinoLogger: pino.Logger;
+    private _routeAgents: RouteAgent[] = [];
 
     /**
      * Constructs the AgentForceServer class.
@@ -62,6 +65,25 @@ export default class AgentForceServer {
     public getLogger() {
         return this._pinoLogger;
     }
+
+    /**
+     * Add a route agent to the collection.
+     * @param routeAgent - The route agent configuration to add
+     */
+    public addToRouteAgents(routeAgent: RouteAgent) {
+        this._routeAgents.push(routeAgent);
+    }
+
+    /**
+     * Get all route agents.
+     * @returns Array of route agent configurations
+     */
+    public getRouteAgents(): RouteAgent[] {
+        return this._routeAgents;
+    }
+
+    // Chainable methods
+    addRouteAgent = addRouteAgent.bind(this);
 
     // Terminal/Non-chainable methods
     serve = serve.bind(this);
