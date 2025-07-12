@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  agentforce-server:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    # For Podman, you can also use pods for better networking
+    # pod: agentforce-pod
+    
+# Podman-specific configuration
+# You can create a pod first with: podman pod create --name agentforce-pod -p 3000:3000
+# Then uncomment the pod line above and remove the ports section
+
+# For Ollama integration with Podman pods:
+# 1. Create pod: podman pod create --name agentforce-pod -p 3000:3000 -p 11434:11434
+# 2. Run Ollama: podman run -d --pod agentforce-pod --name ollama ollama/ollama
+# 3. Run AgentForce: podman-compose up
