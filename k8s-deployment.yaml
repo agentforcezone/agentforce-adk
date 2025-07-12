@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentforce-server
+  labels:
+    app: agentforce-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agentforce-server
+  template:
+    metadata:
+      labels:
+        app: agentforce-server
+    spec:
+      containers:
+      - name: agentforce-server
+        image: agentforce-server:latest
+        imagePullPolicy: Never  # Use local image from Kind
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentforce-server-service
+  labels:
+    app: agentforce-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: agentforce-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agentforce-server-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: agentforce-server-service
+            port:
+              number: 80
