@@ -8,6 +8,7 @@ import {
     run,
     execute,
     saveToFile,
+    getResponse,
 } from '@lib/agent/mod';
 import pino from 'pino';
 
@@ -193,6 +194,7 @@ export default class AgentForceAgent {
     // Terminal/Non-chainable methods (return output, not this)
     serve = serve.bind(this);
     output = output.bind(this);
+    getResponse = getResponse.bind(this);
     saveToFile = saveToFile.bind(this);
 
 }

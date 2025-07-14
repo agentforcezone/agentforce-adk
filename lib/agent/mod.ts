@@ -12,6 +12,7 @@ export * from '@lib/agent/methods/async/execute';
 
 // Terminal methods
 export * from '@lib/agent/methods/async/output';
+export * from '@lib/agent/methods/async/getResponse';
 export * from '@lib/agent/methods/async/saveToFile';
 
 // Server methods

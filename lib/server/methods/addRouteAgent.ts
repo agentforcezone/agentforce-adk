@@ -1,6 +1,5 @@
 import type AgentForceServer from '@lib/server';
 import type AgentForceAgent from '@lib/agent';
-import { Hono } from 'hono';
 import type { Context } from 'hono';
 
 /**
@@ -97,8 +96,8 @@ export function createAgentRouteHandler(agent: AgentForceAgent, method: string, 
                         message: 'Please provide valid JSON data'
                     }, 400);
                 }
-            } else if (method === 'GET') {
-                // For GET requests, use query parameters
+            } else if (['GET', 'HEAD', 'OPTIONS', 'DELETE'].includes(method)) {
+                // For GET, HEAD, OPTIONS, DELETE requests, use query parameters
                 const url = new URL(c.req.url);
                 requestData = Object.fromEntries(url.searchParams.entries());
             }
@@ -113,60 +112,26 @@ export function createAgentRouteHandler(agent: AgentForceAgent, method: string, 
             }
 
             // Check if agent is configured to use route prompts
-            let response: any;
-            let agentName: string;
-            let agentType: string;
-
-            // Safely get agent name and type with fallbacks
-            try {
-                agentName = typeof agent.getName === 'function' ? agent.getName() : 'Unknown Agent';
-                agentType = typeof agent.getType === 'function' ? agent.getType() : 'unknown';
-                console.log('DEBUG: Agent name/type extracted:', agentName, agentType);
-            } catch (error) {
-                console.error('Error accessing agent methods:', error);
-                agentName = 'Unknown Agent';
-                agentType = 'unknown';
-            }
-
+            let response: string;
+            
             // Execute the agent with the provided prompt
             try {
-                await agent
+                response = await agent
                     .prompt(requestData.prompt)
-                    .run();
-
-                // Get the output in JSON format and extract only the response field
-                const fullOutput = await agent.output('json');
-                response = typeof fullOutput === 'object' && fullOutput !== null && 'response' in fullOutput
-                    ? fullOutput.response
-                    : fullOutput;
+                    .getResponse();
             } catch (error) {
                 console.error('Error executing agent:', error);
                 throw new Error(`Agent execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            }
-
-            // Parse the response if it's a string
-            let parsedResponse;
-            try {
-                parsedResponse = typeof response === 'string' ? JSON.parse(response) : response;
-            } catch (error) {
-                // If parsing fails, wrap the response
-                parsedResponse = {
-                    content: response,
-                    prompt: requestData.prompt,
-                    timestamp: new Date().toISOString()
-                };
             }
 
             return c.json({
                 success: true,
                 method,
                 path,
-                agent: {
-                    name: agentName,
-                    type: agentType
-                },
+                agentName: agent.getName(),
+                agentType: agent.getType(),
                 prompt: requestData.prompt,
-                response: parsedResponse,
+                response,
             });
 
         } catch (error) {
