@@ -1,11 +1,11 @@
-# AgentForce SDK
+# AgentForce ADK
 
 <div align="center">
   <img src="https://avatars.githubusercontent.com/u/212582904?s=200" alt="AgentForce Logo" width="200" height="200">
   
   <br/>
 
-  <p><strong>A powerful TypeScript framework for building AI agents</strong></p>
+  <p><strong>A powerful TypeScript Agentic framework for building AI agent workflows</strong></p>
 
   <p>
     <a href="#installation">Installation</a> •
@@ -21,19 +21,12 @@
 
 ## Overview
 
-AgentForce SDK is a TypeScript library for creating, managing, and orchestrating AI agents. Built with modern TypeScript practices, it provides a simple yet powerful interface to develop agent-based applications. The SDK supports multiple AI providers and models, making it flexible for various use cases.
+AgentForce ADK is a TypeScript Agent library for creating, managing, and orchestrating AI agent workflows. Built with modern TypeScript practices, it provides a simple yet powerful interface to develop agent-based applications. The Agent Development Kit supports multiple AI providers and models, making it flexible for various use cases.
 
 ## Installation
 
 ```bash
-# Using npm
-npm install agentforce-sdk
-
-# Using Yarn
-yarn add agentforce-sdk
-
-# Using Bun
-bun add agentforce-sdk
+# npm integration Comming Soon
 ```
 
 ## Provider Setup
@@ -217,6 +210,158 @@ This example demonstrates:
 - Basic API endpoint structure
 
 After running the server example, you can interact with the agent by sending HTTP requests to the configured endpoints.
+
+## Server Functionality
+
+AgentForce SDK includes built-in server capabilities powered by Hono framework, allowing you to deploy agents as HTTP APIs with structured logging and route management.
+
+### `AgentForceServer`
+
+The server class provides functionality for creating HTTP APIs with agent-powered endpoints.
+
+#### Constructor
+
+```typescript
+import AgentForceServer, { type ServerConfig } from "@lib/server";
+
+const serverConfig: ServerConfig = {
+    name: "MyAgentServer",
+    logger: "json" // or "pretty" for colored console output
+};
+
+const server = new AgentForceServer(serverConfig);
+```
+
+#### Server Methods
+
+- **`.addRouteAgent(method, path, agent)`**: Add an agent to handle specific HTTP endpoints (chainable)
+  - `method`: HTTP method ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
+  - `path`: Route path (e.g., "/story", "/image")
+  - `agent`: AgentForceAgent instance to handle requests
+
+- **`.serve(host?, port?)`**: Start the HTTP server (terminal method)
+  - `host`: Server host (default: "0.0.0.0")
+  - `port`: Server port (default: 3000)
+
+#### Complete Server Example
+
+```typescript
+import AgentForceServer, { type ServerConfig } from "@lib/server";
+import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+
+// Create agents
+const productOwnerAgent = new AgentForceAgent({
+    name: "ProductOwnerAgent",
+    type: "product-owner-agent"
+})
+    .useLLM("ollama", "gemma3:4b")
+    .systemPrompt("You are a product owner agent. Create tickets, epics, and user stories.");
+
+const designAgent = new AgentForceAgent({
+    name: "DesignAgent", 
+    type: "design-agent"
+})
+    .useLLM("ollama", "phi4-mini:latest")
+    .systemPrompt("You are a UI/UX design expert. Create design specifications and wireframes.");
+
+// Configure server
+const serverConfig: ServerConfig = {
+    name: "AgentAPIServer",
+    logger: "json"
+};
+
+// Create server with route agents
+new AgentForceServer(serverConfig)
+    .addRouteAgent("POST", "/story", productOwnerAgent)
+    .addRouteAgent("GET", "/story", productOwnerAgent)
+    .addRouteAgent("POST", "/design", designAgent)
+    .serve("localhost", 3000);
+```
+
+#### API Request/Response Format
+
+**Request Format:**
+```bash
+# POST request
+curl -X POST http://localhost:3000/story \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Create a user story for authentication system"}'
+
+# GET request  
+curl "http://localhost:3000/story?prompt=Create%20a%20user%20story%20for%20login"
+```
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "method": "GET",
+  "path": "/story",
+  "agent": {
+    "name": "IntegrationTestAgent",
+    "type": "product-owner-agent"
+  },
+  "prompt": "Hello",
+  "response": {
+    "content": "Okay! Hello to you too! 😊 \n\nLet's get started.",
+    "prompt": "Hello",
+    "timestamp": "2025-07-14T10:04:47.462Z"
+  }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error": "Missing or invalid prompt",
+  "message": "Request must include a 'prompt' field with a string value",
+  "example": {"prompt": "create a story for an auth service"},
+  "method": "POST",
+  "path": "/story",
+  "timestamp": "2025-07-14T09:48:12.529Z"
+}
+```
+
+#### Server Features
+
+- **Multiple HTTP Methods**: Support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- **Route Management**: Easy configuration of agent-powered endpoints
+- **Structured Logging**: Built-in logging with Pino (JSON or pretty-printed format)
+- **Error Handling**: Comprehensive error responses with helpful messages
+- **Request Validation**: Automatic validation of required fields
+- **Agent Response Wrapping**: AI responses are wrapped with structured metadata including timestamps and agent information
+- **Method Chaining**: Fluent interface for server configuration
+- **Method Chaining**: Fluent interface for server configuration
+
+#### Logging Configuration
+
+```typescript
+// JSON logging (default)
+const server = new AgentForceServer({
+    name: "MyServer",
+    logger: "json"
+});
+
+// Pretty-printed colored logging for development
+const server = new AgentForceServer({
+    name: "MyServer", 
+    logger: "pretty"
+});
+```
+
+#### Production Deployment
+
+```typescript
+// Production server configuration
+const server = new AgentForceServer({
+    name: "ProductionAgentAPI",
+    logger: "json"
+})
+    .addRouteAgent("POST", "/api/v1/generate", agent)
+    .addRouteAgent("GET", "/api/v1/health", healthAgent)
+    .serve("0.0.0.0", process.env.PORT || 8080);
+```
 
 ## API Reference
 
