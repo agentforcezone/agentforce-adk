@@ -9,6 +9,7 @@ import {
     execute,
     saveToFile,
     getResponse,
+    withTemplate,
 } from '@lib/agent/mod';
 import pino from 'pino';
 
@@ -28,6 +29,7 @@ export default class AgentForceAgent {
     private _type: string;
     private _systemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
     private _userPrompt: string = "";
+    private _template: string = "";
     private _chatHistory: {role: string, content: string}[] = [];
     private _useRoutePrompt: boolean = false;
 
@@ -103,6 +105,21 @@ export default class AgentForceAgent {
      */
     protected setSystemPrompt(prompt: string) {
         this._systemPrompt = prompt;
+    }
+
+    /**
+     * Get the template content of the agent.
+     */
+    public getTemplate() {
+        return this._template;
+    }
+
+    /**
+     * Set the template content of the agent.
+     * @param template - The template content to set
+     */
+    protected setTemplate(template: string) {
+        this._template = template;
     }
 
     /**
@@ -189,6 +206,7 @@ export default class AgentForceAgent {
     useLLM = useLLM.bind(this);
     systemPrompt = systemPrompt.bind(this);
     prompt = prompt.bind(this);
+    withTemplate = withTemplate.bind(this);
     run = run.bind(this);
     
     // Terminal/Non-chainable methods (return output, not this)

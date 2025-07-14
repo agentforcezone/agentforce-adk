@@ -11,7 +11,17 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     const provider = this.getProvider();
     const model = this.getModel();
     const systemPrompt = this.getSystemPrompt();
+    const template = this.getTemplate();
     const userPrompt = this.getUserPrompt();
+
+    // Construct the full system prompt with template if available
+    let fullSystemPrompt = systemPrompt;
+    if (template && template.trim()) {
+        fullSystemPrompt = `${systemPrompt}\n\n${template}`;
+    }
+    console.log(`Executing with provider: ${provider}, model: ${model}`);
+    console.log(`Full system prompt: ${fullSystemPrompt}`);
+    console.log(`User prompt: ${userPrompt}`);
 
     // Store the user prompt in chat history if not already stored
     const chatHistory = this.getChatHistory();
@@ -29,8 +39,8 @@ export async function execute(this: AgentForceAgent): Promise<string> {
                 // Use the real OllamaProvider for production
                 const ollamaProvider = new OllamaProvider(model);
                 
-                // Use generate method with prompt and system parameters
-                response = await ollamaProvider.generate(userPrompt, systemPrompt);
+                // Use generate method with prompt and system parameters (including template)
+                response = await ollamaProvider.generate(userPrompt, fullSystemPrompt);
                 break;
 
             case "openai":

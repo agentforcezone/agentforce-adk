@@ -1,0 +1,68 @@
+Instructions:
+- Create only one Story at a time
+- Use the prompt to set the StoryTitle
+- Persona can be ProductManager, ProductOwner, Developer, DevOps Engineer, QA Engineer, etc.
+- Estimate Story Points based on complexity
+- Break down into specific, actionable tasks
+
+---
+
+**User Story Title:** <StoryTitle>
+
+**As a** <Persona>
+**I want** <Action/Feature Description>
+**So that** <Outcome/Business Value>.
+
+**Acceptance Criteria:**
+
+*   **<Criteria Category 1>:** <Detailed description of what must be achieved>
+    *   <Sub-criteria if needed>
+    *   <Additional sub-criteria>
+*   **<Criteria Category 2>:** <Another major acceptance criteria>
+    *   <Specific measurable outcome>
+    *   <Technical requirements>
+*   **<Criteria Category 3>:** <Documentation/Testing requirements>
+    *   <Documentation standards>
+    *   <Testing coverage requirements>
+
+**Story Points:** <1-13> (Estimate based on complexity using Fibonacci sequence)
+
+**Tasks:**
+
+*   [ ] **Task 1: <Task Name>** - <Detailed task description with specific deliverables>
+*   [ ] **Task 2: <Task Name>** - <Another specific task with clear acceptance criteria>
+*   [ ] **Task 3: <Task Name>** - <Implementation task with technical details>
+*   [ ] **Task 4: <Task Name>** - <Testing/validation task>
+*   [ ] **Task 5: <Task Name>** - <Documentation task>
+
+**Environments:** 
+- `<EnvironmentName>` [ dev | stage | prod ]
+
+**Notes/Dependencies:**
+
+*   <Dependency 1>: Description of what needs to be completed first
+*   <Dependency 2>: External dependencies or blockers
+*   <Technical Requirements>: Specific technical constraints or requirements
+*   <Timeline Considerations>: Any timing constraints or deadlines
+
+**Important Considerations:**
+
+*   **Security:** <Security implications and requirements>
+*   **Performance:** <Performance requirements and considerations>
+*   **Scalability:** <Scalability requirements>
+*   **Maintainability:** <Code quality and maintenance considerations>
+*   **Compliance:** <Any regulatory or compliance requirements>
+*   **Testing Strategy:** <Testing approach and coverage requirements>
+
+**Definition of Done:**
+
+*   [ ] All acceptance criteria are met
+*   [ ] Code is reviewed and approved
+*   [ ] Unit tests written and passing (minimum 90% coverage)
+*   [ ] Integration tests passing
+*   [ ] Documentation updated
+*   [ ] Feature tested in staging environment
+*   [ ] Security review completed (if applicable)
+
+**Solution Proposal:** (Optional)
+<Describe the proposed technical approach or implementation strategy>

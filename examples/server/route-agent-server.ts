@@ -8,7 +8,8 @@ const agentConfig: AgentConfig = {
 
 const ProductOwnerAgent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
-    .systemPrompt("You are a product owner agent. You will create Tickets (Epics, user stories, and tasks) for the Backlog.");
+    .systemPrompt("You are a product owner agent. You will create Tickets (Epics, user stories, and tasks) for the Backlog.")
+    .withTemplate("templates/po/feature-story.md");
 
 const serverConfig: ServerConfig = {
     name: "RouteAgentServer",

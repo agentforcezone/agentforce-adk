@@ -5,6 +5,7 @@ export * from '@lib/agent/methods/debug';
 export * from '@lib/agent/methods/useLLM';
 export * from '@lib/agent/methods/systemPrompt';
 export * from '@lib/agent/methods/prompt';
+export * from '@lib/agent/methods/withTemplate';
 
 // Async methods
 export * from '@lib/agent/methods/async/run';
