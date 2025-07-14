@@ -8,7 +8,7 @@ const agentConfig: AgentConfig = {
 
 const ProductOwnerAgent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
-    .systemPrompt("You are a product owner agent. You will answer questions about the product and provide images when requested.");
+    .systemPrompt("You are a product owner agent. You will create Tickets (Epics, user stories, and tasks) for the Backlog.");
 
 const serverConfig: ServerConfig = {
     name: "RouteAgentServer",
@@ -17,5 +17,6 @@ const serverConfig: ServerConfig = {
 
 new AgentForceServer(serverConfig)
     .addRouteAgent("POST","/story", ProductOwnerAgent)
-    .addRouteAgent("GET","/image", ProductOwnerAgent)
+    .addRouteAgent("GET","/story", ProductOwnerAgent)
+    //.addRouteAgent("GET","/image", DesignAgent)
     .serve("localhost", 3000);

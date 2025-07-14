@@ -21,27 +21,27 @@ export interface RouteAgent {
  * @returns {AgentForceServer} The server instance for method chaining
  */
 export function addRouteAgent(
-    this: AgentForceServer, 
-    method: string, 
-    path: string, 
+    this: AgentForceServer,
+    method: string,
+    path: string,
     agent: AgentForceAgent
 ): AgentForceServer {
     // Validate inputs
     if (!method || typeof method !== 'string') {
         throw new Error('HTTP method must be a non-empty string');
     }
-    
+
     if (!path || typeof path !== 'string') {
         throw new Error('Route path must be a non-empty string');
     }
-    
+
     if (!agent) {
         throw new Error('Agent instance is required');
     }
 
     // Normalize method to uppercase
     const normalizedMethod = method.toUpperCase();
-    
+
     // Validate HTTP method
     const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
     if (!validMethods.includes(normalizedMethod)) {
@@ -86,13 +86,13 @@ export function createAgentRouteHandler(agent: AgentForceAgent, method: string, 
     return async (c: Context) => {
         try {
             let requestData: any = {};
-            
+
             // Extract request data based on HTTP method
             if (['POST', 'PUT', 'PATCH'].includes(method)) {
                 try {
                     requestData = await c.req.json();
                 } catch (error) {
-                    return c.json({ 
+                    return c.json({
                         error: 'Invalid JSON in request body',
                         message: 'Please provide valid JSON data'
                     }, 400);
@@ -112,17 +112,37 @@ export function createAgentRouteHandler(agent: AgentForceAgent, method: string, 
                 }, 400);
             }
 
-            // Create a new agent instance for this request to avoid state pollution
-            const requestAgent = Object.create(Object.getPrototypeOf(agent));
-            Object.assign(requestAgent, agent);
+            // Check if agent is configured to use route prompts
+            let response: any;
+            let agentName: string;
+            let agentType: string;
 
-            // Set the user prompt and execute the agent
-            await requestAgent
-                .prompt(requestData.prompt)
-                .run();
-            
-            // Get the output in JSON format
-            const response = await requestAgent.output('json');
+            // Safely get agent name and type with fallbacks
+            try {
+                agentName = typeof agent.getName === 'function' ? agent.getName() : 'Unknown Agent';
+                agentType = typeof agent.getType === 'function' ? agent.getType() : 'unknown';
+                console.log('DEBUG: Agent name/type extracted:', agentName, agentType);
+            } catch (error) {
+                console.error('Error accessing agent methods:', error);
+                agentName = 'Unknown Agent';
+                agentType = 'unknown';
+            }
+
+            // Execute the agent with the provided prompt
+            try {
+                await agent
+                    .prompt(requestData.prompt)
+                    .run();
+
+                // Get the output in JSON format and extract only the response field
+                const fullOutput = await agent.output('json');
+                response = typeof fullOutput === 'object' && fullOutput !== null && 'response' in fullOutput
+                    ? fullOutput.response
+                    : fullOutput;
+            } catch (error) {
+                console.error('Error executing agent:', error);
+                throw new Error(`Agent execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
 
             // Parse the response if it's a string
             let parsedResponse;
@@ -139,31 +159,25 @@ export function createAgentRouteHandler(agent: AgentForceAgent, method: string, 
 
             return c.json({
                 success: true,
-                data: parsedResponse,
-                metadata: {
-                    method,
-                    path,
-                    prompt: requestData.prompt,
-                    timestamp: new Date().toISOString(),
-                    agent: {
-                        name: requestAgent.getName(),
-                        type: requestAgent.getType()
-                    }
-                }
+                method,
+                path,
+                agent: {
+                    name: agentName,
+                    type: agentType
+                },
+                prompt: requestData.prompt,
+                response: parsedResponse,
             });
 
         } catch (error) {
             console.error(`Error in route agent ${method} ${path}:`, error);
-            
+
             return c.json({
                 success: false,
+                method,
+                path,
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error occurred',
-                metadata: {
-                    method,
-                    path,
-                    timestamp: new Date().toISOString()
-                }
             }, 500);
         }
     };

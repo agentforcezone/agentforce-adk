@@ -7,7 +7,7 @@ import {
     output,
     run,
     execute,
-    saveToFile
+    saveToFile,
 } from '@lib/agent/mod';
 import pino from 'pino';
 
@@ -28,6 +28,7 @@ export default class AgentForceAgent {
     private _systemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
     private _userPrompt: string = "";
     private _chatHistory: {role: string, content: string}[] = [];
+    private _useRoutePrompt: boolean = false;
 
     private logger: LoggerType = "json";
     private _pinoLogger: pino.Logger;
@@ -62,14 +63,14 @@ export default class AgentForceAgent {
     /**
      * Get the name of the agent.
      */
-    protected getName() {
+    public getName() {
         return this._name;
     }
 
     /**
      * Get the type of the agent.
      */
-    protected getType() {
+    public getType() {
         return this._type;
     }
 
@@ -91,7 +92,7 @@ export default class AgentForceAgent {
     /**
      * Get the system prompt of the agent.
      */
-    protected getSystemPrompt() {
+    public getSystemPrompt() {
         return this._systemPrompt;
     }
 
@@ -106,7 +107,7 @@ export default class AgentForceAgent {
     /**
      * Get the name of the AgentForceAgent model.
      */
-    protected getModel() {
+    public getModel() {
         return this.model;
     }
 
@@ -121,7 +122,7 @@ export default class AgentForceAgent {
     /**
      * Get the name of the AgentForceAgent provider.
      */
-    protected getProvider() {
+    public getProvider() {
         return this.provider;
     }
 
@@ -151,9 +152,25 @@ export default class AgentForceAgent {
     }
 
     /**
+     * Get the useRoutePrompt flag.
+     * @returns Boolean indicating if agent should use route prompts
+     */
+    public getUseRoutePrompt() {
+        return this._useRoutePrompt;
+    }
+
+    /**
+     * Set the useRoutePrompt flag.
+     * @param useRoutePrompt - Boolean to enable/disable route prompt usage
+     */
+    protected setUseRoutePrompt(useRoutePrompt: boolean) {
+        this._useRoutePrompt = useRoutePrompt;
+    }
+
+    /**
      * Get the logger type of the agent.
      */
-    protected getLoggerType() {
+    public getLoggerType() {
         return this.logger;
     }
 
