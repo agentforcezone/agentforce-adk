@@ -1,11 +1,13 @@
-# AgentForce ADK
+# AgentForce ADK -  The Agent Development Kit
 
 <div align="center">
   <img src="https://avatars.githubusercontent.com/u/212582904?s=200" alt="AgentForce Logo" width="200" height="200">
   
-  <br/>
+  <br/> <br/>
 
-  <p><strong>A powerful TypeScript Agentic framework for building AI agent workflows</strong></p>
+  <p><strong>A powerful TypeScript Agentic Framework for building AiAgent Workflows</strong></p>
+
+  <br/>
 
   <p>
     <a href="#installation">Installation</a> •
@@ -21,7 +23,7 @@
 
 ## Overview
 
-AgentForce ADK is a TypeScript Agent library for creating, managing, and orchestrating AI agent workflows. Built with modern TypeScript practices, it provides a simple yet powerful interface to develop agent-based applications. The Agent Development Kit supports multiple AI providers and models, making it flexible for various use cases.
+AgentForce ADK is a TypeScript Agent library for creating, managing, and orchestrating AiAgent Workflows. Built with modern TypeScript practices, it provides a simple powerful interface to develop Agent-Based applications. The Agent Development Kit supports multiple AI providers and models, making it flexible for various use cases.
 
 ## Installation
 
@@ -48,18 +50,6 @@ bun add @agentforce/adk
 | **JSR** | TypeScript-first projects, Deno/Bun compatibility | `npx jsr add @agentforce/adk` (Node.js)<br>`bunx jsr add @agentforce/adk` (Bun)<br>`deno add @agentforce/adk` (Deno) | Native TypeScript support, better type checking |
 | **Bun (npm)** | Fast development, modern JavaScript projects | `bun add @agentforce/adk` | Fastest package manager, built-in TypeScript support |
 
-### Usage after installation:
-
-```typescript
-// For npm and Bun installations
-import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig } from "@agentforce/adk";
-
-// For JSR installations  
-import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig } from "@agentforce/adk";
-```
-
-> **Note**: Both npm and JSR use the same import syntax. JSR automatically handles the import resolution, so you can use the same code regardless of which registry you installed from.
-
 #### Runtime Compatibility:
 
 - **Node.js**: 
@@ -72,30 +62,22 @@ import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig 
   - JSR: `bunx jsr add @agentforce/adk`
 - **Browsers**: Works with bundlers like Vite, Webpack, or Rollup using any installation method
 
-> **Note about Pretty Logging**: If you want to use `logger: "pretty"` for colored console output, you may need to install `pino-pretty` separately:
-> ```bash
-> npm install pino-pretty        # For npm installations
-> bunx jsr add npm:pino-pretty   # For JSR installations with Bun
-> ```
-> The package will automatically fall back to JSON logging if `pino-pretty` is not available.
-
 ## Provider Setup
-
-To use the `.run()` method with real AI providers, you'll need to set up the respective services:
 
 ### Ollama (Recommended for local development)
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull a model
-ollama pull llama2
-ollama pull codellama
-ollama pull phi4-mini
+# Pull a model, e.g
+ollama pull gemma3:12b
+ollama pull phi4-mini-reasoning:latest
+ollama pull magistral:latest
 ```
 
 ### OpenAI, Anthropic, Google
-These providers are recognized by the SDK but require additional implementation. Currently, the SDK will show "not implemented" messages for these providers when using `.run()`.
+
+Not yet implemented! Coming Soon
 
 ## Quick Start
 
@@ -114,30 +96,22 @@ const agentConfig: AgentConfig = {
 const agent = new AgentForceAgent(agentConfig)
   .useLLM("ollama", "llama2")
   .systemPrompt("You are a helpful AI assistant")
-  .prompt("Hello, how can I help you today?")
-  .run(); // Execute the agent and get AI response
-
-// Or use different output formats
-agent
-  .useLLM("openai", "gpt-4")
-  .systemPrompt("You are a helpful AI assistant")
-  .prompt("Hello, how can I help you today?")
+  .prompt("Hello, What is your role?")
   .output("json");
 ```
 
 ## Features
 
-- 🚀 **Simple API**: Create agents with minimal code
-- � **Method Chaining**: Fluent interface for configuring agents
-- �🔌 **Provider Agnostic**: Support for multiple AI providers (OpenAI, Anthropic, Ollama, Google)
-- 🤖 **Model Switching**: Easily switch between different models with `useLLM()`
-- 💬 **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
-- ⚡ **Agent Execution**: Execute agents with real API calls using `.run()`
-- 📄 **Multiple Output Formats**: Support for text, JSON, and Markdown output formats
-- 🛡️ **Type Safe**: Full TypeScript support with proper type definitions
-- 📊 **Debug Support**: Built-in debugging capabilities
-- 🧪 **Test-Friendly**: Comprehensive test coverage and designed for testability
-- 🌐 **Server Mode**: Built-in server functionality for agent deployment
+- **Simple API**: Create agents with minimal code
+- **Method Chaining**: Fluent interface for configuring agents
+- **Provider Agnostic**: Support for multiple AI providers (For now only Ollama is implemented)
+- **Model Switching**: Easily switch between different models with `useLLM()`
+- **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
+- **Multiple Output Formats**: Support for text, JSON, and Markdown output formats
+- **Type Safe**: Full TypeScript support with proper type definitions
+- **Debug Support**: Built-in debugging capabilities
+- **Test-Friendly**: Comprehensive test coverage and designed for testability
+- **Server Mode**: Built-in server functionality for agent deployment
 
 ## Examples
 
@@ -150,45 +124,22 @@ const agent = new AgentForceAgent({
   name: "ChatBot",
   type: "conversational-agent"
 })
-  .useLLM("openai", "gpt-4")
+  .useLLM("ollama", "phi4")
   .systemPrompt("You are a friendly chatbot")
   .prompt("Tell me a joke")
   .output("text");
 ```
 
-### Agent Execution with Real AI Responses
-
-```typescript
-// Execute agent with real API calls
-const agent = new AgentForceAgent({
-  name: "AssistantBot",
-  type: "ai-assistant"
-});
-
-// Using Ollama (requires running Ollama locally)
-await agent
-  .useLLM("ollama", "llama2")
-  .systemPrompt("You are a helpful programming assistant")
-  .prompt("Explain the concept of async/await in JavaScript")
-  .run(); // Makes actual API call and logs response
-
-// Chain with other methods
-await agent
-  .useLLM("ollama", "codellama")
-  .systemPrompt("You are a code reviewer")
-  .prompt("Review this function for best practices")
-  .run()
-  .then(agent => agent.debug()); // Log debug info after execution
-```
-
 ### Different Output Formats
 
 ```typescript
+import { AgentForceAgent } from "@agentforce/adk";
+
 const agent = new AgentForceAgent({
   name: "DataAgent",
   type: "data-processor"
 })
-  .useLLM("anthropic", "claude-3")
+  .useLLM("ollama", "llama3.2")
   .systemPrompt("You are a data analysis expert")
   .prompt("Analyze this dataset");
 
@@ -202,9 +153,11 @@ agent.output("json");
 agent.output("md");
 ```
 
-### Server Deployment
+### Agent as Server
 
 ```typescript
+import { AgentForceAgent } from "@agentforce/adk";
+
 const agent = new AgentForceAgent({
   name: "WebAgent",  
   type: "web-service"
@@ -213,53 +166,6 @@ const agent = new AgentForceAgent({
   .systemPrompt("You are a web API assistant")
   .serve("localhost", 3000); // Starts server on localhost:3000
 ```
-
-## Running Examples
-
-The SDK comes with ready-to-run examples that demonstrate various capabilities:
-
-### Integration Example
-
-Run the integration example to see how agents interact with different LLM providers:
-
-```bash
-# Using npm
-npm run example-integration
-
-# Using Yarn
-yarn example-integration
-
-# Using Bun (recommended)
-bun example-integration
-```
-
-This example demonstrates:
-- Setting up agents with different configurations
-- Using different LLM providers and models
-- Basic prompt interactions and responses
-
-### Server Example
-
-Run the server example to see how agents can be deployed as web services:
-
-```bash
-# Using npm
-npm run example-server
-
-# Using Yarn
-yarn example-server
-
-# Using Bun (recommended)
-bun example-server
-```
-
-This example demonstrates:
-- Creating an agent with web server capabilities
-- Configuring server host and port
-- Processing requests and generating responses
-- Basic API endpoint structure
-
-After running the server example, you can interact with the agent by sending HTTP requests to the configured endpoints.
 
 ## Server Functionality
 
@@ -344,43 +250,34 @@ curl "http://localhost:3000/story?prompt=Create%20a%20user%20story%20for%20login
 ```json
 {
   "success": true,
-  "method": "GET",
+  "method": "POST",
   "path": "/story",
-  "agent": {
-    "name": "IntegrationTestAgent",
-    "type": "product-owner-agent"
-  },
-  "prompt": "Hello",
-  "response": {
-    "content": "Okay! Hello to you too! 😊 \n\nLet's get started.",
-    "prompt": "Hello",
-    "timestamp": "2025-07-14T10:04:47.462Z"
-  }
+  "agentName": "IntegrationTestAgent",
+  "agentType": "product-owner-agent",
+  "prompt": "create a Story for a Design Website",
+  "response": "Okay, here's a Story created using the ..."
 }
 ```
 
 **Error Response:**
 ```json
 {
-  "success": false,
   "error": "Missing or invalid prompt",
-  "message": "Request must include a 'prompt' field with a string value",
-  "example": {"prompt": "create a story for an auth service"},
-  "method": "POST",
-  "path": "/story",
-  "timestamp": "2025-07-14T09:48:12.529Z"
+  "message": "Request must include a \"prompt\" field with a string value",
+  "example":{
+    "prompt": "create a story for an auth service in bun"
+  }
 }
 ```
 
 #### Server Features
 
-- **Multiple HTTP Methods**: Support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- **Multiple HTTP Methods**: Support for GET, POST
 - **Route Management**: Easy configuration of agent-powered endpoints
 - **Structured Logging**: Built-in logging with Pino (JSON or pretty-printed format)
-- **Error Handling**: Comprehensive error responses with helpful messages
+- **Error Handling**: Error responses with helpful messages
 - **Request Validation**: Automatic validation of required fields
 - **Agent Response Wrapping**: AI responses are wrapped with structured metadata including timestamps and agent information
-- **Method Chaining**: Fluent interface for server configuration
 - **Method Chaining**: Fluent interface for server configuration
 
 #### Logging Configuration
@@ -456,48 +353,21 @@ All methods return the agent instance for fluent chaining:
   - `host`: Server host (default: "0.0.0.0")
   - `port`: Server port (default: 3000)
 
-#### Example Usage
-
-```typescript
-// Method chaining with execution
-const agent = new AgentForceAgent(config)
-  .useLLM("ollama", "llama2")
-  .systemPrompt("You are helpful")
-  .prompt("Hello")
-  .debug();
-
-// Execute with real API call
-await agent.run();
-
-// Chain execution with other methods
-await agent
-  .useLLM("anthropic", "claude-3")
-  .systemPrompt("New system prompt")
-  .prompt("Explain machine learning")
-  .run()
-  .then(agent => agent.output("text"));
-
-// Multiple output formats
-agent
-  .output("json")
-  .output("md");
-```
-
 ## Roadmap
 
 - [x] Method chaining with fluent interface
-- [x] Multiple AI provider support (OpenAI, Anthropic, Ollama, Google)
 - [x] Prompt management (system and user prompts)
 - [x] Agent execution with real API calls (`.run()` method)
 - [x] Multiple output formats (text, JSON, markdown)
 - [x] Server deployment capabilities
 - [x] Comprehensive test coverage with mock data support
+- [ ] Multiple AI provider support (Ollama, Google, OpenRouter, ...)
 - [ ] Streaming responses
 - [ ] Function calling and tool integration
 - [ ] Multi-agent workflows and communication
-- [ ] Plugin system for extensibility
 - [ ] Advanced error handling and retry mechanisms
 - [ ] Performance monitoring and analytics
+- [ ] ...
 
 ## License
 
