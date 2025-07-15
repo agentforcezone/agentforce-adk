@@ -1,5 +1,5 @@
-import { AgentForceServer } from "../../server";
-import AgentForceAgent from "../../agent";
+import type { AgentForceServer } from "../../server";
+import type { AgentForceAgent } from "../../agent";
 import type { Context } from 'hono';
 
 /**

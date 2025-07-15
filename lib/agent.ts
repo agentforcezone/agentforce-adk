@@ -24,7 +24,7 @@ export type { AgentConfig };
  *
  * @class AgentForceAgent
  */
-export default class AgentForceAgent {
+export class AgentForceAgent {
 
     private _name: string;
     private _type: string;

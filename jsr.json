@@ -1,6 +1,6 @@
 {
     "name": "@agentforce/adk",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "license": "AgentForce License",
     "exports": "./lib/index.ts",
     "publish": {

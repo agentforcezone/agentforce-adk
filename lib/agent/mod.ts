@@ -10,8 +10,6 @@ export * from './methods/withTemplate';
 // Async methods
 export * from './methods/async/run';
 export * from './methods/async/execute';
-
-// Terminal methods
 export * from './methods/async/output';
 export * from './methods/async/getResponse';
 export * from './methods/async/saveToFile';

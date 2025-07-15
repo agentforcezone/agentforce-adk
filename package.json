@@ -1,6 +1,6 @@
 {
   "name": "@agentforce/adk",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "AgentForce Agent Development Kit - A powerful framework for building AI agents and servers",
   "main": "./lib/index.ts",
   "module": "./lib/index.ts",
