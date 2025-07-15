@@ -25,9 +25,59 @@ AgentForce ADK is a TypeScript Agent library for creating, managing, and orchest
 
 ## Installation
 
+AgentForce ADK is available on both npm and JSR registries:
+
 ```bash
-# npm integration Comming Soon
+# Install via npm
+npm install @agentforce/adk
+
+# Install via JSR (JavaScript Registry)
+npx jsr add @agentforce/adk        # For Node.js projects
+bunx jsr add @agentforce/adk       # For Bun projects  
+deno add @agentforce/adk           # For Deno projects
+
+# Install via Bun (from npm)
+bun add @agentforce/adk
 ```
+
+#### Installation Method Comparison:
+
+| Method | Best For | Command | Benefits |
+|--------|----------|---------|----------|
+| **npm** | Node.js projects, existing npm workflows | `npm install @agentforce/adk` | Largest ecosystem, familiar tooling |
+| **JSR** | TypeScript-first projects, Deno/Bun compatibility | `npx jsr add @agentforce/adk` (Node.js)<br>`bunx jsr add @agentforce/adk` (Bun)<br>`deno add @agentforce/adk` (Deno) | Native TypeScript support, better type checking |
+| **Bun (npm)** | Fast development, modern JavaScript projects | `bun add @agentforce/adk` | Fastest package manager, built-in TypeScript support |
+
+### Usage after installation:
+
+```typescript
+// For npm and Bun installations
+import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig } from "@agentforce/adk";
+
+// For JSR installations  
+import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig } from "@agentforce/adk";
+```
+
+> **Note**: Both npm and JSR use the same import syntax. JSR automatically handles the import resolution, so you can use the same code regardless of which registry you installed from.
+
+#### Runtime Compatibility:
+
+- **Node.js**: 
+  - npm: `npm install @agentforce/adk`
+  - JSR: `npx jsr add @agentforce/adk`
+- **Deno**: 
+  - JSR: `deno add @agentforce/adk` (recommended)
+- **Bun**: 
+  - npm: `bun add @agentforce/adk` 
+  - JSR: `bunx jsr add @agentforce/adk`
+- **Browsers**: Works with bundlers like Vite, Webpack, or Rollup using any installation method
+
+> **Note about Pretty Logging**: If you want to use `logger: "pretty"` for colored console output, you may need to install `pino-pretty` separately:
+> ```bash
+> npm install pino-pretty        # For npm installations
+> bunx jsr add npm:pino-pretty   # For JSR installations with Bun
+> ```
+> The package will automatically fall back to JSON logging if `pino-pretty` is not available.
 
 ## Provider Setup
 
@@ -52,7 +102,7 @@ These providers are recognized by the SDK but require additional implementation.
 Create your first agent in just a few lines of code:
 
 ```typescript
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { AgentForceAgent, type AgentConfig } from "@agentforce/adk";
 
 // Configure your agent
 const agentConfig: AgentConfig = {
@@ -94,7 +144,7 @@ agent
 ### Basic Agent with Method Chaining
 
 ```typescript
-import AgentForceAgent from "@lib/agent";
+import { AgentForceAgent } from "@agentforce/adk";
 
 const agent = new AgentForceAgent({
   name: "ChatBot",
@@ -222,7 +272,7 @@ The server class provides functionality for creating HTTP APIs with agent-powere
 #### Constructor
 
 ```typescript
-import AgentForceServer, { type ServerConfig } from "@lib/server";
+import { AgentForceServer, type ServerConfig } from "@agentforce/adk";
 
 const serverConfig: ServerConfig = {
     name: "MyAgentServer",
@@ -246,8 +296,7 @@ const server = new AgentForceServer(serverConfig);
 #### Complete Server Example
 
 ```typescript
-import AgentForceServer, { type ServerConfig } from "@lib/server";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { AgentForceServer, AgentForceAgent, type ServerConfig, type AgentConfig } from "@agentforce/adk";
 
 // Create agents
 const productOwnerAgent = new AgentForceAgent({

@@ -1,20 +1,20 @@
 export * from '../types';
 
 // Chainable methods
-export * from '@lib/agent/methods/debug';
-export * from '@lib/agent/methods/useLLM';
-export * from '@lib/agent/methods/systemPrompt';
-export * from '@lib/agent/methods/prompt';
-export * from '@lib/agent/methods/withTemplate';
+export * from './methods/debug';
+export * from './methods/useLLM';
+export * from './methods/systemPrompt';
+export * from './methods/prompt';
+export * from './methods/withTemplate';
 
 // Async methods
-export * from '@lib/agent/methods/async/run';
-export * from '@lib/agent/methods/async/execute';
+export * from './methods/async/run';
+export * from './methods/async/execute';
 
 // Terminal methods
-export * from '@lib/agent/methods/async/output';
-export * from '@lib/agent/methods/async/getResponse';
-export * from '@lib/agent/methods/async/saveToFile';
+export * from './methods/async/output';
+export * from './methods/async/getResponse';
+export * from './methods/async/saveToFile';
 
 // Server methods
-export * from '@lib/agent/methods/serve';
+export * from './methods/serve';

@@ -10,10 +10,10 @@ import {
     saveToFile,
     getResponse,
     withTemplate,
-} from '@lib/agent/mod';
+} from './agent/mod';
 import pino from 'pino';
 
-import type { AgentConfig, LoggerType } from './types';
+import type { AgentConfig, LoggerType, ProviderType, OutputType } from './types';
 export type { AgentConfig };
 
 /**
@@ -50,14 +50,21 @@ export default class AgentForceAgent {
         
         // Initialize pino logger based on the logger type
         if (this.logger === "pretty") {
-            this._pinoLogger = pino({
-                transport: {
-                    target: 'pino-pretty',
-                    options: {
-                        colorize: true
+            try {
+                this._pinoLogger = pino({
+                    transport: {
+                        target: 'pino-pretty',
+                        options: {
+                            colorize: true
+                        }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                // Fallback to JSON logger if pino-pretty is not available
+                console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
+                this._pinoLogger = pino();
+                this.logger = "json";
+            }
         } else {
             this._pinoLogger = pino();
         }
@@ -66,21 +73,21 @@ export default class AgentForceAgent {
     /**
      * Get the name of the agent.
      */
-    public getName() {
+    public getName(): string {
         return this._name;
     }
 
     /**
      * Get the type of the agent.
      */
-    public getType() {
+    public getType(): string {
         return this._type;
     }
 
     /**
      * Get the user prompt of the agent.
      */
-    protected getUserPrompt() {
+    protected getUserPrompt(): string {
         return this._userPrompt;
     }
 
@@ -95,7 +102,7 @@ export default class AgentForceAgent {
     /**
      * Get the system prompt of the agent.
      */
-    public getSystemPrompt() {
+    public getSystemPrompt(): string {
         return this._systemPrompt;
     }
 
@@ -103,14 +110,14 @@ export default class AgentForceAgent {
      * Set the system prompt of the agent.
      * @param prompt - The system prompt to set
      */
-    protected setSystemPrompt(prompt: string) {
+    protected setSystemPrompt(prompt: string): void {
         this._systemPrompt = prompt;
     }
 
     /**
      * Get the template content of the agent.
      */
-    public getTemplate() {
+    public getTemplate(): string {
         return this._template;
     }
 
@@ -118,14 +125,14 @@ export default class AgentForceAgent {
      * Set the template content of the agent.
      * @param template - The template content to set
      */
-    protected setTemplate(template: string) {
+    protected setTemplate(template: string): void {
         this._template = template;
     }
 
     /**
      * Get the name of the AgentForceAgent model.
      */
-    public getModel() {
+    public getModel(): string {
         return this.model;
     }
 
@@ -133,14 +140,14 @@ export default class AgentForceAgent {
      * Set the name of the AgentForceAgent model.
      * @param model
      */
-    protected setModel(model: string) {
+    protected setModel(model: string): void {
         this.model = model;
     }
 
     /**
      * Get the name of the AgentForceAgent provider.
      */
-    public getProvider() {
+    public getProvider(): string {
         return this.provider;
     }
 
@@ -148,7 +155,7 @@ export default class AgentForceAgent {
      * Set the name of the AgentForceAgent provider.
      * @param provider
      */
-    protected setProvider(provider: string) {
+    protected setProvider(provider: string): void {
         this.provider = provider;
     }
 
@@ -157,7 +164,7 @@ export default class AgentForceAgent {
      * @param role - The role of the message sender ('user' or 'assistant')
      * @param content - The content of the message
      */
-    protected pushToChatHistory(role: string, content: string) {
+    protected pushToChatHistory(role: string, content: string): void {
         this._chatHistory.push({ role, content });
     }
 
@@ -165,7 +172,7 @@ export default class AgentForceAgent {
      * Get the chat history.
      * @returns Array of chat messages with role and content
      */
-    protected getChatHistory() {
+    protected getChatHistory(): {role: string, content: string}[] {
         return this._chatHistory;
     }
 
@@ -173,7 +180,7 @@ export default class AgentForceAgent {
      * Get the useRoutePrompt flag.
      * @returns Boolean indicating if agent should use route prompts
      */
-    public getUseRoutePrompt() {
+    public getUseRoutePrompt(): boolean {
         return this._useRoutePrompt;
     }
 
@@ -181,38 +188,38 @@ export default class AgentForceAgent {
      * Set the useRoutePrompt flag.
      * @param useRoutePrompt - Boolean to enable/disable route prompt usage
      */
-    protected setUseRoutePrompt(useRoutePrompt: boolean) {
+    protected setUseRoutePrompt(useRoutePrompt: boolean): void {
         this._useRoutePrompt = useRoutePrompt;
     }
 
     /**
      * Get the logger type of the agent.
      */
-    public getLoggerType() {
+    public getLoggerType(): LoggerType {
         return this.logger;
     }
 
     /**
      * Get the pino logger instance.
      */
-    protected getLogger() {
+    protected getLogger(): pino.Logger {
         return this._pinoLogger;
     }
 
-    protected execute = execute.bind(this);
+    protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);
 
     // Chainable methods
-    debug = debug.bind(this);
-    useLLM = useLLM.bind(this);
-    systemPrompt = systemPrompt.bind(this);
-    prompt = prompt.bind(this);
-    withTemplate = withTemplate.bind(this);
-    run = run.bind(this);
+    debug: () => AgentForceAgent = debug.bind(this);
+    useLLM: (provider?: ProviderType, model?: string) => AgentForceAgent = useLLM.bind(this);
+    systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
+    prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
+    withTemplate: (templatePath: string) => AgentForceAgent = withTemplate.bind(this);
+    run: () => Promise<AgentForceAgent> = run.bind(this);
     
     // Terminal/Non-chainable methods (return output, not this)
-    serve = serve.bind(this);
-    output = output.bind(this);
-    getResponse = getResponse.bind(this);
-    saveToFile = saveToFile.bind(this);
+    serve: (host?: string, port?: number) => void = serve.bind(this);
+    output: (outputType: OutputType) => Promise<string | object> = output.bind(this);
+    getResponse: () => Promise<string> = getResponse.bind(this);
+    saveToFile: (fileName: string) => Promise<string> = saveToFile.bind(this);
 
 }

@@ -1,4 +1,4 @@
-export * from '@lib/types';
+export * from '../types';
 // Server methods
-export * from '@lib/server/methods/serve';
-export * from '@lib/server/methods/addRouteAgent';
+export * from './methods/serve';
+export * from './methods/addRouteAgent';

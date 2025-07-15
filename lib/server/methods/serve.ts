@@ -1,4 +1,4 @@
-import type AgentForceServer from '@lib/server';
+import type AgentForceServer from '../../server';
 import { Hono } from 'hono';
 import { logger as loggerMiddleware } from 'hono/logger';
 import { createAgentRouteHandler } from './addRouteAgent';
@@ -143,6 +143,7 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
         hostname: host,
         port: port,
         fetch: app.fetch,
+        idleTimeout: 120, // Set timeout to 120 seconds (2 minutes) for AI agent responses
     });
 
     log.info({

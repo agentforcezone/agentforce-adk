@@ -10,4 +10,4 @@ const agentConfig: AgentConfig = {
 const agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
     .debug()
-    .serve("0.0.0.0", 3000);
+    .serve("0.0.0.0", 3002);

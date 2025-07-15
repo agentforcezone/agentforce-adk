@@ -9,7 +9,7 @@ const agentConfig: AgentConfig = {
 const ProductOwnerAgent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
     .systemPrompt("You are a product owner agent. You will create Tickets (Epics, user stories, and tasks) for the Backlog.")
-    .withTemplate("templates/po/feature-story.md");
+    .withTemplate("templates/basic-story.md");
 
 const serverConfig: ServerConfig = {
     name: "RouteAgentServer",
@@ -17,6 +17,8 @@ const serverConfig: ServerConfig = {
 };
 
 new AgentForceServer(serverConfig)
+
+    //.registerWorkflow("examples/workflows/story-creation.ts")
     .addRouteAgent("POST","/story", ProductOwnerAgent)
     .addRouteAgent("GET","/story", ProductOwnerAgent)
     //.addRouteAgent("GET","/image", DesignAgent)

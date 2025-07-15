@@ -1,25 +1,65 @@
 {
-  "name": "agentforce-sdk",
-  "module": "index.ts",
+  "name": "@agentforce/adk",
+  "version": "0.1.2",
+  "description": "AgentForce Agent Development Kit - A powerful framework for building AI agents and servers",
+  "main": "./lib/mod.ts",
+  "module": "./lib/mod.ts",
+  "types": "./lib/mod.ts",
   "type": "module",
-  "private": true,
+  "private": false,
+  "exports": {
+    ".": {
+      "import": "./lib/mod.ts",
+      "types": "./lib/mod.ts"
+    }
+  },
+  "files": [
+    "lib/**/*.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "adk",
+    "agentforce",
+    "llm",
+    "ollama",
+    "typescript",
+    "framework"
+  ],
+  "author": "AgentForce Zone",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentforcezone/agentforce-adk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/agentforcezone/agentforce-adk/issues"
+  },
+  "homepage": "https://github.com/agentforcezone/agentforce-adk#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
+  "optionalDependencies": {
+    "pino-pretty": "^13.0.0"
+  },
   "scripts": {
-    "example-integration": "bun run ./examples/agents/integration.ts",
-    "example-server": "bun run ./examples/server/basic-server.ts",
-    "example-file": "bun run ./examples/agents/file.ts",
+    "agent:integration": "bun run ./examples/agents/integration.ts",
+    "agent:file": "bun run ./examples/agents/file.ts",
+    "server:basic": "bun run ./examples/server/basic-server.ts",
     "test": "bun test"
   },
   "dependencies": {
     "handlebars": "^4.7.8",
     "hono": "^4.7.11",
     "ollama": "^0.5.16",
-    "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0"
+    "pino": "^9.7.0"
   }
 }

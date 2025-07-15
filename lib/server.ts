@@ -3,7 +3,8 @@ import {
     serve,
     addRouteAgent,
     type RouteAgent,
-} from '@lib/server/mod';
+} from './server/mod';
+import type AgentForceAgent from './agent';
 
 import type { ServerConfig, LoggerType } from './types';
 export type { ServerConfig };
@@ -32,14 +33,21 @@ export default class AgentForceServer {
         
         // Initialize pino logger based on the logger type
         if (this.logger === "pretty") {
-            this._pinoLogger = pino({
-                transport: {
-                    target: 'pino-pretty',
-                    options: {
-                        colorize: true
+            try {
+                this._pinoLogger = pino({
+                    transport: {
+                        target: 'pino-pretty',
+                        options: {
+                            colorize: true
+                        }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                // Fallback to JSON logger if pino-pretty is not available
+                console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
+                this._pinoLogger = pino();
+                this.logger = "json";
+            }
         } else {
             this._pinoLogger = pino();
         }
@@ -48,21 +56,21 @@ export default class AgentForceServer {
     /**
      * Get the name of the server.
      */
-    public getName() {
+    public getName(): string {
         return this._name;
     }
 
     /**
      * Get the logger type of the server.
      */
-    public getLoggerType() {
+    public getLoggerType(): LoggerType {
         return this.logger;
     }
 
     /**
      * Get the pino logger instance.
      */
-    public getLogger() {
+    public getLogger(): pino.Logger {
         return this._pinoLogger;
     }
 
@@ -70,7 +78,7 @@ export default class AgentForceServer {
      * Add a route agent to the collection.
      * @param routeAgent - The route agent configuration to add
      */
-    public addToRouteAgents(routeAgent: RouteAgent) {
+    public addToRouteAgents(routeAgent: RouteAgent): void {
         this._routeAgents.push(routeAgent);
     }
 
@@ -83,9 +91,9 @@ export default class AgentForceServer {
     }
 
     // Chainable methods
-    addRouteAgent = addRouteAgent.bind(this);
+    addRouteAgent: (method: string, path: string, agent: AgentForceAgent) => AgentForceServer = addRouteAgent.bind(this);
 
     // Terminal/Non-chainable methods
-    serve = serve.bind(this);
+    serve: (host?: string, port?: number) => void = serve.bind(this);
 
 }

@@ -1,0 +1,66 @@
+# Development files
+tsconfig.json
+bun.lockb
+bun.lock
+
+# Build output (we include source TypeScript files)
+dist/
+
+# Test files
+tests/
+**/*.test.ts
+**/*.test.js
+
+# Documentation and examples
+docs/
+examples/
+templates/
+_/
+
+# Build and deployment
+Dockerfile
+docker-compose.yml
+podman-compose.yml
+k8s-deployment.yaml
+kind-config.yaml
+*.md
+!README.md
+
+# Development scripts and configs
+debug-agent.ts
+run-podman.sh
+jsr.json
+KIND-CLUSTER.md
+kind.md
+DOCKER.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node modules (should be excluded by default, but just in case)
+node_modules/
+
+# Backup files
+*.backup
+*.bak

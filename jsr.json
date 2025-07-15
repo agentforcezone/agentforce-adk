@@ -1,0 +1,32 @@
+{
+  "name": "@agentforce/adk",
+  "version": "0.1.2",
+  "license": "MIT",
+  "exports": "./lib/mod.ts",
+  "include": [
+    "lib/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "exclude": [
+    "tests/**/*",
+    "docs/**/*",
+    "examples/**/*",
+    "templates/**/*",
+    "_/**/*",
+    "**/*.test.ts",
+    "**/*.test.js",
+    "*.md",
+    "!README.md",
+    "tsconfig.json",
+    "bun.lock*",
+    "Dockerfile*",
+    "docker-compose.yml",
+    "podman-compose.yml",
+    "k8s-deployment.yaml",
+    "kind-config.yaml",
+    "debug-agent.ts",
+    "run-podman.sh",
+    ".npmignore"
+  ]
+}

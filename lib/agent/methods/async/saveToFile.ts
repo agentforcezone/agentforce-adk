@@ -1,5 +1,5 @@
-import type AgentForceAgent from '@lib/agent';
-import type { OutputType } from '@lib/types';
+import type AgentForceAgent from '../../../agent';
+import type { OutputType } from '../../../types';
 import { execute } from './execute';
 import { writeFile } from 'fs/promises';
 import { join, extname } from 'path';

@@ -1,4 +1,4 @@
-import type AgentForceAgent from '@lib/agent';
+import type AgentForceAgent from '../../agent';
 
 /**
  * Sets the system prompt for the agent
