@@ -1,4 +1,4 @@
-import { AgentForceServer } from "@lib/server";
+import { AgentForceServer } from "../../server";
 import { Hono } from 'hono';
 import { logger as loggerMiddleware } from 'hono/logger';
 import { createAgentRouteHandler } from './addRouteAgent';

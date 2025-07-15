@@ -1,4 +1,4 @@
-import AgentForceAgent from "@lib/agent";
+import AgentForceAgent from "../../agent";
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import Handlebars from 'handlebars';

@@ -5,8 +5,8 @@ import {
     type RouteAgent,
 } from './server/mod';
 
-import AgentForceAgent from "@lib/agent";
-import type { ServerConfig, LoggerType } from "@lib/types";
+import AgentForceAgent from "./agent";
+import type { ServerConfig, LoggerType } from "./types";
 export type { ServerConfig };
 
 /**
