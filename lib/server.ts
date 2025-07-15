@@ -5,8 +5,8 @@ import {
     type RouteAgent,
 } from './server/mod';
 
-import { AgentForceAgent } from './';
-import type { ServerConfig, LoggerType } from './types';
+import AgentForceAgent from "@lib/agent";
+import type { ServerConfig, LoggerType } from "@lib/types";
 export type { ServerConfig };
 
 /**
@@ -19,7 +19,7 @@ export type { ServerConfig };
 export class AgentForceServer {
 
     private _name: string;
-    private logger: LoggerType = "json";
+    private _logger: LoggerType = "json";
     private _pinoLogger: pino.Logger;
     private _routeAgents: RouteAgent[] = [];
 
@@ -29,10 +29,10 @@ export class AgentForceServer {
      */
     constructor(config: ServerConfig) {
         this._name = config.name;
-        this.logger = config.logger || "json";
+        this._logger = config.logger || "json";
         
         // Initialize pino logger based on the logger type
-        if (this.logger === "pretty") {
+        if (this._logger === "pretty") {
             try {
                 this._pinoLogger = pino({
                     transport: {
@@ -46,7 +46,7 @@ export class AgentForceServer {
                 // Fallback to JSON logger if pino-pretty is not available
                 console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
                 this._pinoLogger = pino();
-                this.logger = "json";
+                this._logger = "json";
             }
         } else {
             this._pinoLogger = pino();
@@ -64,7 +64,7 @@ export class AgentForceServer {
      * Get the logger type of the server.
      */
     public getLoggerType(): LoggerType {
-        return this.logger;
+        return this._logger;
     }
 
     /**

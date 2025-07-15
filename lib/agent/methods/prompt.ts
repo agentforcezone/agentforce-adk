@@ -1,4 +1,4 @@
-import { AgentForceAgent } from "../../agent";
+import AgentForceAgent from "@lib/agent";
 
 /**
  * Sets the user prompt for the agent

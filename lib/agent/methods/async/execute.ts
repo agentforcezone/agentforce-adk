@@ -1,5 +1,5 @@
-import type AgentForceAgent from '../../../agent';
-import { OllamaProvider } from '../../../provider/ollama';
+import type AgentForceAgent from "@lib/agent";
+import { OllamaProvider } from "@lib/provider/ollama";
 
 /**
  * Executes the agent's provider call to generate response

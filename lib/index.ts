@@ -1,3 +1,3 @@
 export * from './types';
-export { AgentForceAgent } from './agent';
+export { default as AgentForceAgent } from './agent';
 export { AgentForceServer } from './server';

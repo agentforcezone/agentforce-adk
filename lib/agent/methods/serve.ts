@@ -1,4 +1,4 @@
-import { AgentForceAgent } from "../../agent";
+import AgentForceAgent from "@lib/agent";
 import { Hono } from 'hono';
 import { logger as loggerMiddleware } from 'hono/logger';
 import pino from 'pino';
