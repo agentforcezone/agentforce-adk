@@ -11,6 +11,7 @@ import {
     getResponse,
     withTemplate,
 } from './agent/mod';
+
 import pino from 'pino';
 
 import type { AgentConfig, LoggerType, ProviderType, OutputType } from './types';
@@ -23,7 +24,7 @@ export type { AgentConfig };
  *
  * @class AgentForceAgent
  */
-export class AgentForceAgent {
+export default class AgentForceAgent {
 
     private _name: string;
     private _type: string;
@@ -35,8 +36,8 @@ export class AgentForceAgent {
     private _logger: LoggerType = "json";
     private _pinoLogger: pino.Logger;
 
-    private provider: string = "ollama";
-    private model: string = "gemma3:4b"
+    private _provider: string = "ollama";
+    private _model: string = "gemma3:4b"
 
     /**
      * Constructs the AgentForceAgent class.
@@ -132,7 +133,7 @@ export class AgentForceAgent {
      * Get the name of the AgentForceAgent model.
      */
     public getModel(): string {
-        return this.model;
+        return this._model;
     }
 
     /**
@@ -140,14 +141,14 @@ export class AgentForceAgent {
      * @param model
      */
     protected setModel(model: string): void {
-        this.model = model;
+        this._model = model;
     }
 
     /**
      * Get the name of the AgentForceAgent provider.
      */
     public getProvider(): string {
-        return this.provider;
+        return this._provider;
     }
 
     /**
@@ -155,7 +156,7 @@ export class AgentForceAgent {
      * @param provider
      */
     protected setProvider(provider: string): void {
-        this.provider = provider;
+        this._provider = provider;
     }
 
     /**
@@ -192,17 +193,17 @@ export class AgentForceAgent {
     protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);
 
     // Chainable methods
-    debug = debug.bind(this);
-    useLLM = useLLM.bind(this);
-    systemPrompt = systemPrompt.bind(this);
-    prompt = prompt.bind(this);
-    withTemplate = withTemplate.bind(this);
-    run = run.bind(this);
-
+    debug: () => AgentForceAgent = debug.bind(this);
+    useLLM: (provider?: ProviderType, model?: string) => AgentForceAgent = useLLM.bind(this);
+    systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
+    prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
+    withTemplate: (templatePath: string) => AgentForceAgent = withTemplate.bind(this);
+    run: () => Promise<AgentForceAgent> = run.bind(this);
+    
     // Terminal/Non-chainable methods (return output, not this)
-    serve = serve.bind(this);
-    output = output.bind(this);
-    getResponse = getResponse.bind(this);
-    saveToFile = saveToFile.bind(this);
+    serve: (host?: string, port?: number) => void = serve.bind(this);
+    output: (outputType: OutputType) => Promise<string | object> = output.bind(this);
+    getResponse: () => Promise<string> = getResponse.bind(this);
+    saveToFile: (fileName: string) => Promise<string> = saveToFile.bind(this);
 
 }
