@@ -42,7 +42,11 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@eslint/compat": "^1.3.1",
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -51,7 +55,10 @@
     "agent:integration": "bun run ./examples/agents/integration.ts",
     "agent:file": "bun run ./examples/agents/file.ts",
     "server:basic": "bun run ./examples/server/basic-server.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0"
   },
   "dependencies": {
     "handlebars": "^4.7.8",

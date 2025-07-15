@@ -25,9 +25,9 @@ export async function execute(this: AgentForceAgent): Promise<string> {
 
     // Store the user prompt in chat history if not already stored
     const chatHistory = this.getChatHistory();
-    const lastUserMessage = chatHistory.findLast(msg => msg.role === 'user');
+    const lastUserMessage = chatHistory.findLast(msg => msg.role === "user");
     if (!lastUserMessage || lastUserMessage.content !== userPrompt) {
-        this.pushToChatHistory('user', userPrompt);
+        this.pushToChatHistory("user", userPrompt);
     }
 
     try {
@@ -61,14 +61,14 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         }
 
         // Store the assistant response in chat history
-        this.pushToChatHistory('assistant', response);
+        this.pushToChatHistory("assistant", response);
         
         return response;
 
     } catch (error) {
         // Store error in chat history as well
         const errorMessage = `Error: ${error}`;
-        this.pushToChatHistory('assistant', errorMessage);
+        this.pushToChatHistory("assistant", errorMessage);
         
         throw error; // Re-throw to let caller handle the error
     }

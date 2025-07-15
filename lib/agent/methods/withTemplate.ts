@@ -1,7 +1,7 @@
 import type { AgentForceAgent } from "../../agent";
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import Handlebars from 'handlebars';
+import { readFileSync } from "fs";
+import { resolve } from "path";
+import Handlebars from "handlebars";
 
 /**
  * Loads a template file and sets it as the agent's template.
@@ -11,14 +11,14 @@ import Handlebars from 'handlebars';
  * @param templateData - Optional data for Handlebars template rendering
  * @returns {AgentForceAgent} Returns the agent instance for method chaining
  */
-export function withTemplate(this: AgentForceAgent, templatePath: string, templateData?: Record<string, any>): AgentForceAgent {
+export function withTemplate(this: AgentForceAgent, templatePath: string, templateData?: Record<string, unknown>): AgentForceAgent {
     // Validate input
-    if (typeof templatePath !== 'string') {
-        throw new Error('Template path must be a string');
+    if (typeof templatePath !== "string") {
+        throw new Error("Template path must be a string");
     }
     
     if (!templatePath.trim()) {
-        throw new Error('Template path cannot be empty');
+        throw new Error("Template path cannot be empty");
     }
     
     try {
@@ -26,10 +26,10 @@ export function withTemplate(this: AgentForceAgent, templatePath: string, templa
         const resolvedPath = resolve(templatePath);
         
         // Read the template file content
-        const templateContent = readFileSync(resolvedPath, 'utf-8');
+        const templateContent = readFileSync(resolvedPath, "utf-8");
         
         // Check if this is a Handlebars template (.hbs extension)
-        const isHandlebarsTemplate = templatePath.toLowerCase().endsWith('.hbs');
+        const isHandlebarsTemplate = templatePath.toLowerCase().endsWith(".hbs");
         
         let finalTemplateContent = templateContent;
         

@@ -1,4 +1,4 @@
-import ollama from 'ollama';
+import ollama from "ollama";
 
 // Type for Ollama provider interface
 export interface OllamaProviderInterface {
@@ -41,7 +41,7 @@ export class OllamaProvider implements OllamaProviderInterface {
      * @param messages - Array of messages for the conversation
      * @returns Promise with the model's response
      */
-    async chat(messages: Array<{ role: string; content: string }>) {
+    async chat(messages: Array<{ role: string; content: string }>): Promise<string> {
         try {
             const response = await ollama.chat({
                 model: this.model,

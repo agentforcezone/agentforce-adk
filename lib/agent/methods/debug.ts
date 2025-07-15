@@ -14,11 +14,11 @@ export function debug(this: AgentForceAgent): AgentForceAgent {
         type: this.getType(),
         provider: this.getProvider(),
         model: this.getModel(),
-        loggerType: this.getLoggerType()
+        loggerType: this.getLoggerType(),
     };
     
     // Log debug info using the configured pino logger
-    this.getLogger().info(debugInfo, 'AgentForce Debug');
+    this.getLogger().info(debugInfo, "AgentForce Debug");
     
     return this;
 }

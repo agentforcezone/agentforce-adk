@@ -8,8 +8,8 @@ import type { AgentForceAgent } from "../../agent";
  */
 export function systemPrompt(this: AgentForceAgent, prompt: string): AgentForceAgent {
     // Validate input
-    if (typeof prompt !== 'string') {
-        throw new Error('System prompt must be a string');
+    if (typeof prompt !== "string") {
+        throw new Error("System prompt must be a string");
     }
     
     // Set the system prompt using the internal setter

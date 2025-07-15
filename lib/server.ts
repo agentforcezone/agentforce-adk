@@ -1,9 +1,9 @@
-import pino from 'pino';
+import pino from "pino";
 import {
     serve,
     addRouteAgent,
     type RouteAgent,
-} from './server/mod';
+} from "./server/mod";
 
 import type { AgentForceAgent } from "./agent";
 import type { ServerConfig, LoggerType } from "./types";
@@ -18,38 +18,38 @@ export type { ServerConfig };
  */
 export class AgentForceServer {
 
-    private _name: string;
-    private _logger: LoggerType = "json";
-    private _pinoLogger: pino.Logger;
-    private _routeAgents: RouteAgent[] = [];
+    private name: string;
+    private logger: LoggerType = "json";
+    private pinoLogger: pino.Logger;
+    private routeAgents: RouteAgent[] = [];
 
     /**
      * Constructs the AgentForceServer class.
      * @param config - Configuration object for the server
      */
     constructor(config: ServerConfig) {
-        this._name = config.name;
-        this._logger = config.logger || "json";
+        this.name = config.name;
+        this.logger = config.logger || "json";
         
         // Initialize pino logger based on the logger type
-        if (this._logger === "pretty") {
+        if (this.logger === "pretty") {
             try {
-                this._pinoLogger = pino({
+                this.pinoLogger = pino({
                     transport: {
-                        target: 'pino-pretty',
+                        target: "pino-pretty",
                         options: {
-                            colorize: true
-                        }
-                    }
+                            colorize: true,
+                        },
+                    },
                 });
-            } catch (error) {
+            } catch {
                 // Fallback to JSON logger if pino-pretty is not available
-                console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
-                this._pinoLogger = pino();
-                this._logger = "json";
+                console.warn("⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty");
+                this.pinoLogger = pino();
+                this.logger = "json";
             }
         } else {
-            this._pinoLogger = pino();
+            this.pinoLogger = pino();
         }
     }
 
@@ -57,21 +57,21 @@ export class AgentForceServer {
      * Get the name of the server.
      */
     public getName(): string {
-        return this._name;
+        return this.name;
     }
 
     /**
      * Get the logger type of the server.
      */
     public getLoggerType(): LoggerType {
-        return this._logger;
+        return this.logger;
     }
 
     /**
      * Get the pino logger instance.
      */
     public getLogger(): pino.Logger {
-        return this._pinoLogger;
+        return this.pinoLogger;
     }
 
     /**
@@ -79,7 +79,7 @@ export class AgentForceServer {
      * @param routeAgent - The route agent configuration to add
      */
     public addToRouteAgents(routeAgent: RouteAgent): void {
-        this._routeAgents.push(routeAgent);
+        this.routeAgents.push(routeAgent);
     }
 
     /**
@@ -87,7 +87,7 @@ export class AgentForceServer {
      * @returns Array of route agent configurations
      */
     public getRouteAgents(): RouteAgent[] {
-        return this._routeAgents;
+        return this.routeAgents;
     }
 
     // Chainable methods

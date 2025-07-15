@@ -5,7 +5,7 @@
 /**
  * Type definition for logger formats
  */
-export type LoggerType = 'json' | 'pretty';
+export type LoggerType = "json" | "pretty";
 
 /**
  * Configuration object for creating an AgentForce agent
@@ -34,9 +34,9 @@ export type ServerConfig = {
 /**
  * Type definition for output formats
  */
-export type OutputType = 'text' | 'json' | 'md';
+export type OutputType = "text" | "json" | "md";
 
 /**
  * Type definition for supported AI providers
  */
-export type ProviderType = 'ollama' | 'openai' | 'anthropic' | 'google';
+export type ProviderType = "ollama" | "openai" | "anthropic" | "google";

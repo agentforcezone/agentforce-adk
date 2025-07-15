@@ -1,8 +1,8 @@
 import type { AgentForceAgent } from "../../../agent";
 import type { OutputType } from "../../../types";
-import { execute } from './execute';
-import { writeFile } from 'fs/promises';
-import { join, extname } from 'path';
+import { execute } from "./execute";
+import { writeFile } from "fs/promises";
+import { join, extname } from "path";
 
 /**
  * Executes the agent and saves the response to a file (terminal method)
@@ -12,8 +12,8 @@ import { join, extname } from 'path';
  */
 export async function saveToFile(this: AgentForceAgent, fileName: string): Promise<string> {
     // Validate input
-    if (!fileName || typeof fileName !== 'string') {
-        throw new Error('Filename must be a non-empty string');
+    if (!fileName || typeof fileName !== "string") {
+        throw new Error("Filename must be a non-empty string");
     }
     
     // Determine output type from file extension
@@ -21,23 +21,23 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
     let outputType: OutputType;
     
     switch (fileExtension) {
-        case '.txt':
-            outputType = 'text';
+        case ".txt":
+            outputType = "text";
             break;
-        case '.json':
-            outputType = 'json';
+        case ".json":
+            outputType = "json";
             break;
-        case '.md':
-            outputType = 'md';
+        case ".md":
+            outputType = "md";
             break;
         default:
-            throw new Error('Unsupported file extension. Use .txt, .json, or .md');
+            throw new Error("Unsupported file extension. Use .txt, .json, or .md");
     }
 
     // Execute the provider call first to get the response
     try {
         await execute.call(this);
-    } catch (error) {
+    } catch {
         // Error handling is already done in execute function
         // Continue with file generation using the error message from chat history
     }
@@ -51,18 +51,18 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
     const chatHistory = this.getChatHistory();
     
     // Get the latest assistant response from chat history
-    const latestAssistantMessage = chatHistory.findLast(msg => msg.role === 'assistant');
-    const assistantResponse = latestAssistantMessage ? latestAssistantMessage.content : 'No response available';
+    const latestAssistantMessage = chatHistory.findLast(msg => msg.role === "assistant");
+    const assistantResponse = latestAssistantMessage ? latestAssistantMessage.content : "No response available";
     
     // Generate content based on the output type using actual chat history
     let content: string;
     
     switch (outputType) {
-        case 'text':
+        case "text":
             content = `=== Agent ${agentName} Output (Text Format) ===\nSystem: ${systemPrompt}\nUser: ${userPrompt}\nResponse: ${assistantResponse}`;
             break;
             
-        case 'json':
+        case "json":
             const jsonOutput = {
                 agent: agentName,
                 provider: provider,
@@ -70,12 +70,12 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
                 systemPrompt: systemPrompt,
                 userPrompt: userPrompt,
                 response: assistantResponse,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
             content = JSON.stringify(jsonOutput, null, 2);
             break;
             
-        case 'md':
+        case "md":
             content = `${assistantResponse}`;
             break;
             
@@ -86,9 +86,9 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
     // Write content to file
     try {
         const fullPath = join(process.cwd(), fileName);
-        await writeFile(fullPath, content, 'utf8');
+        await writeFile(fullPath, content, "utf8");
         return fullPath;
     } catch (error) {
-        throw new Error(`Failed to write file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(`Failed to write file: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }

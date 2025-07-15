@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
-import type { Context } from 'hono';
-import ollama from 'ollama';
+import { Hono } from "hono";
+import type { Context } from "hono";
+import ollama from "ollama";
 
 /**
  * Models route handler for /v1/models endpoints
@@ -32,10 +32,10 @@ import ollama from 'ollama';
  * @param currentProvider - The current provider configured in the agent
  * @returns Hono app with /models and /models/{model} endpoints
  */
-export function createModelsRoute(currentModel: string | null, currentProvider: string | null) {
+export function createModelsRoute(currentModel: string | null, currentProvider: string | null): Hono {
     const app = new Hono();
 
-    app.get('/models', async (c: Context) => {
+    app.get("/models", async (c: Context) => {
         let modelData = [];
 
         // Always include the current model if available
@@ -47,7 +47,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                 owned_by: currentProvider,
                 permission: [],
                 root: currentModel,
-                parent: null
+                parent: null,
             });
         }
 
@@ -58,7 +58,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                 
                 // Convert Ollama models to OpenAI-compatible format
                 const ollamaModels = ollamaResponse.models.map(model => ({
-                    id: model.name.replace(/\//g, '-'), // Replace forward slashes with dashes for URL compatibility
+                    id: model.name.replace(/\//g, "-"), // Replace forward slashes with dashes for URL compatibility
                     object: "model",
                     created: Math.floor(new Date(model.modified_at).getTime() / 1000),
                     owned_by: "ollama",
@@ -68,7 +68,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                     // Additional Ollama-specific metadata
                     size: model.size,
                     digest: model.digest,
-                    details: model.details
+                    details: model.details,
                 }));
 
                 // Add Ollama models to the data array (avoid duplicates)
@@ -91,7 +91,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                         owned_by: "ollama",
                         permission: [],
                         root: "ollama-unavailable",
-                        parent: null
+                        parent: null,
                     });
                 }
             }
@@ -105,7 +105,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                     owned_by: "openai",
                     permission: [],
                     root: "gpt-4",
-                    parent: null
+                    parent: null,
                 },
                 {
                     id: "gpt-3.5-turbo",
@@ -114,8 +114,8 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                     owned_by: "openai", 
                     permission: [],
                     root: "gpt-3.5-turbo",
-                    parent: null
-                }
+                    parent: null,
+                },
             ];
 
             // Add fallback models (avoid duplicates)
@@ -128,14 +128,14 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
 
         const modelsResponse = {
             object: "list",
-            data: modelData
+            data: modelData,
         };
 
         return c.json(modelsResponse);
     });
 
-    app.get('/models/:model', async (c: Context) => {
-        const modelId = c.req.param('model');
+    app.get("/models/:model", async (c: Context) => {
+        const modelId = c.req.param("model");
         
         if (!modelId) {
             return c.json({ error: "Model ID is required" }, 400);
@@ -144,7 +144,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
         // Check if it's the current model first (handle normalized, URL-encoded, and original names)
         if (currentModel) {
             const decodedModelId = decodeURIComponent(modelId);
-            const normalizedCurrentModel = currentModel.replace(/\//g, '-');
+            const normalizedCurrentModel = currentModel.replace(/\//g, "-");
             
             if (currentModel === modelId || // Direct match with original name
                 currentModel === decodedModelId || // Match URL-decoded name
@@ -152,13 +152,13 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                 normalizedCurrentModel === decodedModelId // Match normalized decoded name
             ) {
                 const modelInfo = {
-                id: currentModel.replace(/\//g, '-'), // Return normalized ID
+                id: currentModel.replace(/\//g, "-"), // Return normalized ID
                 object: "model",
                 created: Math.floor(Date.now() / 1000),
                 owned_by: currentProvider || "agentforce",
                 permission: [],
                 root: currentModel, // Keep original name in root
-                parent: null
+                parent: null,
             };
             return c.json(modelInfo);
             }
@@ -175,13 +175,13 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                 const foundModel = ollamaResponse.models.find(model => 
                     model.name === modelId || // Direct match with original name
                     model.name === decodedModelId || // Match URL-decoded name
-                    model.name.replace(/\//g, '-') === modelId || // Match normalized name
-                    model.name.replace(/\//g, '-') === decodedModelId // Match normalized decoded name
+                    model.name.replace(/\//g, "-") === modelId || // Match normalized name
+                    model.name.replace(/\//g, "-") === decodedModelId, // Match normalized decoded name
                 );
                 
                 if (foundModel) {
                     const modelInfo = {
-                        id: foundModel.name.replace(/\//g, '-'), // Return normalized ID
+                        id: foundModel.name.replace(/\//g, "-"), // Return normalized ID
                         object: "model",
                         created: Math.floor(new Date(foundModel.modified_at).getTime() / 1000),
                         owned_by: "ollama",
@@ -191,7 +191,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                         // Additional Ollama-specific metadata
                         size: foundModel.size,
                         digest: foundModel.digest,
-                        details: foundModel.details
+                        details: foundModel.details,
                     };
                     
                     console.log(`✅ Found Ollama model: ${modelId}`);
@@ -215,7 +215,7 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                     owned_by: "openai",
                     permission: [],
                     root: "gpt-4",
-                    parent: null
+                    parent: null,
                 },
                 {
                     id: "gpt-3.5-turbo",
@@ -224,14 +224,14 @@ export function createModelsRoute(currentModel: string | null, currentProvider: 
                     owned_by: "openai", 
                     permission: [],
                     root: "gpt-3.5-turbo",
-                    parent: null
-                }
+                    parent: null,
+                },
             ];
 
             const foundModel = knownModels.find(model => model.id === modelId);
             
             if (foundModel) {
-                console.log(`✅ Found ${currentProvider || 'fallback'} model: ${modelId}`);
+                console.log(`✅ Found ${currentProvider || "fallback"} model: ${modelId}`);
                 return c.json(foundModel);
             }
             

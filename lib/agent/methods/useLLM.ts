@@ -36,7 +36,7 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
     switch ((provider || "ollama").toLowerCase()) {
         case "ollama":
             // Initialize Ollama provider
-            const ollamaProvider = new OllamaProvider(model);
+            new OllamaProvider(model);
             //console.log(`✅ Ollama provider initialized with model: ${model}`);
             break;
         

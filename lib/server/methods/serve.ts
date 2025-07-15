@@ -1,7 +1,7 @@
 import type { AgentForceServer } from "../../server";
-import { Hono } from 'hono';
-import { logger as loggerMiddleware } from 'hono/logger';
-import { createAgentRouteHandler } from './addRouteAgent';
+import { Hono } from "hono";
+import { logger as loggerMiddleware } from "hono/logger";
+import { createAgentRouteHandler } from "./addRouteAgent";
 
 /**
  * Starts a Bun HTTP server for the AgentForceServer (terminal method)
@@ -12,12 +12,12 @@ import { createAgentRouteHandler } from './addRouteAgent';
  */
 export function serve(this: AgentForceServer, host: string = "localhost", port: number = 3000): void {
     // Validate inputs
-    if (!host || typeof host !== 'string') {
-        throw new Error('Host must be a non-empty string');
+    if (!host || typeof host !== "string") {
+        throw new Error("Host must be a non-empty string");
     }
     
-    if (typeof port !== 'number' || port <= 0 || port > 65535) {
-        throw new Error('Port must be a valid number between 1 and 65535');
+    if (typeof port !== "number" || port <= 0 || port > 65535) {
+        throw new Error("Port must be a valid number between 1 and 65535");
     }
 
     // Get server information for logging
@@ -28,14 +28,14 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
         serverName,
         host,
         port,
-        action: 'server_starting'
+        action: "server_starting",
     }, `Starting server: ${serverName}`);
 
     console.log(`Starting server: ${serverName}`);
     console.log(`Server will bind to: ${host}:${port}`);
 
     // Custom logger function for Hono middleware that parses HTTP request info
-    const customLogger = (message: string, ...rest: string[]) => {
+    const customLogger = (message: string, ...rest: string[]): void => {
         // Parse the message format: "--> GET /path \u001b[32m200\u001b[0m 12ms"
         const httpLogPattern = /^--> (\w+) (.+?) (?:\u001b\[\d+m)?(\d+)(?:\u001b\[\d+m)? (\d+)ms$/;
         const match = message.match(httpLogPattern);
@@ -48,7 +48,7 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
                 route,
                 statusCode: parseInt(statusCode || "0"),
                 duration: parseInt(duration || "0"),
-                durationUnit: "ms"
+                durationUnit: "ms",
             });
         } else {
             // Fallback for non-HTTP log messages
@@ -61,21 +61,21 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
     app.use(loggerMiddleware(customLogger));
 
     // Default route
-    app.get('/', (c) => {
+    app.get("/", (c) => {
         return c.json({ 
             status: "ok", 
             server: serverName,
             timestamp: new Date().toISOString(),
-            version: '1.0.0'
+            version: "1.0.0",
         });
     });
 
     // Health check route
-    app.get('/health', (c) => {
+    app.get("/health", (c) => {
         return c.json({ 
             status: "healthy",
             server: serverName,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
     });
 
@@ -84,7 +84,7 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
     log.info({
         serverName,
         routeAgentsCount: routeAgents.length,
-        action: 'registering_route_agents'
+        action: "registering_route_agents",
     }, `Registering ${routeAgents.length} route agents`);
 
     routeAgents.forEach(routeAgent => {
@@ -93,31 +93,31 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
         
         // Register the route based on HTTP method
         switch (method) {
-            case 'GET':
+            case "GET":
                 app.get(path, handler);
                 break;
-            case 'POST':
+            case "POST":
                 app.post(path, handler);
                 break;
-            case 'PUT':
+            case "PUT":
                 app.put(path, handler);
                 break;
-            case 'DELETE':
+            case "DELETE":
                 app.delete(path, handler);
                 break;
-            case 'PATCH':
+            case "PATCH":
                 app.patch(path, handler);
                 break;
-            case 'HEAD':
+            case "HEAD":
                 // Hono doesn't have a dedicated head method, use all()
                 app.all(path, (c) => {
-                    if (c.req.method === 'HEAD') {
+                    if (c.req.method === "HEAD") {
                         return handler(c);
                     }
                     return c.notFound();
                 });
                 break;
-            case 'OPTIONS':
+            case "OPTIONS":
                 app.options(path, handler);
                 break;
             default:
@@ -125,7 +125,7 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
                     serverName,
                     method,
                     path,
-                    action: 'unsupported_method'
+                    action: "unsupported_method",
                 }, `Unsupported HTTP method: ${method} for path: ${path}`);
         }
         
@@ -133,8 +133,8 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
             serverName,
             method,
             path,
-            agentName: 'AgentForce Agent',
-            action: 'route_registered'
+            agentName: "AgentForce Agent",
+            action: "route_registered",
         }, `Registered route: ${method} ${path}`);
     });
 
@@ -150,7 +150,7 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
         serverName,
         host: server.hostname,
         port: server.port,
-        action: 'server_started'
+        action: "server_started",
     }, `🚀 Server running at http://${server.hostname}:${server.port}`);
 
     console.log(`🚀 Server running at http://${server.hostname}:${server.port}`);

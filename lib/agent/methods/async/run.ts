@@ -1,5 +1,5 @@
 import type { AgentForceAgent } from "../../../agent";
-import { execute } from './execute';
+import { execute } from "./execute";
 
 /**
  * Executes the agent's chain by making the actual API call to the configured provider
@@ -10,7 +10,7 @@ export async function run(this: AgentForceAgent): Promise<AgentForceAgent> {
     try {
         // Use the execute function to handle the provider call
         await execute.call(this);
-    } catch (error) {
+    } catch {
         // Error handling is already done in execute function
         // Just continue with the chain
     }

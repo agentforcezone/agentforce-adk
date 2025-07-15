@@ -10,12 +10,18 @@ import {
     saveToFile,
     getResponse,
     withTemplate,
-} from './agent/mod';
+} from "./agent/mod";
 
-import pino from 'pino';
+import type { 
+    AgentConfig, 
+    LoggerType,
+    ProviderType, 
+    OutputType, 
+} from "./types";
 
-import type { AgentConfig, LoggerType, ProviderType, OutputType } from './types';
 export type { AgentConfig };
+
+import pino from "pino";
 
 /**
  * Represents an AI agent within the AgentForce framework.
@@ -26,47 +32,47 @@ export type { AgentConfig };
  */
 export class AgentForceAgent {
 
-    private _name: string;
-    private _type: string;
-    private _systemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
-    private _userPrompt: string = "";
-    private _template: string = "";
-    private _chatHistory: {role: string, content: string}[] = [];
+    private name: string;
+    private type: string;
+    private agentSystemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
+    private userPrompt: string = "";
+    private template: string = "";
+    private chatHistory: {role: string, content: string}[] = [];
 
-    private _logger: LoggerType = "json";
-    private _pinoLogger: pino.Logger;
+    private logger: LoggerType = "json";
+    private pinoLogger: pino.Logger;
 
-    private _provider: string = "ollama";
-    private _model: string = "gemma3:4b"
+    private provider: string = "ollama";
+    private model: string = "gemma3:4b";
 
     /**
      * Constructs the AgentForceAgent class.
      * @param config - Configuration object for the agent
      */
     constructor(config: AgentConfig) {
-        this._name = config.name;
-        this._type = config.type;
-        this._logger = config.logger || "json";
-        
+        this.name = config.name;
+        this.type = config.type;
+        this.logger = config.logger || "json";
+
         // Initialize pino logger based on the logger type
-        if (this._logger === "pretty") {
+        if (this.logger === "pretty") {
             try {
-                this._pinoLogger = pino({
+                this.pinoLogger = pino({
                     transport: {
-                        target: 'pino-pretty',
+                        target: "pino-pretty",
                         options: {
-                            colorize: true
-                        }
-                    }
+                            colorize: true,
+                        },
+                    },
                 });
-            } catch (error) {
+            } catch {
                 // Fallback to JSON logger if pino-pretty is not available
-                console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
-                this._pinoLogger = pino();
-                this._logger = "json";
+                console.warn("⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty");
+                this.pinoLogger = pino();
+                this.logger = "json";
             }
         } else {
-            this._pinoLogger = pino();
+            this.pinoLogger = pino();
         }
     }
 
@@ -74,36 +80,36 @@ export class AgentForceAgent {
      * Get the name of the agent.
      */
     public getName(): string {
-        return this._name;
+        return this.name;
     }
 
     /**
      * Get the type of the agent.
      */
     public getType(): string {
-        return this._type;
+        return this.type;
     }
 
     /**
      * Get the user prompt of the agent.
      */
     protected getUserPrompt(): string {
-        return this._userPrompt;
+        return this.userPrompt;
     }
 
     /**
      * Set the user prompt of the agent.
      * @param prompt - The user prompt to set
      */
-    protected setUserPrompt(prompt: string) {
-        this._userPrompt = prompt;
+    protected setUserPrompt(prompt: string): void {
+        this.userPrompt = prompt;
     }
 
     /**
      * Get the system prompt of the agent.
      */
     public getSystemPrompt(): string {
-        return this._systemPrompt;
+        return this.agentSystemPrompt;
     }
 
     /**
@@ -111,14 +117,14 @@ export class AgentForceAgent {
      * @param prompt - The system prompt to set
      */
     protected setSystemPrompt(prompt: string): void {
-        this._systemPrompt = prompt;
+        this.agentSystemPrompt = prompt;
     }
 
     /**
      * Get the template content of the agent.
      */
     public getTemplate(): string {
-        return this._template;
+        return this.template;
     }
 
     /**
@@ -126,14 +132,14 @@ export class AgentForceAgent {
      * @param template - The template content to set
      */
     protected setTemplate(template: string): void {
-        this._template = template;
+        this.template = template;
     }
 
     /**
      * Get the name of the AgentForceAgent model.
      */
     public getModel(): string {
-        return this._model;
+        return this.model;
     }
 
     /**
@@ -141,14 +147,14 @@ export class AgentForceAgent {
      * @param model
      */
     protected setModel(model: string): void {
-        this._model = model;
+        this.model = model;
     }
 
     /**
      * Get the name of the AgentForceAgent provider.
      */
     public getProvider(): string {
-        return this._provider;
+        return this.provider;
     }
 
     /**
@@ -156,7 +162,7 @@ export class AgentForceAgent {
      * @param provider
      */
     protected setProvider(provider: string): void {
-        this._provider = provider;
+        this.provider = provider;
     }
 
     /**
@@ -165,7 +171,7 @@ export class AgentForceAgent {
      * @param content - The content of the message
      */
     protected pushToChatHistory(role: string, content: string): void {
-        this._chatHistory.push({ role, content });
+        this.chatHistory.push({ role, content });
     }
 
     /**
@@ -173,21 +179,21 @@ export class AgentForceAgent {
      * @returns Array of chat messages with role and content
      */
     protected getChatHistory(): {role: string, content: string}[] {
-        return this._chatHistory;
+        return this.chatHistory;
     }
 
     /**
      * Get the logger type of the agent.
      */
     public getLoggerType(): LoggerType {
-        return this._logger;
+        return this.logger;
     }
 
     /**
      * Get the pino logger instance.
      */
     protected getLogger(): pino.Logger {
-        return this._pinoLogger;
+        return this.pinoLogger;
     }
 
     protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);

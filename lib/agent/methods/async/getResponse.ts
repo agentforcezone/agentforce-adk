@@ -1,5 +1,5 @@
 import type { AgentForceAgent } from "../../../agent";
-import { execute } from './execute';
+import { execute } from "./execute";
 
 /**
  * Executes the agent and returns only the raw LLM response (terminal method)
@@ -14,9 +14,9 @@ export async function getResponse(this: AgentForceAgent): Promise<string> {
     } catch (error) {
         // Get the error message from chat history if execute failed
         const chatHistory = this.getChatHistory();
-        const latestAssistantMessage = chatHistory.findLast(msg => msg.role === 'assistant');
+        const latestAssistantMessage = chatHistory.findLast(msg => msg.role === "assistant");
         
-        if (latestAssistantMessage && latestAssistantMessage.content.startsWith('Error:')) {
+        if (latestAssistantMessage && latestAssistantMessage.content.startsWith("Error:")) {
             return latestAssistantMessage.content;
         }
         

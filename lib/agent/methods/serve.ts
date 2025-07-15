@@ -1,7 +1,7 @@
 import type { AgentForceAgent } from "../../agent";
-import { Hono } from 'hono';
-import { logger as loggerMiddleware } from 'hono/logger';
-import pino from 'pino';
+import { Hono } from "hono";
+import { logger as loggerMiddleware } from "hono/logger";
+import pino from "pino";
 
 /**
  * Starts a Bun HTTP server for the agent (terminal method)
@@ -12,12 +12,12 @@ import pino from 'pino';
  */
 export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: number = 3000): void {
     // Validate inputs
-    if (!host || typeof host !== 'string') {
-        throw new Error('Host must be a non-empty string');
+    if (!host || typeof host !== "string") {
+        throw new Error("Host must be a non-empty string");
     }
     
-    if (typeof port !== 'number' || port <= 0 || port > 65535) {
-        throw new Error('Port must be a valid number between 1 and 65535');
+    if (typeof port !== "number" || port <= 0 || port > 65535) {
+        throw new Error("Port must be a valid number between 1 and 65535");
     }
 
     // Get agent information for logging
@@ -43,7 +43,7 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     });
 
     // Custom logger function for Hono middleware that parses HTTP request info
-    const customLogger = (message: string, ...rest: string[]) => {
+    const customLogger = (message: string, ...rest: string[]): void => {
         // Parse the message format: "--> GET /v1/models \u001b[32m200\u001b[0m 12ms"
         const httpLogPattern = /^--> (\w+) (.+?) (?:\u001b\[\d+m)?(\d+)(?:\u001b\[\d+m)? (\d+)ms$/;
         const match = message.match(httpLogPattern);
@@ -56,7 +56,7 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
                 route,
                 statusCode: parseInt(statusCode || "0"),
                 duration: parseInt(duration || "0"),
-                durationUnit: "ms"
+                durationUnit: "ms",
             });
         } else {
             // Fallback for non-HTTP log messages
@@ -69,7 +69,7 @@ export function serve(this: AgentForceAgent, host: string = "0.0.0.0", port: num
     app.use(loggerMiddleware(customLogger));
 
     // Default route
-    app.get('/', (c) => {
+    app.get("/", (c) => {
         return c.json({ status: "ok", agent: agentName });
     });
 
