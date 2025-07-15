@@ -1,6 +1,10 @@
 import { describe, expect, test, beforeEach } from "bun:test";
-import AgentForceServer, { type ServerConfig } from "@lib/server";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { 
+    AgentForceAgent, 
+    type AgentConfig,
+    AgentForceServer,  
+    type ServerConfig 
+} from "../lib";
 
 describe('AgentForceServer addRouteAgent Method Tests', () => {
     let server: AgentForceServer;

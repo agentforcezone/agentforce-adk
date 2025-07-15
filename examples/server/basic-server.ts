@@ -1,4 +1,4 @@
-import AgentForceServer, { type ServerConfig } from "@lib/server";
+import { AgentForceServer,  type ServerConfig } from "../../lib";
 
 const serverConfig: ServerConfig = {
     name: "BaseServer",

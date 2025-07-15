@@ -1,4 +1,4 @@
-import AgentForceAgent from "../../agent";
+import { AgentForceAgent } from "../../agent";
 import { OllamaProvider } from "../../provider/ollama";
 import type { ProviderType } from "../../types";
 

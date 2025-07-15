@@ -1,8 +1,8 @@
 {
     "name": "@agentforce/adk",
-    "version": "0.1.3",
+    "version": "0.2.0",
     "license": "AgentForce License",
-    "exports": "./lib/mod.ts",
+    "exports": "./lib/index.ts",
     "publish": {
         "include": [
             "lib/**/*",

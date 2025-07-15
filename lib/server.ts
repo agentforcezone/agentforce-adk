@@ -4,7 +4,6 @@ import {
     addRouteAgent,
     type RouteAgent,
 } from './server/mod';
-import type AgentForceAgent from './agent';
 
 import type { ServerConfig, LoggerType } from './types';
 export type { ServerConfig };
@@ -16,7 +15,7 @@ export type { ServerConfig };
  *
  * @class AgentForceServer
  */
-export default class AgentForceServer {
+export class AgentForceServer {
 
     private _name: string;
     private logger: LoggerType = "json";
@@ -91,9 +90,9 @@ export default class AgentForceServer {
     }
 
     // Chainable methods
-    addRouteAgent: (method: string, path: string, agent: AgentForceAgent) => AgentForceServer = addRouteAgent.bind(this);
+    addRouteAgent = addRouteAgent.bind(this);
 
     // Terminal/Non-chainable methods
-    serve: (host?: string, port?: number) => void = serve.bind(this);
+    serve = serve.bind(this);
 
 }

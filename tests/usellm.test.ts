@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { AgentForceAgent, type AgentConfig } from "../lib";
 
 describe('AgentForceAgent useLLM Method Tests', () => {
     let agent: AgentForceAgent;

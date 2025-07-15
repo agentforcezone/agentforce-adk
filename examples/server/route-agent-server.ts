@@ -1,5 +1,9 @@
-import AgentForceServer, { type ServerConfig } from "@lib/server";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { 
+    AgentForceAgent,  
+    AgentForceServer,
+    type AgentConfig,
+    type ServerConfig 
+} from "../../lib";
 
 const agentConfig: AgentConfig = {
     name: "IntegrationTestAgent",
@@ -17,9 +21,7 @@ const serverConfig: ServerConfig = {
 };
 
 new AgentForceServer(serverConfig)
-
     //.registerWorkflow("examples/workflows/story-creation.ts")
     .addRouteAgent("POST","/story", ProductOwnerAgent)
     .addRouteAgent("GET","/story", ProductOwnerAgent)
-    //.addRouteAgent("GET","/image", DesignAgent)
     .serve("localhost", 3000);

@@ -1,16 +1,16 @@
 {
   "name": "@agentforce/adk",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "AgentForce Agent Development Kit - A powerful framework for building AI agents and servers",
-  "main": "./lib/mod.ts",
-  "module": "./lib/mod.ts",
-  "types": "./lib/mod.ts",
+  "main": "./lib/index.ts",
+  "module": "./lib/index.ts",
+  "types": "./lib/index.ts",
   "type": "module",
   "private": false,
   "exports": {
     ".": {
-      "import": "./lib/mod.ts",
-      "types": "./lib/mod.ts"
+      "import": "./lib/index.ts",
+      "types": "./lib/index.ts"
     }
   },
   "files": [

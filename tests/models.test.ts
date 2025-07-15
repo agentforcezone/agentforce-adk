@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
-import type { ProviderType } from "@lib/types";
+import { AgentForceAgent, type AgentConfig } from "../lib";
+import type { ProviderType } from "../lib";
 
 describe('Models Route Tests', () => {
     let agent: AgentForceAgent;

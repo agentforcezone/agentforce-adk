@@ -1,5 +1,6 @@
 import {describe, expect, test, beforeEach, afterEach} from "bun:test";
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { AgentForceAgent, type AgentConfig } from "../lib";
+
 import { MockOllamaProvider } from './mocks/MockOllamaProvider';
 
 const agentConfig: AgentConfig = {

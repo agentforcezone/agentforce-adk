@@ -1,4 +1,4 @@
-import AgentForceAgent, { type AgentConfig } from "@lib/agent";
+import { AgentForceAgent, type AgentConfig } from "../../lib";
 
 const agentConfig: AgentConfig = {
     name: "DispatcherAgent",

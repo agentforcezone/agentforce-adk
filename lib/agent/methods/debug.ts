@@ -1,4 +1,4 @@
-import AgentForceAgent from "../../agent";
+import { AgentForceAgent } from "../../agent";
 
 /**
  * Logs debug information about the agent and returns the agent instance for chaining.

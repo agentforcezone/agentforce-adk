@@ -23,7 +23,7 @@ export type { AgentConfig };
  *
  * @class AgentForceAgent
  */
-export default class AgentForceAgent {
+export class AgentForceAgent {
 
     private _name: string;
     private _type: string;
@@ -31,9 +31,8 @@ export default class AgentForceAgent {
     private _userPrompt: string = "";
     private _template: string = "";
     private _chatHistory: {role: string, content: string}[] = [];
-    private _useRoutePrompt: boolean = false;
 
-    private logger: LoggerType = "json";
+    private _logger: LoggerType = "json";
     private _pinoLogger: pino.Logger;
 
     private provider: string = "ollama";
@@ -46,10 +45,10 @@ export default class AgentForceAgent {
     constructor(config: AgentConfig) {
         this._name = config.name;
         this._type = config.type;
-        this.logger = config.logger || "json";
+        this._logger = config.logger || "json";
         
         // Initialize pino logger based on the logger type
-        if (this.logger === "pretty") {
+        if (this._logger === "pretty") {
             try {
                 this._pinoLogger = pino({
                     transport: {
@@ -63,7 +62,7 @@ export default class AgentForceAgent {
                 // Fallback to JSON logger if pino-pretty is not available
                 console.warn('⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty');
                 this._pinoLogger = pino();
-                this.logger = "json";
+                this._logger = "json";
             }
         } else {
             this._pinoLogger = pino();
@@ -177,26 +176,10 @@ export default class AgentForceAgent {
     }
 
     /**
-     * Get the useRoutePrompt flag.
-     * @returns Boolean indicating if agent should use route prompts
-     */
-    public getUseRoutePrompt(): boolean {
-        return this._useRoutePrompt;
-    }
-
-    /**
-     * Set the useRoutePrompt flag.
-     * @param useRoutePrompt - Boolean to enable/disable route prompt usage
-     */
-    protected setUseRoutePrompt(useRoutePrompt: boolean): void {
-        this._useRoutePrompt = useRoutePrompt;
-    }
-
-    /**
      * Get the logger type of the agent.
      */
     public getLoggerType(): LoggerType {
-        return this.logger;
+        return this._logger;
     }
 
     /**
@@ -209,17 +192,17 @@ export default class AgentForceAgent {
     protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);
 
     // Chainable methods
-    debug: () => AgentForceAgent = debug.bind(this);
-    useLLM: (provider?: ProviderType, model?: string) => AgentForceAgent = useLLM.bind(this);
-    systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
-    prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
-    withTemplate: (templatePath: string) => AgentForceAgent = withTemplate.bind(this);
-    run: () => Promise<AgentForceAgent> = run.bind(this);
-    
+    debug = debug.bind(this);
+    useLLM = useLLM.bind(this);
+    systemPrompt = systemPrompt.bind(this);
+    prompt = prompt.bind(this);
+    withTemplate = withTemplate.bind(this);
+    run = run.bind(this);
+
     // Terminal/Non-chainable methods (return output, not this)
-    serve: (host?: string, port?: number) => void = serve.bind(this);
-    output: (outputType: OutputType) => Promise<string | object> = output.bind(this);
-    getResponse: () => Promise<string> = getResponse.bind(this);
-    saveToFile: (fileName: string) => Promise<string> = saveToFile.bind(this);
+    serve = serve.bind(this);
+    output = output.bind(this);
+    getResponse = getResponse.bind(this);
+    saveToFile = saveToFile.bind(this);
 
 }
