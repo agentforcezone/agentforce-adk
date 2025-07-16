@@ -36,7 +36,7 @@ npm install @agentforce/adk
 # Install via JSR (JavaScript Registry)
 npx jsr add @agentforce/adk        # For Node.js projects
 bunx jsr add @agentforce/adk       # For Bun projects  
-deno add @agentforce/adk           # For Deno projects
+deno add jsr:@agentforce/adk       # For Deno projects
 
 # Install via Bun (from npm)
 bun add @agentforce/adk
@@ -56,7 +56,7 @@ bun add @agentforce/adk
   - npm: `npm install @agentforce/adk`
   - JSR: `npx jsr add @agentforce/adk`
 - **Deno**: 
-  - JSR: `deno add @agentforce/adk` (recommended)
+  - JSR: `deno add jsr:@agentforce/adk` (recommended)
 - **Bun**: 
   - npm: `bun add @agentforce/adk` 
   - JSR: `bunx jsr add @agentforce/adk`
