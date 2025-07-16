@@ -1,6 +1,6 @@
 {
     "name": "@agentforce/adk",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "AgentForce Agent Development Kit - A powerful framework for building AI agents and servers with TypeScript, featuring chainable APIs, multiple LLM provider support, and built-in server capabilities.",
     "license": "AgentForce License",
     "exports": "./lib/mod.ts",
