@@ -113,6 +113,7 @@ const agent = new AgentForceAgent(agentConfig)
 - **Debug Support**: Built-in debugging capabilities
 - **Test-Friendly**: Comprehensive test coverage and designed for testability
 - **Server Mode**: Built-in server functionality for agent deployment with automatic runtime detection
+- **OpenAI Compatibility**: Full OpenAI chat completions API compatibility for seamless integration
 
 ## Examples
 
@@ -173,6 +174,256 @@ await agent.serve("localhost", 3000);
 ## Server Functionality
 
 AgentForce SDK includes built-in server capabilities powered by Hono framework, allowing you to deploy agents as HTTP APIs with structured logging and route management.
+
+### OpenAI API Compatibility
+
+AgentForce ADK provides full OpenAI chat completions API compatibility, allowing you to use it as a drop-in replacement for OpenAI's API. This enables seamless integration with existing OpenAI-compatible tools and applications.
+
+#### OpenAI-Compatible Server Example
+
+```typescript
+import { AgentForceAgent, AgentForceServer, type AgentConfig, type ServerConfig } from "@agentforce/adk";
+
+// Create an OpenAI-compatible agent
+const agentConfig: AgentConfig = {
+    name: "OpenAICompatibleAgent",
+    type: "openai-compatible-agent"
+};
+
+const openAIAgent = new AgentForceAgent(agentConfig)
+    .useLLM("ollama", "gemma3:4b")
+    .systemPrompt("You are an OpenAI compatible agent. You will respond to requests in a compatible format.");
+
+// Create server with OpenAI chat completions endpoint
+const serverConfig: ServerConfig = {
+    name: "OpenAICompatibleServer",
+    logger: "json",
+};
+
+new AgentForceServer(serverConfig)
+    .addRouteAgent("POST", "/v1/chat/completions", openAIAgent)
+    .serve("0.0.0.0", 3000);
+```
+
+#### OpenAI-Compatible API Usage
+
+**Request Format (Standard OpenAI Chat Completions):**
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What model are you using?"
+      }
+    ]
+  }'
+```
+
+**Response Format (OpenAI-Compatible):**
+```json
+{
+  "id": "chatcmpl-1752677425345",
+  "object": "chat.completion", 
+  "created": 1752677425,
+  "model": "ollama/gemma3:12b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I am using the Gemma 3 12B model running on Ollama."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6,
+    "completion_tokens": 15,
+    "total_tokens": 21
+  }
+}
+```
+
+#### Dynamic Provider and Model Selection
+
+AgentForce ADK supports dynamic provider and model selection through the `model` parameter in OpenAI requests. This allows you to override the default agent configuration on a per-request basis:
+
+**Supported Model Formats:**
+- `"ollama/gemma3:12b"` → Provider: ollama, Model: gemma3:12b
+- `"openai/gpt-4"` → Provider: openai, Model: gpt-4  
+- `"anthropic/claude-3"` → Provider: anthropic, Model: claude-3
+- `"gemma3:4b"` → Provider: ollama (default), Model: gemma3:4b
+
+**Example with Different Providers:**
+```bash
+# Use Ollama with microsoft phi4 model
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "ollama/phi4:latest", "messages": [{"role": "user", "content": "Hello"}]}'
+
+# Use OpenAI GPT-4 (when implemented)
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "openai/gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+#### Multi-Turn Conversation Examples
+
+AgentForce ADK maintains full conversation context across multiple messages, enabling natural conversational AI experiences:
+
+**Basic Multi-Turn Conversation:**
+```bash
+# Step 1: User introduces themselves
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi, my name is Dave Smith. I work as a software engineer at a tech startup."
+      }
+    ]
+  }'
+
+# Response: "Hello Dave Smith! It's nice to meet you. That sounds like exciting work..."
+
+# Step 2: Continue conversation with full context
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi, my name is Dave Smith. I work as a software engineer at a tech startup."
+      },
+      {
+        "role": "assistant",
+        "content": "Hello Dave Smith! It'\''s nice to meet you. That sounds like exciting work - working at a tech startup must be quite dynamic and fast-paced. What kind of projects are you currently working on?"
+      },
+      {
+        "role": "user",
+        "content": "Do you remember my name?"
+      }
+    ]
+  }'
+
+# Response: "Yes, I remember your name is Dave Smith. You mentioned that you work as a software engineer at a tech startup."
+```
+
+**Complete Multi-Turn JSON Example:**
+```json
+{
+  "model": "ollama/gemma3:12b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hi, my name is Dave Smith. I work as a software engineer at a tech startup."
+    },
+    {
+      "role": "assistant",
+      "content": "Hello Dave Smith! It's nice to meet you. That sounds like exciting work - working at a tech startup must be quite dynamic and fast-paced. What kind of projects are you currently working on?"
+    },
+    {
+      "role": "user",
+      "content": "Do you remember my name?"
+    }
+  ]
+}
+```
+
+**Extended Conversation with Code Request:**
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What LLM are you?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am Gemma 3, a 12 billion parameter language model developed by Google DeepMind. I'\''m currently running on Ollama through the AgentForce ADK framework."
+      },
+      {
+        "role": "user",
+        "content": "Can you help me write a Python function to calculate fibonacci numbers?"
+      },
+      {
+        "role": "assistant",
+        "content": "Certainly! Here'\''s a Python function to calculate Fibonacci numbers:\n\n```python\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n```\n\nThis is a recursive implementation. For better performance with larger numbers, you might want to use an iterative approach or memoization."
+      },
+      {
+        "role": "user",
+        "content": "Show me the iterative version please"
+      }
+    ]
+  }'
+```
+
+**Programmatic Multi-Turn Conversation with OpenAI SDK:**
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:3000',
+  apiKey: 'not-needed',
+});
+
+async function conversationExample() {
+  // Step 1: Introduction
+  const intro = await client.chat.completions.create({
+    model: 'ollama/gemma3:12b',
+    messages: [
+      {
+        role: 'user',
+        content: 'Hi, my name is Dave Smith. I work as a software engineer at a tech startup.'
+      }
+    ],
+  });
+
+  console.log('Assistant:', intro.choices[0].message.content);
+
+  // Step 2: Test memory with full conversation context
+  const memoryTest = await client.chat.completions.create({
+    model: 'ollama/gemma3:12b',
+    messages: [
+      {
+        role: 'user',
+        content: 'Hi, my name is Dave Smith. I work as a software engineer at a tech startup.'
+      },
+      {
+        role: 'assistant',
+        content: intro.choices[0].message.content || ''
+      },
+      {
+        role: 'user',
+        content: 'Do you remember my name?'
+      }
+    ],
+  });
+
+  console.log('Memory test:', memoryTest.choices[0].message.content);
+}
+
+conversationExample();
+```
+
+**Key Features of Multi-Turn Conversations:**
+
+1. **Context Preservation**: Full conversation history is maintained across requests
+2. **Memory**: The AI remembers information from earlier messages (names, preferences, etc.)
+3. **Natural Flow**: Supports user → assistant → user → assistant patterns
+4. **Flexible Messaging**: Include system prompts, multiple user inputs, and assistant responses
+5. **Dynamic Models**: Switch models mid-conversation using the `model` parameter
+
+The agent's provider and model are dynamically configured based on the request, overriding the default `.useLLM()` configuration.
 
 ### `AgentForceServer`
 
@@ -240,7 +491,7 @@ await server.serve("localhost", 3000);
 
 #### API Request/Response Format
 
-**Request Format:**
+**Legacy Request Format:**
 ```bash
 # POST request
 curl -X POST http://localhost:3000/story \
@@ -251,7 +502,23 @@ curl -X POST http://localhost:3000/story \
 curl "http://localhost:3000/story?prompt=Create%20a%20user%20story%20for%20login"
 ```
 
-**Response Format:**
+**OpenAI-Compatible Request Format:**
+```bash
+# OpenAI chat completions format (for /v1/chat/completions endpoints)
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Create a user story for authentication system"
+      }
+    ]
+  }'
+```
+
+**Legacy Response Format:**
 ```json
 {
   "success": true,
@@ -264,13 +531,55 @@ curl "http://localhost:3000/story?prompt=Create%20a%20user%20story%20for%20login
 }
 ```
 
+**OpenAI-Compatible Response Format:**
+```json
+{
+  "id": "chatcmpl-1752677425345",
+  "object": "chat.completion",
+  "created": 1752677425,
+  "model": "ollama/gemma3:12b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Okay, here's a Story created using the ..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 42,
+    "total_tokens": 57
+  }
+}
+```
+
 **Error Response:**
 ```json
 {
   "error": "Missing or invalid prompt",
   "message": "Request must include a \"prompt\" field with a string value",
-  "example":{
+  "example": {
     "prompt": "create a story for an auth service in bun"
+  }
+}
+```
+
+**OpenAI-Compatible Error Response:**
+```json
+{
+  "error": "Invalid OpenAI chat completion format",
+  "message": "Missing or invalid \"model\" field. Must be a non-empty string",
+  "example": {
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "what llm are you"
+      }
+    ]
   }
 }
 ```
@@ -284,6 +593,9 @@ curl "http://localhost:3000/story?prompt=Create%20a%20user%20story%20for%20login
 - **Request Validation**: Automatic validation of required fields
 - **Agent Response Wrapping**: AI responses are wrapped with structured metadata including timestamps and agent information
 - **Method Chaining**: Fluent interface for server configuration
+- **OpenAI API Compatibility**: Full support for OpenAI chat completions format
+- **Dynamic Model Selection**: Override provider and model per request
+- **Backward Compatibility**: Legacy endpoints work alongside OpenAI-compatible ones
 
 #### Logging Configuration
 
@@ -310,10 +622,35 @@ const server = new AgentForceServer({
     logger: "json"
 })
     .addRouteAgent("POST", "/api/v1/generate", agent)
-    .addRouteAgent("GET", "/api/v1/health", healthAgent);
+    .addRouteAgent("GET", "/api/v1/health", healthAgent)
+    .addRouteAgent("POST", "/v1/chat/completions", openAIAgent); // OpenAI-compatible endpoint
 
 // Start production server (async)
 await server.serve("0.0.0.0", process.env.PORT || 8080);
+```
+
+### Integration with OpenAI-Compatible Tools
+
+AgentForce ADK's OpenAI compatibility allows seamless integration with existing tools and libraries that support OpenAI's API:
+
+- **LangChain**: Use AgentForce as an OpenAI provider
+- **OpenAI SDK**: Point to your AgentForce server endpoint
+- **Chatbot UIs**: Any interface that supports OpenAI chat completions
+- **Development Tools**: Postman, Insomnia, curl, etc.
+
+Example with OpenAI SDK:
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:3000',  // Your AgentForce server
+  apiKey: 'not-needed', // AgentForce doesn't require API keys
+});
+
+const completion = await client.chat.completions.create({
+  model: 'ollama/gemma3:12b',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
 ```
 
 ## API Reference

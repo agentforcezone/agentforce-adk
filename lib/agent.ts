@@ -146,7 +146,7 @@ export class AgentForceAgent {
      * Set the name of the AgentForceAgent model.
      * @param model
      */
-    protected setModel(model: string): void {
+    public setModel(model: string): void {
         this.model = model;
     }
 
@@ -161,7 +161,7 @@ export class AgentForceAgent {
      * Set the name of the AgentForceAgent provider.
      * @param provider
      */
-    protected setProvider(provider: string): void {
+    public setProvider(provider: string): void {
         this.provider = provider;
     }
 
