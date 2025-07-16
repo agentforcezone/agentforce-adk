@@ -1,5 +1,5 @@
 import {describe, expect, test} from "bun:test";
-import { AgentForceAgent, type AgentConfig } from "../lib";
+import { AgentForceAgent, type AgentConfig } from "../lib/agent";
 
 const agentConfig: AgentConfig = {
     name: "TestAgent",

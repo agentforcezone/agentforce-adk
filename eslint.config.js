@@ -1,6 +1,6 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig, globalIgnores } from "eslint/config";
 import { includeIgnoreFile } from "@eslint/compat";
-import { fileURLToPath } from "node:url";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 

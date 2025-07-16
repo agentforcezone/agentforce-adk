@@ -4,7 +4,7 @@ import {
     type AgentConfig,
     AgentForceServer,  
     type ServerConfig 
-} from "../lib";
+} from "../lib/mod";
 
 describe('AgentForceServer addRouteAgent Method Tests', () => {
     let server: AgentForceServer;

@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { AgentForceAgent, type AgentConfig } from "../lib";
+import { AgentForceAgent } from "../lib/agent";
 import { writeFileSync, unlinkSync, existsSync } from "fs";
 
 describe('Template Integration in Execute Method', () => {

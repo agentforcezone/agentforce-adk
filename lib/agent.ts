@@ -203,7 +203,7 @@ export class AgentForceAgent {
     useLLM: (provider?: ProviderType, model?: string) => AgentForceAgent = useLLM.bind(this);
     systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
     prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
-    withTemplate: (templatePath: string) => AgentForceAgent = withTemplate.bind(this);
+    withTemplate: (templatePath: string, templateData?: Record<string, unknown>) => AgentForceAgent = withTemplate.bind(this);
     run: () => Promise<AgentForceAgent> = run.bind(this);
     
     // Terminal/Non-chainable methods (return output, not this)
