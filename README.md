@@ -104,6 +104,7 @@ const agent = new AgentForceAgent(agentConfig)
 
 - **Simple API**: Create agents with minimal code
 - **Method Chaining**: Fluent interface for configuring agents
+- **Cross-Runtime Support**: Works seamlessly in Bun, Node.js, and Deno environments
 - **Provider Agnostic**: Support for multiple AI providers (For now only Ollama is implemented)
 - **Model Switching**: Easily switch between different models with `useLLM()`
 - **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
@@ -111,7 +112,7 @@ const agent = new AgentForceAgent(agentConfig)
 - **Type Safe**: Full TypeScript support with proper type definitions
 - **Debug Support**: Built-in debugging capabilities
 - **Test-Friendly**: Comprehensive test coverage and designed for testability
-- **Server Mode**: Built-in server functionality for agent deployment
+- **Server Mode**: Built-in server functionality for agent deployment with automatic runtime detection
 
 ## Examples
 
@@ -163,8 +164,10 @@ const agent = new AgentForceAgent({
   type: "web-service"
 })
   .useLLM("ollama", "phi4-mini:latest")
-  .systemPrompt("You are a web API assistant")
-  .serve("localhost", 3000); // Starts server on localhost:3000
+  .systemPrompt("You are a web API assistant");
+
+// Start server (now async and works across Bun, Node.js, and Deno)
+await agent.serve("localhost", 3000);
 ```
 
 ## Server Functionality
@@ -195,7 +198,7 @@ const server = new AgentForceServer(serverConfig);
   - `path`: Route path (e.g., "/story", "/image")
   - `agent`: AgentForceAgent instance to handle requests
 
-- **`.serve(host?, port?)`**: Start the HTTP server (terminal method)
+- **`.serve(host?, port?)`**: Start the HTTP server (terminal method, async, returns Promise<void>)
   - `host`: Server host (default: "0.0.0.0")
   - `port`: Server port (default: 3000)
 
@@ -226,11 +229,13 @@ const serverConfig: ServerConfig = {
 };
 
 // Create server with route agents
-new AgentForceServer(serverConfig)
+const server = new AgentForceServer(serverConfig)
     .addRouteAgent("POST", "/story", productOwnerAgent)
     .addRouteAgent("GET", "/story", productOwnerAgent)
-    .addRouteAgent("POST", "/design", designAgent)
-    .serve("localhost", 3000);
+    .addRouteAgent("POST", "/design", designAgent);
+
+// Start server (async)
+await server.serve("localhost", 3000);
 ```
 
 #### API Request/Response Format
@@ -305,8 +310,10 @@ const server = new AgentForceServer({
     logger: "json"
 })
     .addRouteAgent("POST", "/api/v1/generate", agent)
-    .addRouteAgent("GET", "/api/v1/health", healthAgent)
-    .serve("0.0.0.0", process.env.PORT || 8080);
+    .addRouteAgent("GET", "/api/v1/health", healthAgent);
+
+// Start production server (async)
+await server.serve("0.0.0.0", process.env.PORT || 8080);
 ```
 
 ## API Reference
@@ -349,7 +356,7 @@ All methods return the agent instance for fluent chaining:
 
 - **`.debug()`**: Log debug information and return agent instance for development
 
-- **`.serve(host?, port?)`**: Start agent as web server
+- **`.serve(host?, port?)`**: Start agent as web server (async, returns Promise<void>)
   - `host`: Server host (default: "0.0.0.0")
   - `port`: Server port (default: 3000)
 

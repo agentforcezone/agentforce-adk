@@ -4,13 +4,14 @@ import { logger as loggerMiddleware } from "hono/logger";
 import { createAgentRouteHandler } from "./addRouteAgent";
 
 /**
- * Starts a Bun HTTP server for the AgentForceServer (terminal method)
+ * Starts an HTTP server for the AgentForceServer (terminal method)
+ * Compatible with Bun, Node.js, and Deno runtimes
  * @param this - The AgentForceServer instance (bound context)
  * @param host - The host address to bind the server to (default: "localhost")
  * @param port - The port number to listen on (default: 3000)
- * @returns {void} This is a terminal method that starts the server - does not return the server instance
+ * @returns {Promise<void>} This is a terminal method that starts the server - does not return the server instance
  */
-export function serve(this: AgentForceServer, host: string = "localhost", port: number = 3000): void {
+export async function serve(this: AgentForceServer, host: string = "localhost", port: number = 3000): Promise<void> {
     // Validate inputs
     if (!host || typeof host !== "string") {
         throw new Error("Host must be a non-empty string");
@@ -138,22 +139,126 @@ export function serve(this: AgentForceServer, host: string = "localhost", port: 
         }, `Registered route: ${method} ${path}`);
     });
 
-    // Start the server using Bun's serve with Hono
-    const server = Bun.serve({
-        hostname: host,
-        port: port,
-        fetch: app.fetch,
-        idleTimeout: 120, // Set timeout to 120 seconds (2 minutes) for AI agent responses
-    });
+    // Start the server using runtime-appropriate method
+    // Runtime detection and server startup
+    try {
+        if (typeof globalThis.Bun !== "undefined") {
+            // Bun runtime
+            const server = (globalThis as any).Bun.serve({
+                hostname: host,
+                port: port,
+                fetch: app.fetch,
+                idleTimeout: 120, // Set timeout to 120 seconds (2 minutes) for AI agent responses
+            });
 
-    log.info({
-        serverName,
-        host: server.hostname,
-        port: server.port,
-        action: "server_started",
-    }, `🚀 Server running at http://${server.hostname}:${server.port}`);
+            log.info({
+                serverName,
+                host: server.hostname,
+                port: server.port,
+                runtime: "bun",
+                action: "server_started",
+            }, `🚀 Server running at http://${server.hostname}:${server.port}`);
 
-    console.log(`🚀 Server running at http://${server.hostname}:${server.port}`);
+            console.log(`🚀 Server running at http://${server.hostname}:${server.port}`);
+        } else if (typeof (globalThis as any).Deno !== "undefined") {
+            // Deno runtime
+            (globalThis as any).Deno.serve({ 
+                hostname: host, 
+                port: port,
+            }, app.fetch);
+
+            log.info({
+                serverName,
+                host,
+                port,
+                runtime: "deno",
+                action: "server_started",
+            }, `🚀 Server running at http://${host}:${port}`);
+
+            console.log(`🚀 Server running at http://${host}:${port}`);
+        } else {
+            // Node.js runtime - use Node.js built-in http module
+            const http = await import("node:http");
+            
+            const server = http.createServer(async (req, res) => {
+                // Convert Node.js request to Web API Request
+                const url = `http://${host}:${port}${req.url || "/"}`;
+                const headers: Record<string, string> = {};
+                
+                // Copy headers from Node.js request
+                for (const [key, value] of Object.entries(req.headers)) {
+                    if (typeof value === "string") {
+                        headers[key] = value;
+                    } else if (Array.isArray(value)) {
+                        headers[key] = value.join(", ");
+                    }
+                }
+
+                // Handle request body for POST/PUT/PATCH
+                let body: string | undefined;
+                if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
+                    const chunks: Buffer[] = [];
+                    for await (const chunk of req) {
+                        chunks.push(chunk);
+                    }
+                    body = Buffer.concat(chunks).toString();
+                }
+
+                // Create Web API Request
+                const request = new Request(url, {
+                    method: req.method || "GET",
+                    headers,
+                    body: body,
+                });
+
+                try {
+                    // Process request with Hono app
+                    const response = await app.fetch(request);
+                    
+                    // Set response status and headers
+                    res.statusCode = response.status;
+                    response.headers.forEach((value, key) => {
+                        res.setHeader(key, value);
+                    });
+
+                    // Send response body
+                    if (response.body) {
+                        const reader = response.body.getReader();
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            res.write(value);
+                        }
+                    }
+                    res.end();
+                } catch (error) {
+                    console.error("Error processing request:", error);
+                    res.statusCode = 500;
+                    res.end("Internal Server Error");
+                }
+            });
+
+            server.listen(port, host, () => {
+                log.info({
+                    serverName,
+                    host,
+                    port,
+                    runtime: "node",
+                    action: "server_started",
+                }, `🚀 Server running at http://${host}:${port}`);
+
+                console.log(`🚀 Server running at http://${host}:${port}`);
+            });
+        }
+    } catch (error) {
+        log.error({
+            serverName,
+            error: error instanceof Error ? error.message : String(error),
+            action: "server_start_failed",
+        }, "Failed to start server");
+        
+        throw new Error(`Failed to start server: ${error instanceof Error ? error.message : String(error)}`);
+    }
 
     // Terminal method - does not return the server instance (server runs indefinitely)
 }

@@ -94,6 +94,6 @@ export class AgentForceServer {
     addRouteAgent: (method: string, path: string, agent: AgentForceAgent) => AgentForceServer = addRouteAgent.bind(this);
 
     // Terminal/Non-chainable methods
-    serve: (host?: string, port?: number) => void = serve.bind(this);
+    serve: (host?: string, port?: number) => Promise<void> = serve.bind(this);
 
 }
