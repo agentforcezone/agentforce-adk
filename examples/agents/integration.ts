@@ -1,4 +1,4 @@
-import { AgentForceAgent, type AgentConfig } from "../../lib";
+import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
     name: "IntegrationTestAgent",

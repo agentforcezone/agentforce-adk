@@ -3,7 +3,7 @@ import {
     AgentForceServer,
     type AgentConfig,
     type ServerConfig 
-} from "../../lib";
+} from "../../lib/mod"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
     name: "IntegrationTestAgent",
@@ -13,7 +13,7 @@ const agentConfig: AgentConfig = {
 const ProductOwnerAgent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
     .systemPrompt("You are a product owner agent. You will create Tickets (Epics, user stories, and tasks) for the Backlog.")
-    .withTemplate("templates/basic-story.md");
+    .withTemplate("examples/templates/basic-story.md");
 
 const serverConfig: ServerConfig = {
     name: "RouteAgentServer",
