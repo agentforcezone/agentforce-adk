@@ -14,7 +14,7 @@ import { createOllamaGenerateRouteHandler, createOllamaChatRouteHandler } from "
  * @param port - The port number to listen on (default: 3000)
  * @returns {Promise<void>} This is a terminal method that starts the server - does not return the server instance
  */
-export async function serve(this: AgentForceServer, host: string = "localhost", port: number = 3000): Promise<void> {
+export async function serve(this: AgentForceServer, host: string = "0.0.0.0", port: number = 3000): Promise<void> {
     // Validate inputs
     if (!host || typeof host !== "string") {
         throw new Error("Host must be a non-empty string");

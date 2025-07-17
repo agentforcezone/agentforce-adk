@@ -31,6 +31,7 @@ const userStorySchema: RouteAgentSchema = {
 };
 
 new AgentForceServer(serverConfig)
+
     // Added the "/v1/chat/completions" route
     .useOpenAICompatibleRouting(Agent) 
     // Added the "/api/generate" and "/api/chat" route
@@ -44,26 +45,11 @@ new AgentForceServer(serverConfig)
     
     // Add static routes
     .addRoute("GET", "/health", {"status": "ok"})
+    
+    // Start server with default host and port (0.0.0.0:3000)
     .serve();
 
 
 // New Methods for integration    
 //.addRouteAgent("POST", "/create-tool", OpenAICompatibleAgent, schema)
 //.outputSchema("OpenAICompatibleAgent", OpenAICompatibleAgent.schema)
-
-// Example usage with different schemas:
-//
-// Basic schema (only prompt and response):
-// const basicSchema = {
-//     input: ["prompt"],
-//     output: ["success", "response"]
-// };
-//
-// Extended schema with custom fields:
-// const extendedSchema = {
-//     input: ["prompt", "project_name", "priority", "assignee"],
-//     output: ["success", "prompt", "response", "project_name", "priority", "assignee", "timestamp"]
-// };
-//
-// Usage:
-// .addRouteAgent("POST", "/create-task", TaskAgent, extendedSchema)
