@@ -2,7 +2,7 @@ import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentfo
 
 const agentConfig: AgentConfig = {
     name: "IntegrationTestAgent",
-    type: "integration-test-agent",
+    type: "integration-agent",
     logger: "pretty"
 };
 
@@ -13,7 +13,6 @@ const output = await new AgentForceAgent(agentConfig)
     .output("json");
 
 console.log(JSON.stringify(output, null, 2));
-
 
 // .triggerN8N({ workflowId: "your-workflow-id", data: output })
 // .iterate("sommer", "winter") run multiple times

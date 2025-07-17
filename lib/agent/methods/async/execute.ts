@@ -1,5 +1,6 @@
 import type { AgentForceAgent } from "../../../agent";
 import { OllamaProvider } from "../../../provider/ollama";
+import { OpenRouterProvider } from "../../../provider/openrouter";
 
 /**
  * Executes the agent's provider call to generate response
@@ -41,6 +42,14 @@ export async function execute(this: AgentForceAgent): Promise<string> {
                 
                 // Use generate method with prompt and system parameters (including template)
                 response = await ollamaProvider.generate(userPrompt, fullSystemPrompt);
+                break;
+
+            case "openrouter":
+                // Use the real OpenRouterProvider for production
+                const openRouterProvider = new OpenRouterProvider(model);
+                
+                // Use generate method with prompt and system parameters (including template)
+                response = await openRouterProvider.generate(userPrompt, fullSystemPrompt);
                 break;
 
             case "openai":

@@ -1,7 +1,7 @@
 import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "DispatcherAgent",
+    name: "DispatcherTestAgent",
     type: "dispatcher-agent",
     logger: "pretty"
 };

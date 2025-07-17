@@ -75,6 +75,24 @@ ollama pull phi4-mini-reasoning:latest
 ollama pull magistral:latest
 ```
 
+### OpenRouter (Multiple Models via API)
+```bash
+# Set your OpenRouter API key
+export OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
+
+# Or add to .env file
+echo "OPENROUTER_API_KEY=sk-or-v1-your-api-key-here" >> .env
+```
+
+Get your free API key at [OpenRouter.ai](https://openrouter.ai/) to access models from:
+- OpenAI (GPT-4, GPT-3.5-turbo)
+- Anthropic (Claude 3, Claude 3.5)
+- Google (Gemini Pro, PaLM 2)
+- Meta (Llama 2, Llama 3)
+- Free models (Gemma, Qwen, etc.)
+
+📖 **[Complete OpenRouter Guide](docs/providers/openrouter.md)** - Setup, usage examples, error handling, and best practices
+
 ### OpenAI, Anthropic, Google
 
 Not yet implemented! Coming Soon
@@ -83,7 +101,6 @@ Not yet implemented! Coming Soon
 
 Create your first agent in just a few lines of code:
 
-```typescript
 ```typescript
 // Import main classes
 import { AgentForceAgent, AgentForceServer } from '@agentforce/adk';
@@ -103,6 +120,13 @@ const agent = new AgentForceAgent(agentConfig)
   .systemPrompt("You are a helpful AI assistant")
   .prompt("Hello, What is your role?")
   .output("json");
+
+// Or use OpenRouter for cloud-based models
+const cloudAgent = new AgentForceAgent(agentConfig)
+  .useLLM("openrouter", "openai/gpt-4")
+  .systemPrompt("You are a creative writing assistant")
+  .prompt("Write a short story about AI")
+  .output("md");
 ```
 
 ## Features
@@ -110,8 +134,9 @@ const agent = new AgentForceAgent(agentConfig)
 - **Simple API**: Create agents with minimal code
 - **Method Chaining**: Fluent interface for configuring agents
 - **Cross-Runtime Support**: Works seamlessly in Bun, Node.js, and Deno environments
-- **Provider Agnostic**: Support for multiple AI providers (For now only Ollama is implemented)
+- **Multiple AI Providers**: Support for Ollama (local), OpenRouter (cloud), with OpenAI/Anthropic/Google coming soon
 - **Model Switching**: Easily switch between different models with `useLLM()`
+- **Cloud & Local Models**: Use local Ollama models or cloud models via OpenRouter
 - **Prompt Management**: Set system and user prompts with `.systemPrompt()` and `.prompt()`
 - **Multiple Output Formats**: Support for text, JSON, and Markdown output formats
 - **Type Safe**: Full TypeScript support with proper type definitions
@@ -127,6 +152,7 @@ const agent = new AgentForceAgent(agentConfig)
 ```typescript
 import { AgentForceAgent } from "@agentforce/adk";
 
+// Local Ollama model
 const agent = new AgentForceAgent({
   name: "ChatBot",
   type: "conversational-agent"
@@ -135,6 +161,51 @@ const agent = new AgentForceAgent({
   .systemPrompt("You are a friendly chatbot")
   .prompt("Tell me a joke")
   .output("text");
+
+// Cloud-based OpenRouter model
+const cloudAgent = new AgentForceAgent({
+  name: "CloudChatBot", 
+  type: "conversational-agent"
+})
+  .useLLM("openrouter", "anthropic/claude-3-sonnet")
+  .systemPrompt("You are a philosophical discussion partner")
+  .prompt("What is the meaning of life?")
+  .output("md");
+```
+
+### OpenRouter Provider Examples
+
+```typescript
+import { AgentForceAgent } from "@agentforce/adk";
+
+const agentConfig = {
+  name: "OpenRouterAgent",
+  type: "openrouter-agent"
+};
+
+// Free models (great for development)
+const freeAgent = new AgentForceAgent(agentConfig)
+  .useLLM("openrouter", "moonshotai/kimi-k2:free")
+  .systemPrompt("You are a helpful assistant")
+  .prompt("Explain quantum computing");
+
+// Premium OpenAI models
+const openaiAgent = new AgentForceAgent(agentConfig)
+  .useLLM("openrouter", "openai/gpt-4")
+  .systemPrompt("You are an expert software architect")
+  .prompt("Design a microservices architecture");
+
+// Anthropic Claude models
+const claudeAgent = new AgentForceAgent(agentConfig)
+  .useLLM("openrouter", "anthropic/claude-3-opus")
+  .systemPrompt("You are a creative writing assistant")
+  .prompt("Write a science fiction short story");
+
+// Meta Llama models
+const llamaAgent = new AgentForceAgent(agentConfig)
+  .useLLM("openrouter", "meta-llama/llama-3.1-8b-instruct")
+  .systemPrompt("You are a code review assistant")
+  .prompt("Review this Python function for optimization");
 ```
 
 ### Different Output Formats
@@ -165,15 +236,25 @@ agent.output("md");
 ```typescript
 import { AgentForceAgent } from "@agentforce/adk";
 
-const agent = new AgentForceAgent({
-  name: "WebAgent",  
+// Local Ollama server
+const localAgent = new AgentForceAgent({
+  name: "LocalWebAgent",  
   type: "web-service"
 })
   .useLLM("ollama", "phi4-mini:latest")
   .systemPrompt("You are a web API assistant");
 
+// Cloud OpenRouter server  
+const cloudAgent = new AgentForceAgent({
+  name: "CloudWebAgent",
+  type: "web-service"
+})
+  .useLLM("openrouter", "openai/gpt-3.5-turbo")
+  .systemPrompt("You are a cloud-powered API assistant");
+
 // Start server (now async and works across Bun, Node.js, and Deno)
-await agent.serve("localhost", 3000);
+await localAgent.serve("localhost", 3000);
+await cloudAgent.serve("localhost", 3001);
 ```
 
 ## Server Functionality
@@ -1164,8 +1245,8 @@ constructor(config: AgentConfig)
 All methods return the agent instance for fluent chaining:
 
 - **`.useLLM(provider, model)`**: Configure AI provider and model
-  - `provider`: AI provider ("openai", "anthropic", "ollama", "google")
-  - `model`: Model name (e.g., "gpt-4", "claude-3", "phi4-mini:latest")
+  - `provider`: AI provider ("ollama", "openrouter", "openai", "anthropic", "google")
+  - `model`: Model name (e.g., "phi4-mini:latest", "openai/gpt-4", "anthropic/claude-3-sonnet", "moonshotai/kimi-k2:free")
 
 - **`.systemPrompt(prompt)`**: Set the system prompt
   - `prompt`: System instruction string
@@ -1195,7 +1276,9 @@ All methods return the agent instance for fluent chaining:
 - [x] Multiple output formats (text, JSON, markdown)
 - [x] Server deployment capabilities
 - [x] Comprehensive test coverage with mock data support
-- [ ] Multiple AI provider support (Ollama, Google, OpenRouter, ...)
+- [x] Ollama provider support (local models)
+- [x] OpenRouter provider support (cloud models with multiple providers)
+- [ ] Native OpenAI, Anthropic, Google provider support
 - [ ] Streaming responses
 - [ ] Function calling and tool integration
 - [ ] Multi-agent workflows and communication

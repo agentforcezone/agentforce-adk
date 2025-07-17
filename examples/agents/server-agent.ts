@@ -1,13 +1,13 @@
 import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "WebServerAgent",
-    type: "http-server-agent",
+    name: "ServerTestAgent",
+    type: "server-agent",
     logger: "json"
 };
 
 // Create an agent and start a web server (serve is terminal - doesn't return agent)
-const agent = new AgentForceAgent(agentConfig)
+new AgentForceAgent(agentConfig)
     .useLLM("ollama", "phi4-mini:latest")
     .debug()
-    .serve("0.0.0.0", 3002);
+    .serve("0.0.0.0", 3000);

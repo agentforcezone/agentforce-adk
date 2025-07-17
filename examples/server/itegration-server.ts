@@ -10,24 +10,25 @@ const agentConfig: AgentConfig = {
     name: "IntegrationAgent",
     type: "integration-agent"
 };
+
 const Agent = new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
     .systemPrompt("You are an Integration test agent. You will respond to requests in a compatible format.");
 
 const StoryAgent = new AgentForceAgent(agentConfig)
-    .useLLM("ollama", "gemma3:4b")
+    .useLLM("openrouter", "mistralai/mistral-small-3.2-24b-instruct:free")
     .systemPrompt("You are a Product Owner agent. You will respond with a user story.")
     .withTemplate("examples/templates/user-story.md");
-
-const serverConfig: ServerConfig = {
-    name: "IntegrationTestServer",
-    logger: "json",
-};
 
 // Define schemas for custom endpoints
 const userStorySchema: RouteAgentSchema = {
     input: ["prompt", "persona"],
     output: ["success", "persona", "prompt", "response"]
+};
+
+const serverConfig: ServerConfig = {
+    name: "IntegrationTestServer",
+    logger: "json",
 };
 
 new AgentForceServer(serverConfig)
@@ -48,8 +49,3 @@ new AgentForceServer(serverConfig)
     
     // Start server with default host and port (0.0.0.0:3000)
     .serve();
-
-
-// New Methods for integration    
-//.addRouteAgent("POST", "/create-tool", OpenAICompatibleAgent, schema)
-//.outputSchema("OpenAICompatibleAgent", OpenAICompatibleAgent.schema)

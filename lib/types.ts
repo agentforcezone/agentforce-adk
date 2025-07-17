@@ -39,4 +39,4 @@ export type OutputType = "text" | "json" | "md";
 /**
  * Type definition for supported AI providers
  */
-export type ProviderType = "ollama" | "openai" | "anthropic" | "google";
+export type ProviderType = "ollama" | "openai" | "anthropic" | "google" | "openrouter";
