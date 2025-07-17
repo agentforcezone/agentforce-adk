@@ -2,7 +2,8 @@ import {
     AgentForceAgent,  
     AgentForceServer,
     type AgentConfig,
-    type ServerConfig 
+    type ServerConfig,
+    type RouteAgentSchema 
 } from "../../lib/mod"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
@@ -23,14 +24,22 @@ const serverConfig: ServerConfig = {
     logger: "json",
 };
 
+// Define schemas for custom endpoints
+const userStorySchema: RouteAgentSchema = {
+    input: ["prompt", "persona"],
+    output: ["success", "persona", "prompt", "response"]
+};
+
 new AgentForceServer(serverConfig)
     // Added the "/v1/chat/completions" route
     .useOpenAICompatibleRouting(Agent) 
     // Added the "/api/generate" and "/api/chat" route
     .useOllamaCompatibleRouting(Agent) 
     
-    // Add custom routes
-    .addRouteAgent("POST", "/create-user-story", StoryAgent)
+    // Add custom routes with schemas
+    .addRouteAgent("POST", "/create-user-story", StoryAgent, userStorySchema)
+    
+    // add custom route without schema (default in and output)
     .addRouteAgent("GET", "/user-story", StoryAgent)
     
     // Add static routes
@@ -41,3 +50,20 @@ new AgentForceServer(serverConfig)
 // New Methods for integration    
 //.addRouteAgent("POST", "/create-tool", OpenAICompatibleAgent, schema)
 //.outputSchema("OpenAICompatibleAgent", OpenAICompatibleAgent.schema)
+
+// Example usage with different schemas:
+//
+// Basic schema (only prompt and response):
+// const basicSchema = {
+//     input: ["prompt"],
+//     output: ["success", "response"]
+// };
+//
+// Extended schema with custom fields:
+// const extendedSchema = {
+//     input: ["prompt", "project_name", "priority", "assignee"],
+//     output: ["success", "prompt", "response", "project_name", "priority", "assignee", "timestamp"]
+// };
+//
+// Usage:
+// .addRouteAgent("POST", "/create-task", TaskAgent, extendedSchema)

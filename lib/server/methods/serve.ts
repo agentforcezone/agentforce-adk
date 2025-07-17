@@ -98,7 +98,7 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
     }, `Registering ${routeAgents.length} route agents`);
 
     routeAgents.forEach(routeAgent => {
-        const { method, path, agent } = routeAgent;
+        const { method, path, agent, schema } = routeAgent;
         
         // Determine route type and create appropriate handler
         let handler;
@@ -117,9 +117,9 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
             handler = createOllamaChatRouteHandler(agent, path);
             routeType = "Ollama-compatible (chat)";
         } else {
-            // Legacy route
-            handler = createAgentRouteHandler(agent, method, path);
-            routeType = "legacy";
+            // Legacy route with schema support
+            handler = createAgentRouteHandler(agent, method, path, schema);
+            routeType = schema ? "custom (with schema)" : "legacy";
         }
         
         // Register the route based on HTTP method

@@ -7,11 +7,12 @@ import {
     useOllamaCompatibleRouting,
     type RouteAgent,
     type StaticRoute,
+    type RouteAgentSchema,
 } from "./server/mod";
 
 import type { AgentForceAgent } from "./agent";
 import type { ServerConfig, LoggerType } from "./types";
-export type { ServerConfig };
+export type { ServerConfig, RouteAgentSchema };
 
 /**
  * Represents a server instance within the AgentForce framework.
@@ -112,7 +113,7 @@ export class AgentForceServer {
     }
 
     // Chainable methods
-    addRouteAgent: (method: string, path: string, agent: AgentForceAgent) => AgentForceServer = addRouteAgent.bind(this);
+    addRouteAgent: (method: string, path: string, agent: AgentForceAgent, schema?: RouteAgentSchema) => AgentForceServer = addRouteAgent.bind(this);
     addRoute: (method: string, path: string, responseData: any) => AgentForceServer = addRoute.bind(this);
     useOpenAICompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOpenAICompatibleRouting.bind(this);
     useOllamaCompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOllamaCompatibleRouting.bind(this);

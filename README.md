@@ -84,7 +84,12 @@ Not yet implemented! Coming Soon
 Create your first agent in just a few lines of code:
 
 ```typescript
-import { AgentForceAgent, type AgentConfig } from "@agentforce/adk";
+```typescript
+// Import main classes
+import { AgentForceAgent, AgentForceServer } from '@agentforce/adk';
+
+// Import types
+import type { AgentConfig, ServerConfig, RouteAgentSchema } from '@agentforce/adk';
 
 // Configure your agent
 const agentConfig: AgentConfig = {
@@ -571,10 +576,11 @@ const server = new AgentForceServer(serverConfig);
 
 #### Server Methods
 
-- **`.addRouteAgent(method, path, agent)`**: Add an agent to handle specific HTTP endpoints (chainable)
+- **`.addRouteAgent(method, path, agent, schema?)`**: Add an agent to handle specific HTTP endpoints with optional input/output validation (chainable)
   - `method`: HTTP method ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
   - `path`: Route path (e.g., "/story", "/image")
   - `agent`: AgentForceAgent instance to handle requests
+  - `schema`: Optional `RouteAgentSchema` for strict input/output validation
 
 - **`.addRoute(method, path, responseData)`**: Add static routes that return predefined data (chainable)
   - `method`: HTTP method ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
@@ -595,10 +601,183 @@ const server = new AgentForceServer(serverConfig);
   - `host`: Server host (default: "0.0.0.0")
   - `port`: Server port (default: 3000)
 
+#### Schema-Based Validation
+
+AgentForce ADK supports optional schema-based validation for `.addRouteAgent()` endpoints, providing strict input validation and structured output formatting. When a schema is provided, the endpoint enforces strict validation - only allowing specified input fields and requiring all defined fields to be present.
+
+**Schema Interface:**
+```typescript
+interface RouteAgentSchema {
+    input: string[];   // Required input fields
+    output: string[];  // Output fields to include in response
+}
+```
+
+**Basic Schema Example:**
+```typescript
+import { AgentForceServer, AgentForceAgent, type RouteAgentSchema } from "@agentforce/adk";
+
+// Define validation schema
+const taskSchema: RouteAgentSchema = {
+    input: ["prompt", "project_name", "priority"],    // Required input fields
+    output: ["success", "prompt", "response", "project_name", "priority", "timestamp"]  // Response fields
+};
+
+// Create agent with schema validation
+const taskAgent = new AgentForceAgent({
+    name: "TaskAgent",
+    type: "task-agent"
+})
+    .useLLM("ollama", "gemma3:4b")
+    .systemPrompt("You are a task management agent. Create detailed task descriptions.");
+
+// Add route with strict schema validation
+new AgentForceServer({
+    name: "TaskServer",
+    logger: "json"
+})
+    .addRouteAgent("POST", "/create-task", taskAgent, taskSchema)
+    .serve("localhost", 3000);
+```
+
+**Schema Validation Behavior:**
+
+**✅ Valid Request (all required fields present):**
+```bash
+curl -X POST http://localhost:3000/create-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a login system",
+    "project_name": "WebApp",
+    "priority": "high"
+  }'
+```
+
+**✅ Valid Response (schema-formatted output):**
+```json
+{
+  "success": true,
+  "prompt": "Create a login system",
+  "response": "Here's a detailed task for creating a login system...",
+  "project_name": "WebApp",
+  "priority": "high",
+  "timestamp": "2025-07-17T15:30:45.123Z"
+}
+```
+
+**❌ Invalid Request (missing required field):**
+```bash
+curl -X POST http://localhost:3000/create-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a login system",
+    "project_name": "WebApp"
+  }'
+```
+
+**❌ Error Response (missing required field):**
+```json
+{
+  "error": "Missing required fields",
+  "message": "The following required fields are missing: priority",
+  "required": ["prompt", "project_name", "priority"],
+  "received": ["prompt", "project_name"]
+}
+```
+
+**❌ Invalid Request (unexpected field):**
+```bash
+curl -X POST http://localhost:3000/create-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a login system",
+    "project_name": "WebApp", 
+    "priority": "high",
+    "unexpected_field": "not allowed"
+  }'
+```
+
+**❌ Error Response (unexpected field):**
+```json
+{
+  "error": "Unexpected fields in request",
+  "message": "The following fields are not allowed: unexpected_field",
+  "allowed": ["prompt", "project_name", "priority"],
+  "unexpected": ["unexpected_field"]
+}
+```
+
+**Schema vs Non-Schema Endpoints:**
+
+```typescript
+// Without schema - flexible input/output (legacy mode)
+server.addRouteAgent("POST", "/flexible-story", storyAgent);
+
+// With schema - strict validation and formatted output
+const storySchema: RouteAgentSchema = {
+    input: ["prompt", "persona"],
+    output: ["success", "persona", "prompt", "response"]
+};
+server.addRouteAgent("POST", "/strict-story", storyAgent, storySchema);
+```
+
+**Advanced Schema Examples:**
+
+```typescript
+// Minimal schema (prompt only)
+const simpleSchema: RouteAgentSchema = {
+    input: ["prompt"],
+    output: ["success", "response"]
+};
+
+// Extended project management schema
+const projectSchema: RouteAgentSchema = {
+    input: ["prompt", "project_name", "priority", "assignee", "due_date"],
+    output: ["success", "prompt", "response", "project_name", "priority", "assignee", "due_date", "created_at", "task_id"]
+};
+
+// Customer support schema  
+const supportSchema: RouteAgentSchema = {
+    input: ["prompt", "customer_id", "ticket_type", "urgency"],
+    output: ["success", "prompt", "response", "customer_id", "ticket_type", "urgency", "ticket_number", "timestamp"]
+};
+
+// Design specification schema
+const designSchema: RouteAgentSchema = {
+    input: ["prompt", "design_type", "platform", "brand_guidelines"],
+    output: ["success", "prompt", "response", "design_type", "platform", "brand_guidelines", "deliverables", "timeline"]
+};
+```
+
+**Schema Benefits:**
+
+1. **Input Validation**: Strict enforcement of required fields prevents malformed requests
+2. **API Consistency**: Standardized request/response formats across endpoints
+3. **Error Prevention**: Clear error messages for missing or unexpected fields
+4. **Documentation**: Schema serves as API specification for consumers
+5. **Backward Compatibility**: Non-schema endpoints continue working as before
+6. **Type Safety**: Enhanced TypeScript support for request/response structures
+
+**Schema Error Types:**
+
+- **Missing Fields**: When required schema fields are not provided in the request
+- **Unexpected Fields**: When request contains fields not defined in the schema
+- **Invalid Request**: When request body is not valid JSON or missing entirely
+- **Method Validation**: When HTTP method doesn't match endpoint definition
+
+**Best Practices:**
+
+1. **Define Clear Schemas**: Use descriptive field names that clearly indicate their purpose
+2. **Keep Schemas Focused**: Include only necessary fields to avoid overly complex validation
+3. **Use Consistent Naming**: Follow camelCase or snake_case consistently across schemas
+4. **Document Requirements**: Clearly communicate schema requirements to API consumers
+5. **Test All Scenarios**: Verify both valid requests and error conditions during development
+6. **Progressive Enhancement**: Start with simple schemas and add fields as needed
+
 #### Complete Server Example
 
 ```typescript
-import { AgentForceServer, AgentForceAgent, type ServerConfig, type AgentConfig } from "@agentforce/adk";
+import { AgentForceServer, AgentForceAgent, type ServerConfig, type AgentConfig, type RouteAgentSchema } from "@agentforce/adk";
 
 // Create agents
 const productOwnerAgent = new AgentForceAgent({
@@ -614,6 +793,17 @@ const designAgent = new AgentForceAgent({
 })
     .useLLM("ollama", "phi4-mini:latest")
     .systemPrompt("You are a UI/UX design expert. Create design specifications and wireframes.");
+
+// Define schemas for strict validation
+const storySchema: RouteAgentSchema = {
+    input: ["prompt", "project_name", "priority"],
+    output: ["success", "prompt", "response", "project_name", "priority", "timestamp"]
+};
+
+const designSchema: RouteAgentSchema = {
+    input: ["prompt", "design_type", "platform"],
+    output: ["success", "prompt", "response", "design_type", "platform", "deliverables"]
+};
 
 // Configure server
 const serverConfig: ServerConfig = {
@@ -634,10 +824,11 @@ const server = new AgentForceServer(serverConfig)
         timestamp: new Date().toISOString(),
         method: context.req.method
     }))
-    // Custom agent-powered routes
-    .addRouteAgent("POST", "/story", productOwnerAgent)
-    .addRouteAgent("GET", "/story", productOwnerAgent)
-    .addRouteAgent("POST", "/design", designAgent);
+    // Custom agent-powered routes with schema validation
+    .addRouteAgent("POST", "/story", productOwnerAgent, storySchema)
+    .addRouteAgent("POST", "/design", designAgent, designSchema)
+    // Legacy route without schema (flexible input/output)
+    .addRouteAgent("GET", "/story", productOwnerAgent);
 
 // Start server (async)
 await server.serve("localhost", 3000);
@@ -746,7 +937,48 @@ curl -X POST http://localhost:3000/webhook \
 }
 ```
 
-**Legacy Request Format (addRouteAgent endpoints):**
+**Schema-Validated Route Requests (addRouteAgent with schema):**
+```bash
+# POST request with schema validation
+curl -X POST http://localhost:3000/story \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a user story for authentication system",
+    "project_name": "WebApp",
+    "priority": "high"
+  }'
+```
+
+**Schema-Validated Route Responses:**
+```json
+{
+  "success": true,
+  "prompt": "Create a user story for authentication system",
+  "response": "As a user, I want to securely log into the application...",
+  "project_name": "WebApp",
+  "priority": "high",
+  "timestamp": "2025-07-17T15:30:45.123Z"
+}
+```
+
+**Schema Validation Error Responses:**
+```json
+{
+  "error": "Missing required fields",
+  "message": "The following required fields are missing: priority",
+  "required": ["prompt", "project_name", "priority"],
+  "received": ["prompt", "project_name"]
+}
+
+{
+  "error": "Unexpected fields in request",
+  "message": "The following fields are not allowed: invalid_field",
+  "allowed": ["prompt", "project_name", "priority"],
+  "unexpected": ["invalid_field"]
+}
+```
+
+**Legacy Route Requests (addRouteAgent without schema):**
 ```bash
 # POST request
 curl -X POST http://localhost:3000/story \
