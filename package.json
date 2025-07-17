@@ -56,6 +56,7 @@
     "agent:file": "bun run ./examples/agents/file.ts",
     "server:basic": "bun run ./examples/server/basic-server.ts",
     "test": "bun test",
+    "test:cov": "bun test --coverage",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0"

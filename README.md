@@ -423,6 +423,133 @@ conversationExample();
 4. **Flexible Messaging**: Include system prompts, multiple user inputs, and assistant responses
 5. **Dynamic Models**: Switch models mid-conversation using the `model` parameter
 
+#### Extended OpenAI Parameters Support
+
+AgentForce ADK supports all standard OpenAI chat completions parameters, providing full compatibility with OpenAI clients and tools. Only `model` and `messages` are required - all other parameters are optional.
+
+**Supported Optional Parameters:**
+- `temperature` (0.0-2.0): Controls randomness in responses
+- `max_tokens`: Maximum tokens in response
+- `top_p` (0.0-1.0): Nucleus sampling parameter
+- `n` (1-128): Number of chat completion choices to generate
+- `stream` (boolean): Enable streaming responses
+- `stream_options`: Streaming configuration options
+- `stop`: Up to 4 sequences where the API will stop generating
+- `presence_penalty` (-2.0 to 2.0): Penalty for new tokens based on presence
+- `frequency_penalty` (-2.0 to 2.0): Penalty for new tokens based on frequency
+- `logit_bias`: Modify likelihood of specified tokens
+- `user`: Unique identifier representing your end-user
+- `tools`: List of tools the model may call
+- `tool_choice`: Controls which (if any) tool is called
+- `response_format`: Format of the response (text or json_object)
+- `seed`: Random seed for reproducible outputs
+
+**Multimodal Content Support:**
+
+AgentForce ADK supports both simple string content and complex content arrays for multimodal interactions:
+
+```bash
+# Simple string content (traditional)
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the weather like?"
+      }
+    ]
+  }'
+
+# Complex content array (multimodal)
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Describe this image:"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg",
+              "detail": "high"
+            }
+          }
+        ]
+      }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 150,
+    "stream": false
+  }'
+```
+
+**Complete Parameter Example:**
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant specialized in technical documentation."
+      },
+      {
+        "role": "user",
+        "content": "Explain REST API best practices"
+      }
+    ],
+    "temperature": 0.8,
+    "max_tokens": 500,
+    "top_p": 0.9,
+    "frequency_penalty": 0.1,
+    "presence_penalty": 0.1,
+    "stop": ["###", "---"],
+    "stream": false,
+    "user": "user-123",
+    "response_format": { "type": "text" }
+  }'
+```
+
+**Validation and Error Handling:**
+
+The system provides comprehensive validation with detailed error messages:
+
+```bash
+# Invalid content type
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ollama/gemma3:12b",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "invalid",
+            "text": "This will fail"
+          }
+        ]
+      }
+    ]
+  }'
+
+# Response: 
+# {
+#   "error": "Invalid OpenAI chat completion format",
+#   "message": "Message at index 0, content object at index 0 has invalid type \"invalid\". Must be \"text\" or \"image_url\"",
+#   "example": { ... }
+# }
+```
+
 The agent's provider and model are dynamically configured based on the request, overriding the default `.useLLM()` configuration.
 
 ### `AgentForceServer`
@@ -448,6 +575,21 @@ const server = new AgentForceServer(serverConfig);
   - `method`: HTTP method ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
   - `path`: Route path (e.g., "/story", "/image")
   - `agent`: AgentForceAgent instance to handle requests
+
+- **`.addRoute(method, path, responseData)`**: Add static routes that return predefined data (chainable)
+  - `method`: HTTP method ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
+  - `path`: Route path (e.g., "/health", "/version")
+  - `responseData`: Data to return - can be object, function, or primitive value
+
+- **`.useOpenAICompatibleRouting(agent)`**: Add OpenAI-compatible chat completions endpoint (chainable)
+  - Automatically adds the agent to handle `POST /v1/chat/completions`
+  - Provides full OpenAI API compatibility for seamless integration
+  - `agent`: AgentForceAgent instance to handle OpenAI-compatible requests
+
+- **`.useOllamaCompatibleRouting(agent)`**: Add Ollama-compatible API endpoints (chainable)
+  - Automatically adds the agent to handle `POST /api/generate` and `POST /api/chat`
+  - Provides Ollama API compatibility for existing Ollama integrations
+  - `agent`: AgentForceAgent instance to handle Ollama-compatible requests
 
 - **`.serve(host?, port?)`**: Start the HTTP server (terminal method, async, returns Promise<void>)
   - `host`: Server host (default: "0.0.0.0")
@@ -479,8 +621,20 @@ const serverConfig: ServerConfig = {
     logger: "json"
 };
 
-// Create server with route agents
+// Create server with both agent routes and static routes
 const server = new AgentForceServer(serverConfig)
+    // API compatibility routes
+    .useOpenAICompatibleRouting(productOwnerAgent)  // Adds POST /v1/chat/completions
+    .useOllamaCompatibleRouting(designAgent)        // Adds POST /api/generate and /api/chat
+    // Static utility routes
+    .addRoute("GET", "/health", {"status": "ok"})
+    .addRoute("GET", "/version", {"version": "1.0.0"})
+    .addRoute("POST", "/webhook", (context) => ({
+        received: true,
+        timestamp: new Date().toISOString(),
+        method: context.req.method
+    }))
+    // Custom agent-powered routes
     .addRouteAgent("POST", "/story", productOwnerAgent)
     .addRouteAgent("GET", "/story", productOwnerAgent)
     .addRouteAgent("POST", "/design", designAgent);
@@ -489,9 +643,110 @@ const server = new AgentForceServer(serverConfig)
 await server.serve("localhost", 3000);
 ```
 
+#### Static Routes with `addRoute`
+
+The `addRoute` method allows you to create endpoints that return predefined data without requiring an AI agent. This is perfect for health checks, status endpoints, webhooks, and other utility routes.
+
+**Basic static data:**
+```typescript
+new AgentForceServer(serverConfig)
+    .addRoute("GET", "/health", {"status": "ok"})
+    .addRoute("GET", "/version", {"version": "1.0.0"})
+    .serve("localhost", 3000);
+```
+
+**Dynamic data with functions:**
+```typescript
+new AgentForceServer(serverConfig)
+    .addRoute("GET", "/time", () => ({
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    }))
+    .addRoute("POST", "/webhook", (context) => ({
+        received: true,
+        method: context.req.method,
+        url: context.req.url,
+        timestamp: new Date().toISOString()
+    }))
+    .serve("localhost", 3000);
+```
+
+**Features of static routes:**
+- **Route conflict prevention**: Custom routes override default server routes
+- **Function support**: Response data can be functions for dynamic content
+- **Context access**: Functions receive Hono context for request details
+- **Type flexibility**: Supports objects, functions, primitives, and async functions
+- **HTTP method validation**: Validates all standard HTTP methods
+- **Path normalization**: Automatically adds leading slash to paths
+
+#### API Compatibility Routes
+
+AgentForce ADK provides convenience methods for adding standard API endpoints that are compatible with popular AI service APIs:
+
+**OpenAI API Compatibility:**
+```typescript
+new AgentForceServer(serverConfig)
+    .useOpenAICompatibleRouting(agent)  // Adds POST /v1/chat/completions
+    .serve("localhost", 3000);
+
+// Equivalent to:
+// .addRouteAgent("POST", "/v1/chat/completions", agent)
+```
+
+**Ollama API Compatibility:**
+```typescript
+new AgentForceServer(serverConfig)
+    .useOllamaCompatibleRouting(agent)  // Adds POST /api/generate and /api/chat
+    .serve("localhost", 3000);
+
+// Equivalent to:
+// .addRouteAgent("POST", "/api/generate", agent)
+// .addRouteAgent("POST", "/api/chat", agent)
+```
+
+**Combined API Compatibility:**
+```typescript
+new AgentForceServer(serverConfig)
+    .useOpenAICompatibleRouting(openaiAgent)   // OpenAI-compatible endpoints
+    .useOllamaCompatibleRouting(ollamaAgent)   // Ollama-compatible endpoints
+    .addRoute("GET", "/health", {"status": "ok"})
+    .serve("localhost", 3000);
+
+// This creates endpoints:
+// POST /v1/chat/completions (OpenAI format)
+// POST /api/generate (Ollama format)  
+// POST /api/chat (Ollama format)
+// GET /health (custom static route)
+```
+
 #### API Request/Response Format
 
-**Legacy Request Format:**
+**Static Route Requests (addRoute endpoints):**
+```bash
+# GET static route
+curl http://localhost:3000/health
+
+# POST static route with function response
+curl -X POST http://localhost:3000/webhook \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Static Route Responses:**
+```json
+{
+  "status": "ok"
+}
+
+{
+  "received": true,
+  "timestamp": "2025-07-17T10:38:07.289Z",
+  "method": "POST",
+  "url": "http://localhost:3000/webhook"
+}
+```
+
+**Legacy Request Format (addRouteAgent endpoints):**
 ```bash
 # POST request
 curl -X POST http://localhost:3000/story \
@@ -586,8 +841,10 @@ curl -X POST http://localhost:3000/v1/chat/completions \
 
 #### Server Features
 
-- **Multiple HTTP Methods**: Support for GET, POST
-- **Route Management**: Easy configuration of agent-powered endpoints
+- **Multiple HTTP Methods**: Support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- **Route Management**: Easy configuration of agent-powered and static endpoints
+- **Static Routes**: Built-in support for utility endpoints (health checks, webhooks, etc.)
+- **Dynamic Responses**: Static routes can use functions for dynamic data generation
 - **Structured Logging**: Built-in logging with Pino (JSON or pretty-printed format)
 - **Error Handling**: Error responses with helpful messages
 - **Request Validation**: Automatic validation of required fields
@@ -596,6 +853,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
 - **OpenAI API Compatibility**: Full support for OpenAI chat completions format
 - **Dynamic Model Selection**: Override provider and model per request
 - **Backward Compatibility**: Legacy endpoints work alongside OpenAI-compatible ones
+- **Route Conflict Prevention**: Custom static routes override default server routes
 
 #### Logging Configuration
 

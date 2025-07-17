@@ -13,3 +13,10 @@ const output = await new AgentForceAgent(agentConfig)
     .output("json");
 
 console.log(JSON.stringify(output, null, 2));
+
+
+// .triggerN8N({ workflowId: "your-workflow-id", data: output })
+// .iterate("sommer", "winter") run multiple times
+// .iterate(["sommer", "winter"], IterationAgent)
+// .iterate("sommer", "winter", (item) => item.toUpperCase())
+// .createGithubIssue("agentforcezone/agentforce-adk") or use a tool

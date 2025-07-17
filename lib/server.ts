@@ -2,7 +2,11 @@ import pino from "pino";
 import {
     serve,
     addRouteAgent,
+    addRoute,
+    useOpenAICompatibleRouting,
+    useOllamaCompatibleRouting,
     type RouteAgent,
+    type StaticRoute,
 } from "./server/mod";
 
 import type { AgentForceAgent } from "./agent";
@@ -22,6 +26,7 @@ export class AgentForceServer {
     private logger: LoggerType = "json";
     private pinoLogger: pino.Logger;
     private routeAgents: RouteAgent[] = [];
+    private staticRoutes: StaticRoute[] = [];
 
     /**
      * Constructs the AgentForceServer class.
@@ -90,8 +95,27 @@ export class AgentForceServer {
         return this.routeAgents;
     }
 
+    /**
+     * Add a static route to the collection.
+     * @param staticRoute - The static route configuration to add
+     */
+    public addToStaticRoutes(staticRoute: StaticRoute): void {
+        this.staticRoutes.push(staticRoute);
+    }
+
+    /**
+     * Get all static routes.
+     * @returns Array of static route configurations
+     */
+    public getStaticRoutes(): StaticRoute[] {
+        return this.staticRoutes;
+    }
+
     // Chainable methods
     addRouteAgent: (method: string, path: string, agent: AgentForceAgent) => AgentForceServer = addRouteAgent.bind(this);
+    addRoute: (method: string, path: string, responseData: any) => AgentForceServer = addRoute.bind(this);
+    useOpenAICompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOpenAICompatibleRouting.bind(this);
+    useOllamaCompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOllamaCompatibleRouting.bind(this);
 
     // Terminal/Non-chainable methods
     serve: (host?: string, port?: number) => Promise<void> = serve.bind(this);

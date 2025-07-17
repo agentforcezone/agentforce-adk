@@ -2,6 +2,9 @@ import type { AgentForceServer } from "../../server";
 import { Hono } from "hono";
 import { logger as loggerMiddleware } from "hono/logger";
 import { createAgentRouteHandler } from "./addRouteAgent";
+import { createStaticRouteHandler } from "./addRoute";
+import { createOpenAICompatibleRouteHandler } from "./useOpenAICompatibleRouting";
+import { createOllamaGenerateRouteHandler, createOllamaChatRouteHandler } from "./useOllamaCompatibleRouting";
 
 /**
  * Starts an HTTP server for the AgentForceServer (terminal method)
@@ -61,6 +64,10 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
     const app = new Hono();
     app.use(loggerMiddleware(customLogger));
 
+    // Check for existing static routes to avoid conflicts
+    const staticRoutes = this.getStaticRoutes();
+    const existingRoutes = new Set(staticRoutes.map(route => `${route.method}:${route.path}`));
+
     // Default route
     app.get("/", (c) => {
         return c.json({ 
@@ -71,14 +78,16 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
         });
     });
 
-    // Health check route
-    app.get("/health", (c) => {
-        return c.json({ 
-            status: "healthy",
-            server: serverName,
-            timestamp: new Date().toISOString(),
+    // Health check route (only if not overridden by static route)
+    if (!existingRoutes.has("GET:/health")) {
+        app.get("/health", (c) => {
+            return c.json({ 
+                status: "healthy",
+                server: serverName,
+                timestamp: new Date().toISOString(),
+            });
         });
-    });
+    }
 
     // Add dynamic route agents
     const routeAgents = this.getRouteAgents();
@@ -90,7 +99,28 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
 
     routeAgents.forEach(routeAgent => {
         const { method, path, agent } = routeAgent;
-        const handler = createAgentRouteHandler(agent, method, path);
+        
+        // Determine route type and create appropriate handler
+        let handler;
+        let routeType: string;
+        
+        if (path === "/v1/chat/completions") {
+            // OpenAI-compatible route
+            handler = createOpenAICompatibleRouteHandler(agent, path);
+            routeType = "OpenAI-compatible";
+        } else if (path === "/api/generate") {
+            // Ollama Generate route
+            handler = createOllamaGenerateRouteHandler(agent, path);
+            routeType = "Ollama-compatible (generate)";
+        } else if (path === "/api/chat") {
+            // Ollama Chat route
+            handler = createOllamaChatRouteHandler(agent, path);
+            routeType = "Ollama-compatible (chat)";
+        } else {
+            // Legacy route
+            handler = createAgentRouteHandler(agent, method, path);
+            routeType = "legacy";
+        }
         
         // Register the route based on HTTP method
         switch (method) {
@@ -134,9 +164,70 @@ export async function serve(this: AgentForceServer, host: string = "localhost", 
             serverName,
             method,
             path,
-            agentName: "AgentForce Agent",
+            agentName: agent.getName(),
+            routeType,
             action: "route_registered",
-        }, `Registered route: ${method} ${path}`);
+        }, `Registered ${routeType} route: ${method} ${path}`);
+    });
+
+    // Add static routes
+    log.info({
+        serverName,
+        staticRoutesCount: staticRoutes.length,
+        action: "registering_static_routes",
+    }, `Registering ${staticRoutes.length} static routes`);
+
+    staticRoutes.forEach(staticRoute => {
+        const { method, path, responseData } = staticRoute;
+        
+        // Create static route handler
+        const handler = createStaticRouteHandler(responseData, method, path);
+        
+        // Register the route based on HTTP method
+        switch (method) {
+            case "GET":
+                app.get(path, handler);
+                break;
+            case "POST":
+                app.post(path, handler);
+                break;
+            case "PUT":
+                app.put(path, handler);
+                break;
+            case "DELETE":
+                app.delete(path, handler);
+                break;
+            case "PATCH":
+                app.patch(path, handler);
+                break;
+            case "HEAD":
+                // Hono doesn't have a dedicated head method, use all()
+                app.all(path, (c) => {
+                    if (c.req.method === "HEAD") {
+                        return handler(c);
+                    }
+                    return c.notFound();
+                });
+                break;
+            case "OPTIONS":
+                app.options(path, handler);
+                break;
+            default:
+                log.warn({
+                    serverName,
+                    method,
+                    path,
+                    action: "unsupported_method",
+                }, `Unsupported HTTP method: ${method} for path: ${path}`);
+        }
+        
+        log.info({
+            serverName,
+            method,
+            path,
+            routeType: "static",
+            action: "route_registered",
+        }, `Registered static route: ${method} ${path}`);
     });
 
     // Start the server using runtime-appropriate method
