@@ -1,0 +1,709 @@
+---
+title: Output Formats
+description: Master different output formats and response processing in AgentForce ADK
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Output Formats Guide
+
+<br />
+
+<Badge text="Response Processing" variant="tip" /> <Badge text="Multiple Formats" variant="note" />
+
+<br />
+<br />
+
+Learn how to work with different output formats, process responses, and optimize your agent's output for various use cases.
+
+## Available Output Formats
+
+AgentForce ADK supports three primary output formats:
+
+<CardGrid>
+  <Card title="Text" icon="document">
+    **Format**: Plain text string
+    
+    **Best For**: Simple responses, chat interfaces, basic processing
+    
+    **Method**: `.output("text")`
+  </Card>
+  
+  <Card title="JSON" icon="setting">
+    **Format**: Structured JSON data
+    
+    **Best For**: API responses, data processing, structured information
+    
+    **Method**: `.output("json")`
+  </Card>
+  
+  <Card title="Markdown" icon="approve-check">
+    **Format**: Markdown-formatted text
+    
+    **Best For**: Documentation, reports, formatted content
+    
+    **Method**: `.output("md")`
+  </Card>
+</CardGrid>
+
+## Text Output
+
+Text output provides raw, unformatted responses from the AI model.
+
+### Basic Text Output
+
+<Tabs>
+  <TabItem label="Simple Text">
+    ```typescript
+    import { AgentForceAgent } from '@agentforce/adk';
+
+    const agent = new AgentForceAgent({
+      name: "TextAgent",
+      type: "text-output"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are a helpful assistant")
+      .prompt("Explain photosynthesis in simple terms");
+
+    await agent.run();
+    const response = await agent.output("text");
+    
+    console.log(response);
+    // Output: "Photosynthesis is the process by which plants..."
+    ```
+  </TabItem>
+  
+  <TabItem label="Conversational Text">
+    ```typescript
+    const chatAgent = new AgentForceAgent({
+      name: "ChatBot",
+      type: "conversational"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        You are a friendly chat assistant.
+        Keep responses conversational and engaging.
+        Use a warm, helpful tone.
+      `)
+      .prompt("How's your day going?");
+
+    await chatAgent.run();
+    const chatResponse = await chatAgent.output("text");
+    
+    console.log(chatResponse);
+    // Output: "Thank you for asking! As an AI, I don't have days..."
+    ```
+  </TabItem>
+  
+  <TabItem label="Technical Text">
+    ```typescript
+    const techAgent = new AgentForceAgent({
+      name: "TechnicalExplainer",
+      type: "technical"
+    })
+      .useLLM("openrouter", "openai/gpt-4")
+      .systemPrompt(`
+        You are a technical expert.
+        Provide precise, accurate explanations.
+        Include relevant details and examples.
+      `)
+      .prompt("Explain how JWT tokens work in authentication");
+
+    await techAgent.run();
+    const explanation = await techAgent.output("text");
+    
+    console.log(explanation);
+    // Output: "JWT (JSON Web Tokens) are a secure method..."
+    ```
+  </TabItem>
+</Tabs>
+
+### Text Processing Utilities
+
+```typescript
+class TextProcessor {
+  static clean(text: string): string {
+    return text
+      .trim()
+      .replace(/\s+/g, ' ')  // Normalize whitespace
+      .replace(/\n+/g, '\n'); // Normalize line breaks
+  }
+
+  static extractSentences(text: string): string[] {
+    return text
+      .split(/[.!?]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+  }
+
+  static summarize(text: string, maxLength: number = 200): string {
+    if (text.length <= maxLength) return text;
+    
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    return lastSpace > 0 
+      ? truncated.substring(0, lastSpace) + '...'
+      : truncated + '...';
+  }
+
+  static wordCount(text: string): number {
+    return text.trim().split(/\s+/).length;
+  }
+}
+
+// Usage
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Write a detailed explanation")
+  .prompt("Explain machine learning");
+
+await agent.run();
+const rawResponse = await agent.output("text");
+
+// Process the response
+const cleanedResponse = TextProcessor.clean(rawResponse);
+const summary = TextProcessor.summarize(cleanedResponse, 150);
+const wordCount = TextProcessor.wordCount(cleanedResponse);
+
+console.log({ summary, wordCount });
+```
+
+## JSON Output
+
+JSON output is ideal for structured data and API responses.
+
+### Requesting JSON Format
+
+<Tabs>
+  <TabItem label="Explicit JSON Request">
+    ```typescript
+    const dataAgent = new AgentForceAgent({
+      name: "DataAnalyzer",
+      type: "data-analysis"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        You are a data analyst. Always respond in valid JSON format.
+        
+        Response structure:
+        {
+          "analysis": "your analysis here",
+          "insights": ["insight1", "insight2"],
+          "confidence": 0.85,
+          "recommendations": ["rec1", "rec2"]
+        }
+      `)
+      .prompt("Analyze this sales data: Q1: $100k, Q2: $120k, Q3: $110k, Q4: $140k");
+
+    await dataAgent.run();
+    const jsonResponse = await dataAgent.output("json");
+    
+    try {
+      const data = JSON.parse(jsonResponse);
+      console.log("Analysis:", data.analysis);
+      console.log("Confidence:", data.confidence);
+    } catch (error) {
+      console.error("Invalid JSON response:", error);
+    }
+    ```
+  </TabItem>
+  
+  <TabItem label="Structured API Response">
+    ```typescript
+    const apiAgent = new AgentForceAgent({
+      name: "APIResponder",
+      type: "api-response"
+    })
+      .useLLM("openrouter", "openai/gpt-4")
+      .systemPrompt(`
+        You are an API assistant. Always return valid JSON with this structure:
+        {
+          "success": boolean,
+          "data": {},
+          "message": "string",
+          "timestamp": "ISO string"
+        }
+      `)
+      .prompt("Create a user profile for John Doe, age 30, email john@example.com");
+
+    await apiAgent.run();
+    const response = await apiAgent.output("json");
+    
+    const apiResponse = JSON.parse(response);
+    console.log(apiResponse);
+    ```
+  </TabItem>
+  
+  <TabItem label="Complex Data Structure">
+    ```typescript
+    const structuredAgent = new AgentForceAgent({
+      name: "StructuredAnalyzer",
+      type: "structured-analysis"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        Analyze the given text and return JSON with:
+        {
+          "summary": "brief summary",
+          "entities": [{"name": "entity", "type": "person|organization|location"}],
+          "sentiment": {"score": 0.5, "label": "positive|negative|neutral"},
+          "topics": ["topic1", "topic2"],
+          "metadata": {
+            "word_count": 0,
+            "reading_time_minutes": 0
+          }
+        }
+      `)
+      .prompt("Apple Inc. announced record profits today. CEO Tim Cook expressed optimism about future growth in the AI sector.");
+
+    await structuredAgent.run();
+    const analysis = JSON.parse(await structuredAgent.output("json"));
+    
+    console.log("Summary:", analysis.summary);
+    console.log("Entities:", analysis.entities);
+    console.log("Sentiment:", analysis.sentiment);
+    ```
+  </TabItem>
+</Tabs>
+
+### JSON Validation and Processing
+
+```typescript
+interface AgentResponse {
+  success: boolean;
+  data: any;
+  message: string;
+  timestamp: string;
+}
+
+class JSONProcessor {
+  static validate(jsonString: string): boolean {
+    try {
+      JSON.parse(jsonString);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static safeParseAgentResponse(jsonString: string): AgentResponse | null {
+    try {
+      const parsed = JSON.parse(jsonString);
+      
+      // Validate required fields
+      if (typeof parsed.success === 'boolean' && 
+          parsed.message && 
+          parsed.timestamp) {
+        return parsed as AgentResponse;
+      }
+      
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  static extractField(jsonString: string, field: string): any {
+    try {
+      const parsed = JSON.parse(jsonString);
+      return parsed[field];
+    } catch {
+      return null;
+    }
+  }
+
+  static formatForAPI(jsonString: string): string {
+    try {
+      const parsed = JSON.parse(jsonString);
+      return JSON.stringify(parsed, null, 2); // Pretty print
+    } catch {
+      return jsonString; // Return original if invalid
+    }
+  }
+}
+
+// Usage
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Return valid JSON")
+  .prompt("Create a user object");
+
+await agent.run();
+const response = await agent.output("json");
+
+if (JSONProcessor.validate(response)) {
+  const formatted = JSONProcessor.formatForAPI(response);
+  console.log("Valid JSON:", formatted);
+} else {
+  console.error("Invalid JSON response");
+}
+```
+
+## Markdown Output
+
+Markdown output is perfect for documentation, reports, and formatted content.
+
+### Markdown Generation
+
+<Tabs>
+  <TabItem label="Documentation">
+    ```typescript
+    const docsAgent = new AgentForceAgent({
+      name: "DocumentationWriter",
+      type: "documentation"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        You are a technical writer creating API documentation.
+        Use proper markdown formatting:
+        - Headers with #, ##, ###
+        - Code blocks with \`\`\`
+        - Lists with - or 1.
+        - **bold** and *italic* text
+        - Links with [text](url)
+      `)
+      .prompt("Create documentation for a REST API endpoint that creates users");
+
+    await docsAgent.run();
+    const markdown = await docsAgent.output("md");
+    
+    console.log(markdown);
+    // Output: "# Create User Endpoint\n\n## Overview\n..."
+    ```
+  </TabItem>
+  
+  <TabItem label="Reports">
+    ```typescript
+    const reportAgent = new AgentForceAgent({
+      name: "ReportGenerator",
+      type: "reporting"
+    })
+      .useLLM("openrouter", "openai/gpt-4")
+      .systemPrompt(`
+        Generate comprehensive reports in markdown format.
+        Include:
+        - Executive summary
+        - Key findings with bullet points
+        - Data tables
+        - Recommendations section
+        - Appendix with details
+      `)
+      .prompt("Create a quarterly sales report based on: Q1: $100k, Q2: $120k, Q3: $110k");
+
+    await reportAgent.run();
+    const report = await reportAgent.output("md");
+    
+    // Save to file or display
+    console.log(report);
+    ```
+  </TabItem>
+  
+  <TabItem label="README Generation">
+    ```typescript
+    const readmeAgent = new AgentForceAgent({
+      name: "READMEGenerator",
+      type: "readme-generator"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        Create README.md files for software projects.
+        Include:
+        - Project title and description
+        - Installation instructions
+        - Usage examples with code blocks
+        - API documentation
+        - Contributing guidelines
+        - License information
+      `)
+      .prompt("Create a README for a TypeScript library called 'data-validator' that validates JSON schemas");
+
+    await readmeAgent.run();
+    const readme = await readmeAgent.output("md");
+    
+    // Write to README.md
+    await Bun.write("README.md", readme);
+    ```
+  </TabItem>
+</Tabs>
+
+### Markdown Processing
+
+```typescript
+class MarkdownProcessor {
+  static extractHeaders(markdown: string): Array<{level: number, text: string}> {
+    const headerRegex = /^(#{1,6})\s+(.+)$/gm;
+    const headers = [];
+    let match;
+    
+    while ((match = headerRegex.exec(markdown)) !== null) {
+      headers.push({
+        level: match[1].length,
+        text: match[2].trim()
+      });
+    }
+    
+    return headers;
+  }
+
+  static extractCodeBlocks(markdown: string): Array<{language: string, code: string}> {
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const codeBlocks = [];
+    let match;
+    
+    while ((match = codeBlockRegex.exec(markdown)) !== null) {
+      codeBlocks.push({
+        language: match[1] || 'text',
+        code: match[2].trim()
+      });
+    }
+    
+    return codeBlocks;
+  }
+
+  static generateTOC(markdown: string): string {
+    const headers = this.extractHeaders(markdown);
+    
+    return headers
+      .map(header => {
+        const indent = '  '.repeat(header.level - 1);
+        const link = header.text.toLowerCase().replace(/\s+/g, '-');
+        return `${indent}- [${header.text}](#${link})`;
+      })
+      .join('\n');
+  }
+
+  static toHTML(markdown: string): string {
+    // Basic markdown to HTML conversion
+    return markdown
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="$1">$2</code></pre>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^\- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+  }
+}
+
+// Usage
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Create detailed documentation")
+  .prompt("Document the AgentForce ADK library");
+
+await agent.run();
+const markdown = await agent.output("md");
+
+// Process the markdown
+const headers = MarkdownProcessor.extractHeaders(markdown);
+const codeBlocks = MarkdownProcessor.extractCodeBlocks(markdown);
+const toc = MarkdownProcessor.generateTOC(markdown);
+
+console.log("Table of Contents:", toc);
+console.log("Found", codeBlocks.length, "code blocks");
+```
+
+## Output Format Selection Strategies
+
+### Dynamic Format Selection
+
+```typescript
+function selectOutputFormat(useCase: string): "text" | "json" | "md" {
+  const formatMap = {
+    'chat': 'text',
+    'api': 'json', 
+    'documentation': 'md',
+    'report': 'md',
+    'analysis': 'json',
+    'conversation': 'text'
+  } as const;
+
+  return formatMap[useCase] || 'text';
+}
+
+async function createAdaptiveAgent(useCase: string, prompt: string) {
+  const format = selectOutputFormat(useCase);
+  
+  const systemPrompts = {
+    text: "Provide clear, conversational responses",
+    json: "Always respond in valid JSON format with structured data",
+    md: "Format responses in markdown with proper headers and formatting"
+  };
+
+  const agent = new AgentForceAgent({
+    name: "AdaptiveAgent",
+    type: `${useCase}-agent`
+  })
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt(systemPrompts[format])
+    .prompt(prompt);
+
+  await agent.run();
+  return await agent.output(format);
+}
+
+// Usage
+const chatResponse = await createAdaptiveAgent("chat", "Hello!");
+const apiResponse = await createAdaptiveAgent("api", "Get user data");
+const docsResponse = await createAdaptiveAgent("documentation", "Document this API");
+```
+
+### Multi-Format Output
+
+```typescript
+async function getMultiFormatOutput(agent: AgentForceAgent) {
+  await agent.run();
+  
+  const [text, json, markdown] = await Promise.all([
+    agent.output("text"),
+    agent.output("json"), 
+    agent.output("md")
+  ]);
+
+  return { text, json, markdown };
+}
+
+// Usage
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a versatile assistant")
+  .prompt("Explain the benefits of TypeScript");
+
+const outputs = await getMultiFormatOutput(agent);
+
+console.log("Text version:", outputs.text);
+console.log("JSON version:", outputs.json);
+console.log("Markdown version:", outputs.markdown);
+```
+
+## Response Post-Processing
+
+### Text Enhancement
+
+```typescript
+class ResponseEnhancer {
+  static addTimestamp(response: string): string {
+    const timestamp = new Date().toISOString();
+    return `${response}\n\n---\nGenerated: ${timestamp}`;
+  }
+
+  static addMetadata(response: string, agent: AgentForceAgent): string {
+    return `${response}\n\n---\nAgent: ${agent.name} (${agent.type})`;
+  }
+
+  static formatForSlack(response: string): string {
+    return response
+      .replace(/\*\*(.+?)\*\*/g, '*$1*')  // Bold
+      .replace(/\*(.+?)\*/g, '_$1_')      // Italic
+      .replace(/```[\s\S]*?```/g, (match) => {
+        return '```\n' + match.slice(3, -3) + '\n```';
+      });
+  }
+
+  static formatForHTML(response: string): string {
+    return response
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  }
+}
+
+// Usage
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are helpful")
+  .prompt("Explain AI safety");
+
+await agent.run();
+let response = await agent.output("text");
+
+// Enhance the response
+response = ResponseEnhancer.addTimestamp(response);
+response = ResponseEnhancer.addMetadata(response, agent);
+
+console.log(response);
+```
+
+### Error Handling for Outputs
+
+```typescript
+class SafeOutputProcessor {
+  static async getSafeTextOutput(agent: AgentForceAgent): Promise<string> {
+    try {
+      await agent.run();
+      return await agent.output("text");
+    } catch (error) {
+      console.error("Text output failed:", error);
+      return "I apologize, but I encountered an error processing your request.";
+    }
+  }
+
+  static async getSafeJSONOutput(agent: AgentForceAgent): Promise<object> {
+    try {
+      await agent.run();
+      const jsonString = await agent.output("json");
+      return JSON.parse(jsonString);
+    } catch (error) {
+      console.error("JSON output failed:", error);
+      return {
+        error: true,
+        message: "Failed to generate valid JSON response",
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  static async getSafeMarkdownOutput(agent: AgentForceAgent): Promise<string> {
+    try {
+      await agent.run();
+      return await agent.output("md");
+    } catch (error) {
+      console.error("Markdown output failed:", error);
+      return "# Error\n\nFailed to generate markdown response.";
+    }
+  }
+
+  static async getAllFormats(agent: AgentForceAgent) {
+    const results = await Promise.allSettled([
+      this.getSafeTextOutput(agent),
+      this.getSafeJSONOutput(agent),
+      this.getSafeMarkdownOutput(agent)
+    ]);
+
+    return {
+      text: results[0].status === 'fulfilled' ? results[0].value : "Error",
+      json: results[1].status === 'fulfilled' ? results[1].value : { error: true },
+      markdown: results[2].status === 'fulfilled' ? results[2].value : "# Error"
+    };
+  }
+}
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="OpenAI Compatibility" icon="external">
+    Learn about OpenAI-compatible response formats
+    <a href="/guides/openai-compatibility">→ OpenAI Guide</a>
+  </Card>
+  
+  <Card title="Server Integration" icon="rocket">
+    Use different output formats in server responses
+    <a href="/getting-started/server-mode">→ Server Guide</a>
+  </Card>
+  
+  <Card title="Advanced Examples" icon="approve-check">
+    See complex output processing in real applications
+    <a href="/examples/advanced">→ Advanced Examples</a>
+  </Card>
+  
+  <Card title="API Reference" icon="open-book">
+    Explore the complete output format API
+    <a href="/reference/">→ API Reference</a>
+  </Card>
+</CardGrid>
+
+You now have comprehensive knowledge of AgentForce ADK's output formats and how to process, validate, and enhance agent responses for any use case!

@@ -1,0 +1,1204 @@
+---
+title: Server Examples
+description: Build HTTP APIs and web services with AgentForce ADK
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Server Examples
+
+<br />
+
+<Badge text="HTTP APIs" variant="tip" /> <Badge text="Production Ready" variant="note" />
+
+<br />
+<br />
+
+Learn how to build powerful HTTP APIs and web services using AgentForce ADK's server capabilities. From simple REST endpoints to complex microservices.
+
+## Basic Server Setup
+
+### Simple Agent Server
+
+```typescript
+import { AgentForceServer, AgentForceAgent, type ServerConfig } from '@agentforce/adk';
+
+// Create a basic agent
+const agent = new AgentForceAgent({
+  name: "APIAgent",
+  type: "api-service"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful API assistant. Provide clear, concise responses.");
+
+// Create server
+const server = new AgentForceServer({
+  name: "BasicAPIServer",
+  logger: "pretty"  // Beautiful console logging
+})
+  .addRouteAgent("POST", "/chat", agent)
+  .addRoute("GET", "/health", { status: "healthy", timestamp: new Date().toISOString() });
+
+// Start server
+await server.serve("localhost", 3000);
+console.log("🚀 Server running at http://localhost:3000");
+```
+
+### OpenAI-Compatible Server
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Create OpenAI-compatible agent
+const openaiAgent = new AgentForceAgent({
+  name: "OpenAICompatibleAgent",
+  type: "openai-compatible"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful AI assistant");
+
+// Server with OpenAI compatibility
+const server = new AgentForceServer({
+  name: "OpenAICompatibleServer",
+  logger: "json"
+})
+  .useOpenAICompatibleRouting(openaiAgent)  // Adds POST /v1/chat/completions
+  .addRoute("GET", "/v1/models", {
+    object: "list",
+    data: [
+      { 
+        id: "ollama/gemma3:12b", 
+        object: "model", 
+        created: Date.now(),
+        owned_by: "agentforce"
+      }
+    ]
+  });
+
+await server.serve("0.0.0.0", 8080);
+console.log("🤖 OpenAI-compatible API running at http://localhost:8080");
+```
+
+## Multi-Agent Server
+
+### Specialized Agents
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Different agents for different tasks
+const chatAgent = new AgentForceAgent({
+  name: "ChatAgent",
+  type: "conversational"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a friendly conversational assistant");
+
+const codeAgent = new AgentForceAgent({
+  name: "CodeAgent",
+  type: "coding"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt(`
+    You are an expert programming assistant. Provide:
+    - Clean, well-commented code
+    - Best practices and explanations
+    - Error handling and edge cases
+    - Performance considerations
+  `);
+
+const analysisAgent = new AgentForceAgent({
+  name: "AnalysisAgent",
+  type: "data-analysis"
+})
+  .useLLM("openrouter", "openai/gpt-4")  // Use powerful model for analysis
+  .systemPrompt("You are a data analyst. Provide insights, trends, and actionable recommendations.");
+
+// Multi-agent server
+const server = new AgentForceServer({
+  name: "MultiAgentServer",
+  logger: "json"
+})
+  // Specialized endpoints
+  .addRouteAgent("POST", "/api/chat", chatAgent)
+  .addRouteAgent("POST", "/api/code", codeAgent)
+  .addRouteAgent("POST", "/api/analyze", analysisAgent)
+  
+  // OpenAI-compatible endpoints with different agents
+  .addRouteAgent("POST", "/v1/chat/completions/chat", chatAgent)
+  .addRouteAgent("POST", "/v1/chat/completions/code", codeAgent)
+  .addRouteAgent("POST", "/v1/chat/completions/analyze", analysisAgent)
+  
+  // Service endpoints
+  .addRoute("GET", "/health", { status: "healthy" })
+  .addRoute("GET", "/services", {
+    available: ["chat", "code", "analyze"],
+    endpoints: {
+      chat: "/api/chat",
+      code: "/api/code", 
+      analyze: "/api/analyze"
+    }
+  });
+
+await server.serve("0.0.0.0", 3000);
+```
+
+### Dynamic Agent Selection
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+class IntelligentRouter {
+  private agents = {
+    general: new AgentForceAgent({ name: "GeneralAgent", type: "general" })
+      .useLLM("ollama", "phi4-mini:latest"),
+    
+    technical: new AgentForceAgent({ name: "TechnicalAgent", type: "technical" })
+      .useLLM("ollama", "gemma3:12b"),
+    
+    creative: new AgentForceAgent({ name: "CreativeAgent", type: "creative" })
+      .useLLM("openrouter", "anthropic/claude-3-sonnet")
+  };
+
+  selectAgent(prompt: string): AgentForceAgent {
+    const keywords = {
+      technical: ['code', 'programming', 'algorithm', 'debug', 'api', 'database'],
+      creative: ['story', 'creative', 'write', 'poem', 'artistic', 'design'],
+      general: [] // default
+    };
+
+    const lowerPrompt = prompt.toLowerCase();
+    
+    for (const [type, words] of Object.entries(keywords)) {
+      if (type !== 'general' && words.some(word => lowerPrompt.includes(word))) {
+        return this.agents[type as keyof typeof this.agents];
+      }
+    }
+    
+    return this.agents.general;
+  }
+}
+
+const router = new IntelligentRouter();
+
+const server = new AgentForceServer({
+  name: "IntelligentRoutingServer",
+  logger: "pretty"
+})
+  .addRoute("POST", "/api/smart-chat", async (context) => {
+    const { prompt } = await context.req.json();
+    
+    // Select appropriate agent
+    const agent = router.selectAgent(prompt);
+    
+    // Process with selected agent
+    const response = await agent
+      .prompt(prompt)
+      .output("text");
+    
+    return context.json({
+      response,
+      agent: agent.constructor.name,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+await server.serve("localhost", 3000);
+```
+
+## REST API Examples
+
+### CRUD Operations with AI
+
+<Tabs>
+  <TabItem label="Content Management">
+    ```typescript
+    import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+    // Content management agents
+    const contentCreator = new AgentForceAgent({
+      name: "ContentCreator",
+      type: "content-creation"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Create engaging, well-structured content on any topic");
+
+    const contentEditor = new AgentForceAgent({
+      name: "ContentEditor", 
+      type: "content-editing"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Edit and improve content for clarity, grammar, and engagement");
+
+    const contentAnalyzer = new AgentForceAgent({
+      name: "ContentAnalyzer",
+      type: "content-analysis"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Analyze content for SEO, readability, and effectiveness");
+
+    // In-memory content store (use database in production)
+    const contentStore = new Map();
+    let nextId = 1;
+
+    const server = new AgentForceServer({
+      name: "ContentAPIServer",
+      logger: "json"
+    })
+      // CREATE content
+      .addRoute("POST", "/api/content", async (context) => {
+        const { title, topic, type = "article" } = await context.req.json();
+        
+        const content = await contentCreator
+          .prompt(`Create a ${type} about "${topic}" with the title "${title}"`)
+          .output("md");
+        
+        const id = nextId++;
+        const item = {
+          id,
+          title,
+          topic,
+          type,
+          content,
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
+        };
+        
+        contentStore.set(id, item);
+        
+        return context.json(item, 201);
+      })
+      
+      // READ content
+      .addRoute("GET", "/api/content/:id", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        const item = contentStore.get(id);
+        
+        if (!item) {
+          return context.json({ error: "Content not found" }, 404);
+        }
+        
+        return context.json(item);
+      })
+      
+      // UPDATE content
+      .addRoute("PUT", "/api/content/:id", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        const item = contentStore.get(id);
+        
+        if (!item) {
+          return context.json({ error: "Content not found" }, 404);
+        }
+        
+        const { editInstructions } = await context.req.json();
+        
+        const editedContent = await contentEditor
+          .prompt(`Edit this content based on instructions: "${editInstructions}"\n\nOriginal content:\n${item.content}`)
+          .output("md");
+        
+        item.content = editedContent;
+        item.updated = new Date().toISOString();
+        
+        return context.json(item);
+      })
+      
+      // DELETE content
+      .addRoute("DELETE", "/api/content/:id", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        
+        if (contentStore.delete(id)) {
+          return context.json({ message: "Content deleted" });
+        } else {
+          return context.json({ error: "Content not found" }, 404);
+        }
+      })
+      
+      // LIST all content
+      .addRoute("GET", "/api/content", async (context) => {
+        const items = Array.from(contentStore.values());
+        return context.json(items);
+      })
+      
+      // ANALYZE content
+      .addRoute("POST", "/api/content/:id/analyze", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        const item = contentStore.get(id);
+        
+        if (!item) {
+          return context.json({ error: "Content not found" }, 404);
+        }
+        
+        const analysis = await contentAnalyzer
+          .prompt(`Analyze this content for SEO, readability, and effectiveness:\n\n${item.content}`)
+          .output("json");
+        
+        return context.json({
+          content_id: id,
+          analysis,
+          analyzed_at: new Date().toISOString()
+        });
+      });
+
+    await server.serve("localhost", 3000);
+    ```
+  </TabItem>
+  
+  <TabItem label="Task Management">
+    ```typescript
+    import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+    // Task management agent
+    const taskAgent = new AgentForceAgent({
+      name: "TaskAgent",
+      type: "task-management"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        You are a task management assistant. Help break down complex tasks,
+        estimate effort, suggest priorities, and provide actionable plans.
+      `);
+
+    // Task store
+    const tasks = new Map();
+    let taskId = 1;
+
+    const server = new AgentForceServer({
+      name: "TaskAPIServer",
+      logger: "pretty"
+    })
+      // CREATE task with AI assistance
+      .addRoute("POST", "/api/tasks", async (context) => {
+        const { description, context: taskContext } = await context.req.json();
+        
+        // Get AI suggestions for the task
+        const suggestions = await taskAgent
+          .prompt(`
+            Help plan this task: "${description}"
+            Context: ${taskContext || 'No additional context'}
+            
+            Provide:
+            1. Suggested subtasks
+            2. Estimated effort (hours)
+            3. Priority level (1-5)
+            4. Required resources
+            5. Potential blockers
+            
+            Respond in JSON format.
+          `)
+          .output("json");
+        
+        const task = {
+          id: taskId++,
+          description,
+          context: taskContext,
+          status: "pending",
+          ai_suggestions: suggestions,
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
+        };
+        
+        tasks.set(task.id, task);
+        return context.json(task, 201);
+      })
+      
+      // GET task with progress analysis
+      .addRoute("GET", "/api/tasks/:id", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        const task = tasks.get(id);
+        
+        if (!task) {
+          return context.json({ error: "Task not found" }, 404);
+        }
+        
+        return context.json(task);
+      })
+      
+      // UPDATE task status with AI feedback
+      .addRoute("PUT", "/api/tasks/:id", async (context) => {
+        const id = parseInt(context.req.param("id"));
+        const task = tasks.get(id);
+        
+        if (!task) {
+          return context.json({ error: "Task not found" }, 404);
+        }
+        
+        const updates = await context.req.json();
+        
+        // If status is being updated to completed, get AI feedback
+        if (updates.status === "completed" && task.status !== "completed") {
+          const feedback = await taskAgent
+            .prompt(`
+              A task has been completed: "${task.description}"
+              
+              Provide:
+              1. Congratulations message
+              2. Lessons learned
+              3. Suggestions for similar future tasks
+              4. Next action recommendations
+              
+              Respond in JSON format.
+            `)
+            .output("json");
+          
+          updates.completion_feedback = feedback;
+          updates.completed_at = new Date().toISOString();
+        }
+        
+        Object.assign(task, updates);
+        task.updated = new Date().toISOString();
+        
+        return context.json(task);
+      })
+      
+      // GET all tasks with AI insights
+      .addRoute("GET", "/api/tasks", async (context) => {
+        const allTasks = Array.from(tasks.values());
+        
+        // Generate dashboard insights
+        const insights = await taskAgent
+          .prompt(`
+            Analyze these tasks for insights:
+            ${JSON.stringify(allTasks, null, 2)}
+            
+            Provide:
+            1. Overall progress summary
+            2. Bottlenecks or patterns
+            3. Productivity recommendations
+            4. Priority adjustments
+            
+            Respond in JSON format.
+          `)
+          .output("json");
+        
+        return context.json({
+          tasks: allTasks,
+          insights,
+          summary: {
+            total: allTasks.length,
+            pending: allTasks.filter(t => t.status === "pending").length,
+            in_progress: allTasks.filter(t => t.status === "in_progress").length,
+            completed: allTasks.filter(t => t.status === "completed").length
+          }
+        });
+      });
+
+    await server.serve("localhost", 3000);
+    ```
+  </TabItem>
+</Tabs>
+
+### File Processing API
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+import { writeFileSync, readFileSync } from 'fs';
+import { join } from 'path';
+
+// File processing agents
+const documentProcessor = new AgentForceAgent({
+  name: "DocumentProcessor",
+  type: "document-processing"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Process and analyze documents. Extract key information and provide summaries.");
+
+const codeAnalyzer = new AgentForceAgent({
+  name: "CodeAnalyzer", 
+  type: "code-analysis"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Analyze code for quality, security, performance, and best practices.");
+
+const server = new AgentForceServer({
+  name: "FileProcessingServer",
+  logger: "json"
+})
+  // Text file processing
+  .addRoute("POST", "/api/process/text", async (context) => {
+    const { content, operation } = await context.req.json();
+    
+    const operations = {
+      summarize: "Provide a concise summary of the main points",
+      extract_keywords: "Extract the most important keywords and phrases",
+      analyze_sentiment: "Analyze the sentiment and tone of the text",
+      improve_readability: "Rewrite to improve clarity and readability"
+    };
+    
+    const prompt = operations[operation as keyof typeof operations];
+    if (!prompt) {
+      return context.json({ error: "Invalid operation" }, 400);
+    }
+    
+    const result = await documentProcessor
+      .prompt(`${prompt}:\n\n${content}`)
+      .output("text");
+    
+    return context.json({
+      operation,
+      original_length: content.length,
+      result,
+      processed_at: new Date().toISOString()
+    });
+  })
+  
+  // Code analysis
+  .addRoute("POST", "/api/process/code", async (context) => {
+    const { code, language, analysis_type = "full" } = await context.req.json();
+    
+    const analysisPrompts = {
+      security: "Analyze for security vulnerabilities and risks",
+      performance: "Analyze for performance issues and optimizations",
+      quality: "Analyze code quality, style, and best practices",
+      full: "Provide comprehensive analysis including security, performance, and quality"
+    };
+    
+    const prompt = analysisPrompts[analysis_type as keyof typeof analysisPrompts];
+    
+    const analysis = await codeAnalyzer
+      .prompt(`
+        Analyze this ${language} code: ${prompt}
+        
+        Code:
+        \`\`\`${language}
+        ${code}
+        \`\`\`
+        
+        Provide detailed analysis in JSON format with:
+        - Issues found
+        - Severity levels
+        - Recommendations
+        - Improved code examples
+      `)
+      .output("json");
+    
+    return context.json({
+      language,
+      analysis_type,
+      analysis,
+      processed_at: new Date().toISOString()
+    });
+  })
+  
+  // Batch processing
+  .addRoute("POST", "/api/process/batch", async (context) => {
+    const { files } = await context.req.json();
+    
+    const results = await Promise.all(
+      files.map(async (file: any) => {
+        try {
+          let result;
+          
+          if (file.type === 'text') {
+            result = await documentProcessor
+              .prompt(`Summarize this document:\n\n${file.content}`)
+              .output("text");
+          } else if (file.type === 'code') {
+            result = await codeAnalyzer
+              .prompt(`Analyze this ${file.language} code for issues:\n\n${file.content}`)
+              .output("json");
+          }
+          
+          return {
+            id: file.id,
+            status: 'success',
+            result
+          };
+        } catch (error) {
+          return {
+            id: file.id,
+            status: 'error',
+            error: error.message
+          };
+        }
+      })
+    );
+    
+    return context.json({
+      total_files: files.length,
+      results,
+      processed_at: new Date().toISOString()
+    });
+  });
+
+await server.serve("localhost", 3000);
+```
+
+## WebSocket and Real-Time
+
+### Real-Time Chat Server
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Chat agent with memory
+class ChatSession {
+  private agent: AgentForceAgent;
+  private history: Array<{role: string, content: string}> = [];
+
+  constructor(sessionId: string) {
+    this.agent = new AgentForceAgent({
+      name: `ChatAgent-${sessionId}`,
+      type: "conversational"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are a helpful, friendly assistant. Maintain context throughout the conversation.");
+  }
+
+  async sendMessage(message: string): Promise<string> {
+    // Add user message to history
+    this.history.push({ role: "user", content: message });
+    
+    // Get response with full context
+    const contextPrompt = this.history
+      .map(msg => `${msg.role}: ${msg.content}`)
+      .join('\n');
+    
+    const response = await this.agent
+      .prompt(contextPrompt + '\nassistant:')
+      .output("text");
+    
+    // Add assistant response to history
+    this.history.push({ role: "assistant", content: response });
+    
+    return response;
+  }
+
+  getHistory() {
+    return [...this.history];
+  }
+}
+
+// Session management
+const sessions = new Map<string, ChatSession>();
+
+const server = new AgentForceServer({
+  name: "RealTimeChatServer",
+  logger: "pretty"
+})
+  // Start new chat session
+  .addRoute("POST", "/api/chat/session", async (context) => {
+    const sessionId = crypto.randomUUID();
+    const session = new ChatSession(sessionId);
+    sessions.set(sessionId, session);
+    
+    return context.json({
+      session_id: sessionId,
+      message: "Chat session started"
+    });
+  })
+  
+  // Send message in session
+  .addRoute("POST", "/api/chat/session/:id/message", async (context) => {
+    const sessionId = context.req.param("id");
+    const session = sessions.get(sessionId);
+    
+    if (!session) {
+      return context.json({ error: "Session not found" }, 404);
+    }
+    
+    const { message } = await context.req.json();
+    
+    try {
+      const response = await session.sendMessage(message);
+      
+      return context.json({
+        user_message: message,
+        assistant_response: response,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      return context.json({ error: error.message }, 500);
+    }
+  })
+  
+  // Get chat history
+  .addRoute("GET", "/api/chat/session/:id/history", async (context) => {
+    const sessionId = context.req.param("id");
+    const session = sessions.get(sessionId);
+    
+    if (!session) {
+      return context.json({ error: "Session not found" }, 404);
+    }
+    
+    return context.json({
+      session_id: sessionId,
+      history: session.getHistory()
+    });
+  })
+  
+  // End session
+  .addRoute("DELETE", "/api/chat/session/:id", async (context) => {
+    const sessionId = context.req.param("id");
+    
+    if (sessions.delete(sessionId)) {
+      return context.json({ message: "Session ended" });
+    } else {
+      return context.json({ error: "Session not found" }, 404);
+    }
+  });
+
+await server.serve("localhost", 3000);
+```
+
+### Streaming Responses
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+const streamingAgent = new AgentForceAgent({
+  name: "StreamingAgent",
+  type: "streaming"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Provide detailed, comprehensive responses");
+
+const server = new AgentForceServer({
+  name: "StreamingServer",
+  logger: "json"
+})
+  // Server-Sent Events endpoint
+  .addRoute("GET", "/api/stream/:prompt", async (context) => {
+    const prompt = context.req.param("prompt");
+    
+    // Set SSE headers
+    context.header('Content-Type', 'text/event-stream');
+    context.header('Cache-Control', 'no-cache');
+    context.header('Connection', 'keep-alive');
+    
+    // Stream response (simulated chunking)
+    const response = await streamingAgent
+      .prompt(decodeURIComponent(prompt))
+      .output("text");
+    
+    // Split response into chunks and stream
+    const chunks = response.match(/.{1,50}/g) || [response];
+    
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          let i = 0;
+          const interval = setInterval(() => {
+            if (i < chunks.length) {
+              controller.enqueue(`data: ${JSON.stringify({ 
+                chunk: chunks[i], 
+                index: i, 
+                total: chunks.length 
+              })}\n\n`);
+              i++;
+            } else {
+              controller.enqueue('data: [DONE]\n\n');
+              controller.close();
+              clearInterval(interval);
+            }
+          }, 100);
+        }
+      }),
+      {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
+        }
+      }
+    );
+  })
+  
+  // Chunked JSON API
+  .addRoute("POST", "/api/stream-chat", async (context) => {
+    const { message } = await context.req.json();
+    
+    const response = await streamingAgent
+      .prompt(message)
+      .output("text");
+    
+    // Return response with metadata
+    return context.json({
+      message: response,
+      chunks: response.length,
+      timestamp: new Date().toISOString(),
+      streaming: true
+    });
+  });
+
+await server.serve("localhost", 3000);
+```
+
+## Authentication & Middleware
+
+### API Key Authentication
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Simple API key store (use database in production)
+const validApiKeys = new Set([
+  'ak-demo-key-123',
+  'ak-prod-key-456',
+  'ak-test-key-789'
+]);
+
+// Middleware for API key validation
+const authenticateApiKey = async (context: any, next: any) => {
+  const apiKey = context.req.header('X-API-Key') || context.req.query('api_key');
+  
+  if (!apiKey) {
+    return context.json({ error: 'API key required' }, 401);
+  }
+  
+  if (!validApiKeys.has(apiKey)) {
+    return context.json({ error: 'Invalid API key' }, 403);
+  }
+  
+  // Add API key to context for logging
+  context.set('apiKey', apiKey);
+  await next();
+};
+
+const protectedAgent = new AgentForceAgent({
+  name: "ProtectedAgent",
+  type: "authenticated"
+})
+  .useLLM("ollama", "gemma3:12b");
+
+const server = new AgentForceServer({
+  name: "AuthenticatedServer",
+  logger: "json"
+})
+  // Public endpoints
+  .addRoute("GET", "/health", { status: "healthy" })
+  .addRoute("GET", "/public/info", { 
+    service: "AgentForce ADK", 
+    version: "1.0.0",
+    authentication: "required" 
+  })
+  
+  // Protected endpoints
+  .addRoute("POST", "/api/protected/chat", authenticateApiKey, async (context) => {
+    const { message } = await context.req.json();
+    const apiKey = context.get('apiKey');
+    
+    const response = await protectedAgent
+      .prompt(message)
+      .output("text");
+    
+    return context.json({
+      response,
+      api_key: apiKey.substring(0, 10) + '...',
+      timestamp: new Date().toISOString()
+    });
+  })
+  
+  // Admin endpoints
+  .addRoute("GET", "/api/admin/stats", authenticateApiKey, async (context) => {
+    // Only allow specific admin keys
+    const apiKey = context.get('apiKey');
+    if (!apiKey.includes('prod')) {
+      return context.json({ error: 'Admin access required' }, 403);
+    }
+    
+    return context.json({
+      active_sessions: 42,
+      total_requests: 1337,
+      uptime: process.uptime(),
+      memory_usage: process.memoryUsage()
+    });
+  });
+
+await server.serve("localhost", 3000);
+```
+
+### Rate Limiting
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Simple rate limiter (use Redis in production)
+class RateLimiter {
+  private requests = new Map<string, number[]>();
+  private readonly windowMs: number;
+  private readonly maxRequests: number;
+
+  constructor(windowMs: number, maxRequests: number) {
+    this.windowMs = windowMs;
+    this.maxRequests = maxRequests;
+  }
+
+  isAllowed(identifier: string): boolean {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    
+    // Get existing requests for this identifier
+    const requests = this.requests.get(identifier) || [];
+    
+    // Filter out requests outside the window
+    const recentRequests = requests.filter(time => time > windowStart);
+    
+    // Check if under limit
+    if (recentRequests.length >= this.maxRequests) {
+      return false;
+    }
+    
+    // Add current request
+    recentRequests.push(now);
+    this.requests.set(identifier, recentRequests);
+    
+    return true;
+  }
+
+  getRemaining(identifier: string): number {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    const requests = this.requests.get(identifier) || [];
+    const recentRequests = requests.filter(time => time > windowStart);
+    
+    return Math.max(0, this.maxRequests - recentRequests.length);
+  }
+}
+
+const rateLimiter = new RateLimiter(60000, 10); // 10 requests per minute
+
+const rateLimitMiddleware = async (context: any, next: any) => {
+  const identifier = context.req.header('X-API-Key') || context.req.header('CF-Connecting-IP') || 'anonymous';
+  
+  if (!rateLimiter.isAllowed(identifier)) {
+    return context.json({ 
+      error: 'Rate limit exceeded',
+      retry_after: 60
+    }, 429);
+  }
+  
+  context.set('remaining', rateLimiter.getRemaining(identifier));
+  await next();
+  
+  // Add rate limit headers
+  context.header('X-RateLimit-Remaining', rateLimiter.getRemaining(identifier).toString());
+  context.header('X-RateLimit-Limit', '10');
+  context.header('X-RateLimit-Window', '60');
+};
+
+const agent = new AgentForceAgent({
+  name: "RateLimitedAgent",
+  type: "rate-limited"
+}).useLLM("ollama", "phi4-mini:latest");
+
+const server = new AgentForceServer({
+  name: "RateLimitedServer",
+  logger: "pretty"
+})
+  .addRoute("POST", "/api/chat", rateLimitMiddleware, async (context) => {
+    const { message } = await context.req.json();
+    
+    const response = await agent
+      .prompt(message)
+      .output("text");
+    
+    return context.json({
+      response,
+      remaining_requests: context.get('remaining')
+    });
+  });
+
+await server.serve("localhost", 3000);
+```
+
+## Production Deployment
+
+### Docker-Ready Server
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+// Production configuration
+const config = {
+  port: parseInt(process.env.PORT || '3000'),
+  host: process.env.HOST || '0.0.0.0',
+  logLevel: process.env.LOG_LEVEL || 'info',
+  provider: process.env.AI_PROVIDER || 'ollama',
+  model: process.env.AI_MODEL || 'phi4-mini:latest',
+  apiKeys: process.env.API_KEYS?.split(',') || []
+};
+
+// Health check agent
+const healthAgent = new AgentForceAgent({
+  name: "HealthCheckAgent",
+  type: "health-monitoring"
+})
+  .useLLM(config.provider, config.model);
+
+// Main application agent
+const appAgent = new AgentForceAgent({
+  name: "ProductionAgent",
+  type: "production-service"
+})
+  .useLLM(config.provider, config.model)
+  .systemPrompt("You are a production AI service. Provide reliable, accurate responses.");
+
+// Production server
+const server = new AgentForceServer({
+  name: "ProductionServer",
+  logger: config.logLevel as any
+})
+  // Health checks
+  .addRoute("GET", "/health", async (context) => {
+    try {
+      // Test AI connectivity
+      await healthAgent
+        .prompt("Health check")
+        .output("text");
+      
+      return context.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || "unknown",
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
+      });
+    } catch (error) {
+      return context.json({
+        status: "unhealthy",
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }, 503);
+    }
+  })
+  
+  // Readiness check
+  .addRoute("GET", "/ready", async (context) => {
+    return context.json({
+      status: "ready",
+      provider: config.provider,
+      model: config.model
+    });
+  })
+  
+  // Metrics endpoint
+  .addRoute("GET", "/metrics", async (context) => {
+    return context.json({
+      uptime_seconds: process.uptime(),
+      memory_usage_bytes: process.memoryUsage(),
+      cpu_usage: process.cpuUsage(),
+      platform: process.platform,
+      node_version: process.version
+    });
+  })
+  
+  // Main API
+  .useOpenAICompatibleRouting(appAgent);
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  process.exit(0);
+});
+
+// Start server
+try {
+  await server.serve(config.host, config.port);
+  console.log(`🚀 Production server running on ${config.host}:${config.port}`);
+} catch (error) {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+}
+```
+
+### Environment Configuration
+
+```dockerfile
+# Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy application
+COPY . .
+
+# Build if needed
+RUN npm run build
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S agentforce -u 1001
+
+# Set permissions
+RUN chown -R agentforce:nodejs /app
+USER agentforce
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+
+CMD ["node", "dist/server.js"]
+```
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  agentforce-api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=info
+      - AI_PROVIDER=ollama
+      - AI_MODEL=phi4-mini:latest
+      - API_KEYS=ak-prod-key-123,ak-demo-key-456
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Advanced Examples" icon="approve-check">
+    Explore complex patterns and architectures
+    <a href="/examples/advanced">→ Advanced Examples</a>
+  </Card>
+  
+  <Card title="OpenAI Compatibility" icon="puzzle">
+    Learn about OpenAI API compatibility
+    <a href="/guides/openai-compatibility">→ OpenAI Guide</a>
+  </Card>
+  
+  <Card title="Provider Setup" icon="setting">
+    Configure AI providers for production
+    <a href="/getting-started/provider-setup">→ Provider Setup</a>
+  </Card>
+  
+  <Card title="API Reference" icon="open-book">
+    Explore the complete server API reference
+    <a href="/reference/">→ API Reference</a>
+  </Card>
+</CardGrid>
+
+You now have comprehensive knowledge of building production-ready HTTP APIs and web services with AgentForce ADK!

@@ -1,0 +1,797 @@
+---
+title: OpenAI Compatibility
+description: Learn how to use AgentForce ADK as a drop-in replacement for OpenAI's API
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# OpenAI Compatibility Guide
+
+<br />
+
+<Badge text="Drop-in Replacement" variant="tip" /> <Badge text="Full API Support" variant="note" />
+
+<br />
+<br />
+
+AgentForce ADK provides complete OpenAI chat completions API compatibility, allowing you to use it as a seamless replacement for OpenAI's API with existing tools and applications.
+
+## Why OpenAI Compatibility?
+
+<CardGrid>
+  <Card title="Ecosystem Integration" icon="puzzle">
+    **Seamless compatibility** with OpenAI SDK, LangChain, and hundreds of existing tools
+  </Card>
+  
+  <Card title="Local Models" icon="laptop">
+    **Use local models** (Ollama) with OpenAI-compatible interface for privacy and control
+  </Card>
+  
+  <Card title="Cost Control" icon="setting">
+    **Switch providers** easily between local, cloud, and different model providers
+  </Card>
+  
+  <Card title="Development Speed" icon="rocket">
+    **No code changes** required when migrating from OpenAI to AgentForce ADK
+  </Card>
+</CardGrid>
+
+## Setting Up OpenAI-Compatible Server
+
+### Basic Server Setup
+
+```typescript
+import { AgentForceServer, AgentForceAgent, type ServerConfig } from '@agentforce/adk';
+
+// Create an agent to handle OpenAI-compatible requests
+const openaiAgent = new AgentForceAgent({
+  name: "OpenAICompatibleAgent",
+  type: "openai-compatible"
+})
+  .useLLM("ollama", "gemma3:12b")  // Use any provider/model
+  .systemPrompt("You are a helpful AI assistant compatible with OpenAI API");
+
+// Create server with OpenAI compatibility
+const server = new AgentForceServer({
+  name: "OpenAICompatibleServer",
+  logger: "json"
+})
+  .useOpenAICompatibleRouting(openaiAgent)  // Adds POST /v1/chat/completions
+  .addRoute("GET", "/health", { status: "ok" });
+
+// Start server
+await server.serve("0.0.0.0", 3000);
+console.log("🚀 OpenAI-compatible server running at http://localhost:3000");
+```
+
+### Advanced Server Configuration
+
+```typescript
+// Multiple agents for different purposes
+const chatAgent = new AgentForceAgent({
+  name: "ChatAgent",
+  type: "conversational"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a friendly conversational assistant");
+
+const codeAgent = new AgentForceAgent({
+  name: "CodeAgent", 
+  type: "coding-assistant"
+})
+  .useLLM("openrouter", "openai/gpt-4")
+  .systemPrompt("You are an expert programming assistant");
+
+// Server with multiple OpenAI-compatible endpoints
+const server = new AgentForceServer({
+  name: "MultiAgentOpenAIServer",
+  logger: "pretty"
+})
+  // Default OpenAI endpoint
+  .useOpenAICompatibleRouting(chatAgent)
+  
+  // Custom OpenAI-compatible endpoints
+  .addRouteAgent("POST", "/v1/chat/completions/code", codeAgent)
+  .addRouteAgent("POST", "/v1/chat/completions/chat", chatAgent)
+  
+  // Health and info endpoints
+  .addRoute("GET", "/health", { status: "healthy" })
+  .addRoute("GET", "/v1/models", {
+    object: "list",
+    data: [
+      { id: "ollama/gemma3:12b", object: "model", created: Date.now() },
+      { id: "openrouter/openai/gpt-4", object: "model", created: Date.now() }
+    ]
+  });
+
+await server.serve("0.0.0.0", 3000);
+```
+
+## OpenAI API Format
+
+### Standard Request Format
+
+AgentForce ADK accepts standard OpenAI chat completions requests:
+
+```json
+{
+  "model": "ollama/gemma3:12b",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant"
+    },
+    {
+      "role": "user", 
+      "content": "Hello, how are you?"
+    }
+  ],
+  "temperature": 0.7,
+  "max_tokens": 150,
+  "stream": false
+}
+```
+
+### Standard Response Format
+
+AgentForce ADK returns standard OpenAI-compatible responses:
+
+```json
+{
+  "id": "chatcmpl-1234567890",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "model": "ollama/gemma3:12b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! I'm doing well, thank you for asking. How can I help you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 17,
+    "total_tokens": 29
+  }
+}
+```
+
+## Dynamic Provider and Model Selection
+
+### Model Parameter Format
+
+Use the `model` parameter to specify provider and model:
+
+<Tabs>
+  <TabItem label="Ollama Models">
+    ```bash
+    # Format: "ollama/model-name" or just "model-name"
+    curl -X POST http://localhost:3000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "ollama/gemma3:12b",
+        "messages": [{"role": "user", "content": "Hello"}]
+      }'
+    
+    # Or shorthand (defaults to Ollama)
+    curl -X POST http://localhost:3000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gemma3:12b", 
+        "messages": [{"role": "user", "content": "Hello"}]
+      }'
+    ```
+  </TabItem>
+  
+  <TabItem label="OpenRouter Models">
+    ```bash
+    # Format: "openrouter/provider/model"
+    curl -X POST http://localhost:3000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "openrouter/openai/gpt-4",
+        "messages": [{"role": "user", "content": "Hello"}]
+      }'
+    
+    # Anthropic via OpenRouter
+    curl -X POST http://localhost:3000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "openrouter/anthropic/claude-3-sonnet",
+        "messages": [{"role": "user", "content": "Hello"}]
+      }'
+    ```
+  </TabItem>
+  
+  <TabItem label="Model Override">
+    ```typescript
+    // Agent can be configured with default model
+    const agent = new AgentForceAgent(config)
+      .useLLM("ollama", "phi4-mini:latest");  // Default
+    
+    // But requests can override the model
+    // POST /v1/chat/completions with "model": "openrouter/openai/gpt-4"
+    // Will use GPT-4 instead of the default phi4-mini
+    ```
+  </TabItem>
+</Tabs>
+
+### Supported Model Formats
+
+| Format | Provider | Example |
+|--------|----------|---------|
+| `"model-name"` | Ollama (default) | `"gemma3:12b"` |
+| `"ollama/model-name"` | Ollama | `"ollama/phi4:latest"` |
+| `"openrouter/provider/model"` | OpenRouter | `"openrouter/openai/gpt-4"` |
+| `"openai/model"` | OpenAI (coming soon) | `"openai/gpt-4"` |
+| `"anthropic/model"` | Anthropic (coming soon) | `"anthropic/claude-3"` |
+
+## Using with OpenAI SDK
+
+### Basic Usage
+
+<Tabs>
+  <TabItem label="JavaScript/TypeScript">
+    ```typescript
+    import OpenAI from 'openai';
+
+    // Point OpenAI SDK to your AgentForce server
+    const client = new OpenAI({
+      baseURL: 'http://localhost:3000',  // Your AgentForce server
+      apiKey: 'not-needed',              // AgentForce doesn't require API keys
+    });
+
+    async function chatWithAgent() {
+      const completion = await client.chat.completions.create({
+        model: 'ollama/gemma3:12b',       // Use local Ollama model
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant' },
+          { role: 'user', content: 'Explain quantum computing' }
+        ],
+        temperature: 0.7,
+        max_tokens: 200
+      });
+
+      console.log(completion.choices[0].message.content);
+    }
+
+    chatWithAgent();
+    ```
+  </TabItem>
+  
+  <TabItem label="Python">
+    ```python
+    import openai
+
+    # Configure OpenAI client for AgentForce
+    client = openai.OpenAI(
+        base_url="http://localhost:3000",
+        api_key="not-needed"
+    )
+
+    def chat_with_agent():
+        completion = client.chat.completions.create(
+            model="ollama/gemma3:12b",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant"},
+                {"role": "user", "content": "What is machine learning?"}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        return completion.choices[0].message.content
+
+    response = chat_with_agent()
+    print(response)
+    ```
+  </TabItem>
+  
+  <TabItem label="cURL">
+    ```bash
+    # Direct API call
+    curl -X POST http://localhost:3000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "ollama/gemma3:12b",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant"
+          },
+          {
+            "role": "user",
+            "content": "Write a Python function to calculate fibonacci numbers"
+          }
+        ],
+        "temperature": 0.7,
+        "max_tokens": 300
+      }'
+    ```
+  </TabItem>
+</Tabs>
+
+### Advanced OpenAI SDK Usage
+
+```typescript
+import OpenAI from 'openai';
+
+class AgentForceClient {
+  private client: OpenAI;
+
+  constructor(baseURL: string = 'http://localhost:3000') {
+    this.client = new OpenAI({
+      baseURL,
+      apiKey: 'not-needed'
+    });
+  }
+
+  async chat(message: string, model: string = 'ollama/gemma3:12b') {
+    const completion = await this.client.chat.completions.create({
+      model,
+      messages: [{ role: 'user', content: message }]
+    });
+
+    return completion.choices[0].message.content;
+  }
+
+  async chatWithHistory(
+    messages: Array<{role: string, content: string}>, 
+    model: string = 'ollama/gemma3:12b'
+  ) {
+    const completion = await this.client.chat.completions.create({
+      model,
+      messages
+    });
+
+    return completion.choices[0].message.content;
+  }
+
+  async generateCode(
+    prompt: string, 
+    language: string = 'typescript'
+  ) {
+    const completion = await this.client.chat.completions.create({
+      model: 'openrouter/openai/gpt-4',  // Use powerful model for code
+      messages: [
+        { 
+          role: 'system', 
+          content: `You are an expert ${language} developer. Provide clean, well-commented code.` 
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.2  // Lower temperature for more deterministic code
+    });
+
+    return completion.choices[0].message.content;
+  }
+
+  async analyze(data: any, analysisType: string = 'general') {
+    const completion = await this.client.chat.completions.create({
+      model: 'ollama/gemma3:12b',
+      messages: [
+        { 
+          role: 'system', 
+          content: `You are a data analyst specializing in ${analysisType} analysis. Provide insights in JSON format.` 
+        },
+        { 
+          role: 'user', 
+          content: `Analyze this data: ${JSON.stringify(data)}` 
+        }
+      ]
+    });
+
+    try {
+      return JSON.parse(completion.choices[0].message.content);
+    } catch {
+      return { analysis: completion.choices[0].message.content };
+    }
+  }
+}
+
+// Usage
+const agentforce = new AgentForceClient();
+
+// Simple chat
+const response = await agentforce.chat("Hello, how are you?");
+
+// Code generation
+const code = await agentforce.generateCode("Create a REST API endpoint for user management");
+
+// Data analysis
+const analysis = await agentforce.analyze(salesData, "sales performance");
+
+console.log({ response, code, analysis });
+```
+
+## Multi-Turn Conversations
+
+### Conversation Context
+
+AgentForce ADK maintains full conversation context across multiple messages:
+
+<Tabs>
+  <TabItem label="Basic Conversation">
+    ```typescript
+    import OpenAI from 'openai';
+
+    const client = new OpenAI({
+      baseURL: 'http://localhost:3000',
+      apiKey: 'not-needed'
+    });
+
+    async function multiTurnConversation() {
+      // First message
+      let conversation = [
+        { role: 'user', content: 'Hi, my name is Alice and I work in marketing.' }
+      ];
+
+      let response = await client.chat.completions.create({
+        model: 'ollama/gemma3:12b',
+        messages: conversation
+      });
+
+      // Add assistant response to conversation
+      conversation.push({
+        role: 'assistant',
+        content: response.choices[0].message.content
+      });
+
+      // Continue conversation with context
+      conversation.push({
+        role: 'user',
+        content: 'Do you remember what my job is?'
+      });
+
+      response = await client.chat.completions.create({
+        model: 'ollama/gemma3:12b',
+        messages: conversation
+      });
+
+      console.log("Assistant remembers:", response.choices[0].message.content);
+      // Output: "Yes, you mentioned that you work in marketing."
+    }
+
+    multiTurnConversation();
+    ```
+  </TabItem>
+  
+  <TabItem label="Conversation Manager">
+    ```typescript
+    class ConversationManager {
+      private messages: Array<{role: string, content: string}> = [];
+      private client: OpenAI;
+
+      constructor(baseURL: string = 'http://localhost:3000') {
+        this.client = new OpenAI({ baseURL, apiKey: 'not-needed' });
+      }
+
+      setSystemPrompt(content: string) {
+        this.messages = [{ role: 'system', content }];
+      }
+
+      async sendMessage(content: string, model: string = 'ollama/gemma3:12b') {
+        // Add user message
+        this.messages.push({ role: 'user', content });
+
+        // Get AI response
+        const response = await this.client.chat.completions.create({
+          model,
+          messages: this.messages
+        });
+
+        const assistantMessage = response.choices[0].message.content;
+        
+        // Add assistant response to history
+        this.messages.push({ role: 'assistant', content: assistantMessage });
+
+        return assistantMessage;
+      }
+
+      getConversationHistory() {
+        return [...this.messages];
+      }
+
+      clearHistory() {
+        this.messages = [];
+      }
+    }
+
+    // Usage
+    const conversation = new ConversationManager();
+    conversation.setSystemPrompt("You are a helpful coding assistant");
+
+    const response1 = await conversation.sendMessage("How do I create a REST API?");
+    const response2 = await conversation.sendMessage("Can you show me an example with Express.js?");
+    const response3 = await conversation.sendMessage("What about error handling?");
+
+    console.log("Full conversation:", conversation.getConversationHistory());
+    ```
+  </TabItem>
+</Tabs>
+
+## Supported OpenAI Parameters
+
+### Core Parameters
+
+AgentForce ADK supports all standard OpenAI chat completions parameters:
+
+<Tabs>
+  <TabItem label="Required Parameters">
+    ```typescript
+    // Minimum required parameters
+    const response = await client.chat.completions.create({
+      model: "ollama/gemma3:12b",     // Required: Model specification
+      messages: [                     // Required: Conversation messages
+        { role: "user", content: "Hello" }
+      ]
+    });
+    ```
+  </TabItem>
+  
+  <TabItem label="Common Parameters">
+    ```typescript
+    // Commonly used parameters
+    const response = await client.chat.completions.create({
+      model: "ollama/gemma3:12b",
+      messages: [
+        { role: "system", content: "You are helpful" },
+        { role: "user", content: "Explain AI" }
+      ],
+      temperature: 0.7,              // Randomness (0.0-2.0)
+      max_tokens: 150,               // Max response length
+      top_p: 0.9,                    // Nucleus sampling
+      frequency_penalty: 0.1,        // Reduce repetition
+      presence_penalty: 0.1,         // Encourage new topics
+      stop: ["###", "---"],          // Stop sequences
+      user: "user-123"               // User identifier
+    });
+    ```
+  </TabItem>
+  
+  <TabItem label="Advanced Parameters">
+    ```typescript
+    // Advanced configuration
+    const response = await client.chat.completions.create({
+      model: "openrouter/openai/gpt-4",
+      messages: [
+        { role: "user", content: "Write a function" }
+      ],
+      temperature: 0.2,              // Low for deterministic code
+      max_tokens: 500,
+      n: 3,                          // Generate 3 choices
+      stream: false,                 // Disable streaming
+      response_format: {             // Response format
+        type: "json_object"
+      },
+      seed: 42,                      // Reproducible outputs
+      logit_bias: {                  // Token probability modification
+        "50256": -100                // Reduce end-of-text token
+      }
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+### Parameter Reference
+
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `model` | string | Model identifier (required) | - |
+| `messages` | array | Conversation messages (required) | - |
+| `temperature` | number | Randomness (0.0-2.0) | 1.0 |
+| `max_tokens` | number | Maximum tokens in response | inf |
+| `top_p` | number | Nucleus sampling (0.0-1.0) | 1.0 |
+| `n` | number | Number of choices (1-128) | 1 |
+| `stream` | boolean | Enable streaming | false |
+| `stop` | string/array | Stop sequences | null |
+| `presence_penalty` | number | New topic penalty (-2.0 to 2.0) | 0 |
+| `frequency_penalty` | number | Repetition penalty (-2.0 to 2.0) | 0 |
+| `logit_bias` | object | Token probability modification | null |
+| `user` | string | User identifier | null |
+| `response_format` | object | Response format specification | null |
+| `seed` | number | Random seed for reproducibility | null |
+
+## Integration with Existing Tools
+
+### LangChain Integration
+
+```typescript
+import { ChatOpenAI } from '@langchain/openai';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+
+// Use AgentForce as LangChain provider
+const model = new ChatOpenAI({
+  openAIApiKey: 'not-needed',
+  configuration: {
+    baseURL: 'http://localhost:3000',
+  },
+  modelName: 'ollama/gemma3:12b',
+  temperature: 0.7
+});
+
+// Use with LangChain
+const messages = [
+  new SystemMessage('You are a helpful assistant'),
+  new HumanMessage('Explain the benefits of TypeScript')
+];
+
+const response = await model.invoke(messages);
+console.log(response.content);
+```
+
+### Vercel AI SDK Integration
+
+```typescript
+import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
+
+// Configure Vercel AI SDK to use AgentForce
+const agentforce = openai({
+  baseURL: 'http://localhost:3000',
+  apiKey: 'not-needed'
+});
+
+const { text } = await generateText({
+  model: agentforce('ollama/gemma3:12b'),
+  prompt: 'Write a short story about AI'
+});
+
+console.log(text);
+```
+
+### Custom Integration Example
+
+```typescript
+class OpenAICompatibleClient {
+  constructor(private baseURL: string = 'http://localhost:3000') {}
+
+  async complete(prompt: string, options: any = {}) {
+    const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: options.model || 'ollama/gemma3:12b',
+        messages: [{ role: 'user', content: prompt }],
+        ...options
+      })
+    });
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  }
+
+  async stream(prompt: string, options: any = {}) {
+    const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: options.model || 'ollama/gemma3:12b',
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+        ...options
+      })
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader!.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(line => line.trim());
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') return;
+          
+          try {
+            const parsed = JSON.parse(data);
+            console.log(parsed.choices[0].delta.content || '');
+          } catch (e) {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Error Handling
+
+```typescript
+async function robustOpenAICall() {
+  try {
+    const response = await client.chat.completions.create({
+      model: 'ollama/gemma3:12b',
+      messages: [{ role: 'user', content: 'Hello' }],
+      timeout: 30000  // 30 second timeout
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    if (error.code === 'model_not_found') {
+      // Fallback to different model
+      return await client.chat.completions.create({
+        model: 'ollama/phi4-mini:latest',
+        messages: [{ role: 'user', content: 'Hello' }]
+      });
+    }
+    
+    throw error;
+  }
+}
+```
+
+### Performance Optimization
+
+```typescript
+// Connection pooling and reuse
+class OptimizedClient {
+  private client: OpenAI;
+  private cache = new Map();
+
+  constructor() {
+    this.client = new OpenAI({
+      baseURL: 'http://localhost:3000',
+      apiKey: 'not-needed',
+      timeout: 30000,
+      maxRetries: 3
+    });
+  }
+
+  async cachedCompletion(prompt: string, model: string) {
+    const cacheKey = `${model}:${prompt}`;
+    
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+
+    const response = await this.client.chat.completions.create({
+      model,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const result = response.choices[0].message.content;
+    this.cache.set(cacheKey, result);
+    
+    return result;
+  }
+}
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Server Deployment" icon="rocket">
+    Learn how to deploy OpenAI-compatible servers in production
+    <a href="/getting-started/server-mode">→ Server Guide</a>
+  </Card>
+  
+  <Card title="Multiple Providers" icon="puzzle">
+    Use different providers through the OpenAI-compatible interface
+    <a href="/guides/providers">→ Provider Guide</a>
+  </Card>
+  
+  <Card title="Advanced Examples" icon="approve-check">
+    See complex OpenAI-compatible implementations
+    <a href="/examples/advanced">→ Advanced Examples</a>
+  </Card>
+  
+  <Card title="API Reference" icon="open-book">
+    Explore the complete compatibility API reference
+    <a href="/reference/">→ API Reference</a>
+  </Card>
+</CardGrid>
+
+You now have comprehensive knowledge of AgentForce ADK's OpenAI compatibility features, enabling you to seamlessly integrate with the entire OpenAI ecosystem while using any provider or model!

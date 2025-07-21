@@ -1,0 +1,95 @@
+---
+title: Introduction
+description: Welcome to AgentForce ADK - The Agent Development Kit for building powerful AI agent workflows
+---
+
+import { Badge, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Welcome to AgentForce ADK
+
+<br />
+
+<Badge text="TypeScript" variant="tip" />
+<Badge text="Cross-Runtime" variant="note" /> 
+<Badge text="AI Agents" variant="caution" />
+<Badge text="AI Workflows" variant="danger" />
+
+<br />
+<br />
+
+AgentForce ADK is a powerful TypeScript framework designed for creating, managing, and orchestrating AI Agent Workflows. Built with modern TypeScript practices, it provides a simple yet powerful interface to develop Agent-Based applications with support for multiple AI providers and models.
+
+## What is AgentForce ADK?
+
+AgentForce ADK (Agent Development Kit) simplifies the process of building AI-powered applications by providing:
+
+- **Fluent Interface**: Method chaining for intuitive agent configuration
+- **Multi-Provider Support**: Works with local (Ollama) and cloud (OpenRouter) providers
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
+- **Cross-Runtime**: Seamless operation across Bun, Node.js, and Deno
+- **Server Capabilities**: Built-in HTTP server functionality for API deployment
+- **OpenAI Compatibility**: Full support for OpenAI chat completions API format
+
+## Key Concepts
+
+### Agents
+Agents are the core building blocks of AgentForce ADK. Each agent represents an AI-powered entity that can:
+- Process prompts and generate responses
+- Be configured with different AI providers and models
+- Be deployed as HTTP endpoints
+- Chain operations using a fluent interface
+
+### Providers
+Providers are the bridge between your agents and AI services:
+- **Ollama**: Local model execution for privacy and development
+- **OpenRouter**: Cloud-based access to multiple AI providers (OpenAI, Anthropic, Google, Meta)
+- **Native Providers**: Direct integration with OpenAI, Anthropic, Google (coming soon)
+
+### Method Chaining
+AgentForce ADK uses a fluent interface pattern that allows you to chain configuration methods:
+
+```typescript
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful assistant")
+  .prompt("Hello, how can I help?")
+  .output("json");
+```
+
+## Why Choose AgentForce ADK?
+
+### Developer Experience
+- **Minimal Boilerplate**: Create powerful agents with just a few lines of code
+- **IntelliSense Support**: Full IDE support with TypeScript autocompletion
+- **Comprehensive Testing**: Well-tested framework with extensive test coverage
+- **Clear Documentation**: Detailed guides and API references
+
+### Flexibility
+- **Multiple Runtimes**: Works with Bun, Node.js, and Deno
+- **Provider Agnostic**: Switch between local and cloud providers easily
+- **Output Formats**: Support for text, JSON, and Markdown outputs
+- **Deployment Options**: Use as library or deploy as HTTP service
+
+### Production Ready
+- **OpenAI Compatibility**: Drop-in replacement for OpenAI API
+- **Structured Logging**: Built-in logging with Pino
+- **Error Handling**: Comprehensive error handling and validation
+- **Performance**: Optimized for both development and production use
+
+<br />
+<br />
+
+<Aside type="tip">
+  AgentForce ADK is designed to grow with your needs - start with simple agents and scale to complex multi-agent workflows.
+</Aside>
+
+## What's Next?
+
+Now that you understand the basics, let's get AgentForce ADK installed and create your first agent:
+
+1. **[Installation Guide](/getting-started/installation)** - Set up AgentForce ADK in your project
+2. **[Provider Setup](/getting-started/provider-setup)** - Configure AI providers (Ollama, OpenRouter)
+3. **[Quick Start](/getting-started/quick-start)** - Create your first agent
+4. **[Server Mode](/getting-started/server-mode)** - Deploy agents as HTTP APIs
+
+Ready to build your first AI agent? Let's continue with the installation guide!

@@ -1,0 +1,41 @@
+---
+interface Props {
+  columns?: number;
+}
+
+const { columns = 2 } = Astro.props;
+---
+
+<div class={`feature-grid columns-${columns}`}>
+  <slot />
+</div>
+
+<style define:vars={{ columns }}>
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+    align-items: start;
+    grid-auto-rows: 1fr;
+  }
+
+  .feature-grid > * {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  @media (max-width: 1024px) {
+    .feature-grid {
+      grid-template-columns: repeat(min(var(--columns), 2), 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+  }
+</style>

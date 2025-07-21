@@ -1,0 +1,1529 @@
+---
+title: Advanced Examples
+description: Complex workflows, integrations, and production patterns with AgentForce ADK
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Advanced Examples
+
+<br />
+
+<Badge text="Production Patterns" variant="tip" /> <Badge text="Complex Workflows" variant="note" />
+
+<br />
+<br />
+
+Explore sophisticated use cases and production-ready patterns with AgentForce ADK. These examples demonstrate complex workflows, integrations, and scalable architectures.
+
+## Multi-Agent Orchestration
+
+### Agent Pipeline System
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+
+class AgentPipeline {
+  private stages: Array<{
+    name: string;
+    agent: AgentForceAgent;
+    transform?: (input: any) => any;
+    condition?: (input: any) => boolean;
+  }> = [];
+
+  addStage(
+    name: string,
+    agent: AgentForceAgent,
+    options: {
+      transform?: (input: any) => any;
+      condition?: (input: any) => boolean;
+    } = {}
+  ) {
+    this.stages.push({
+      name,
+      agent,
+      transform: options.transform,
+      condition: options.condition
+    });
+    return this;
+  }
+
+  async execute(input: any): Promise<any> {
+    let result = input;
+    const execution_log = [];
+
+    for (const stage of this.stages) {
+      // Check condition if specified
+      if (stage.condition && !stage.condition(result)) {
+        execution_log.push({
+          stage: stage.name,
+          skipped: true,
+          reason: 'condition_not_met'
+        });
+        continue;
+      }
+
+      try {
+        // Transform input if needed
+        const stageInput = stage.transform ? stage.transform(result) : result;
+        
+        // Execute agent
+        const stageOutput = await stage.agent
+          .prompt(typeof stageInput === 'string' ? stageInput : JSON.stringify(stageInput))
+          .output("text");
+
+        result = stageOutput;
+        
+        execution_log.push({
+          stage: stage.name,
+          success: true,
+          input_size: typeof stageInput === 'string' ? stageInput.length : JSON.stringify(stageInput).length,
+          output_size: stageOutput.length
+        });
+        
+      } catch (error) {
+        execution_log.push({
+          stage: stage.name,
+          error: error.message,
+          failed: true
+        });
+        throw new Error(`Pipeline failed at stage '${stage.name}': ${error.message}`);
+      }
+    }
+
+    return {
+      result,
+      execution_log,
+      stages_executed: execution_log.filter(log => log.success).length,
+      total_stages: this.stages.length
+    };
+  }
+}
+
+// Create specialized agents
+const contentExtractor = new AgentForceAgent({
+  name: "ContentExtractor",
+  type: "extraction"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Extract key information and main points from the given content. Provide structured output.");
+
+const sentimentAnalyzer = new AgentForceAgent({
+  name: "SentimentAnalyzer",
+  type: "analysis"
+})
+  .useLLM("ollama", "phi4-mini:latest")
+  .systemPrompt("Analyze sentiment and emotional tone. Respond with JSON containing sentiment score (-1 to 1) and explanation.");
+
+const contentEnhancer = new AgentForceAgent({
+  name: "ContentEnhancer",
+  type: "enhancement"
+})
+  .useLLM("openrouter", "openai/gpt-4")
+  .systemPrompt("Enhance and improve content quality while maintaining the original meaning and key points.");
+
+const qualityChecker = new AgentForceAgent({
+  name: "QualityChecker",
+  type: "validation"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("Check content quality, accuracy, and completeness. Provide quality score (1-10) and recommendations.");
+
+// Build content processing pipeline
+const contentPipeline = new AgentPipeline()
+  .addStage("extract", contentExtractor)
+  .addStage("analyze_sentiment", sentimentAnalyzer, {
+    transform: (input) => `Analyze sentiment of: ${input}`,
+    condition: (input) => input.length > 50 // Only analyze sentiment for longer content
+  })
+  .addStage("enhance", contentEnhancer, {
+    condition: (input) => !input.includes("high quality") // Only enhance if not already high quality
+  })
+  .addStage("quality_check", qualityChecker);
+
+// Execute pipeline
+async function processContent(rawContent: string) {
+  try {
+    const result = await contentPipeline.execute(rawContent);
+    
+    console.log("Pipeline completed:");
+    console.log(`Stages executed: ${result.stages_executed}/${result.total_stages}`);
+    console.log("Final result:", result.result);
+    console.log("Execution log:", result.execution_log);
+    
+    return result;
+  } catch (error) {
+    console.error("Pipeline failed:", error.message);
+    throw error;
+  }
+}
+
+// Usage
+const article = `
+Artificial Intelligence is transforming industries at an unprecedented pace.
+From healthcare to finance, AI applications are creating new opportunities
+while also raising important ethical questions about automation and employment.
+`;
+
+const processed = await processContent(article);
+```
+
+### Collaborative Agent System
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+
+class CollaborativeAgentSystem {
+  private agents = new Map<string, AgentForceAgent>();
+  private conversationHistory = new Map<string, Array<any>>();
+
+  addAgent(name: string, agent: AgentForceAgent) {
+    this.agents.set(name, agent);
+    this.conversationHistory.set(name, []);
+    return this;
+  }
+
+  async facilitateDiscussion(topic: string, participants: string[], rounds: number = 3) {
+    const discussion = {
+      topic,
+      participants,
+      rounds: [],
+      consensus: null,
+      final_decision: null
+    };
+
+    // Initial prompt for all participants
+    for (let round = 1; round <= rounds; round++) {
+      const roundResults = [];
+
+      for (const agentName of participants) {
+        const agent = this.agents.get(agentName);
+        if (!agent) continue;
+
+        // Build context from previous rounds
+        const context = this.buildDiscussionContext(discussion, agentName, round);
+        
+        const response = await agent
+          .prompt(context)
+          .output("text");
+
+        roundResults.push({
+          agent: agentName,
+          response,
+          round,
+          timestamp: new Date().toISOString()
+        });
+
+        // Add to conversation history
+        this.conversationHistory.get(agentName)?.push({
+          topic,
+          round,
+          response
+        });
+      }
+
+      discussion.rounds.push({
+        round_number: round,
+        responses: roundResults
+      });
+    }
+
+    // Generate consensus
+    discussion.consensus = await this.generateConsensus(discussion);
+    
+    return discussion;
+  }
+
+  private buildDiscussionContext(discussion: any, agentName: string, currentRound: number): string {
+    let context = `Topic for discussion: ${discussion.topic}\n\n`;
+    
+    if (currentRound === 1) {
+      context += `You are ${agentName}. Please provide your initial thoughts and perspective on this topic.`;
+    } else {
+      context += `You are ${agentName}. Here's what others have said:\n\n`;
+      
+      // Add previous round responses
+      const previousRound = discussion.rounds[currentRound - 2];
+      if (previousRound) {
+        for (const response of previousRound.responses) {
+          if (response.agent !== agentName) {
+            context += `${response.agent}: ${response.response}\n\n`;
+          }
+        }
+      }
+      
+      context += `Round ${currentRound}: Please respond to the previous points and add your perspective. Build on or challenge the ideas presented.`;
+    }
+
+    return context;
+  }
+
+  private async generateConsensus(discussion: any): Promise<string> {
+    const facilitator = new AgentForceAgent({
+      name: "DiscussionFacilitator",
+      type: "consensus-building"
+    })
+      .useLLM("openrouter", "openai/gpt-4")
+      .systemPrompt(`
+        You are a skilled facilitator. Analyze the discussion and identify:
+        1. Common ground and agreements
+        2. Key disagreements and their reasons
+        3. Potential compromise solutions
+        4. Final recommendations
+      `);
+
+    const discussionSummary = discussion.rounds
+      .map((round: any) => 
+        round.responses
+          .map((r: any) => `${r.agent}: ${r.response}`)
+          .join('\n')
+      )
+      .join('\n---\n');
+
+    const consensus = await facilitator
+      .prompt(`
+        Analyze this discussion and provide consensus:
+        
+        Topic: ${discussion.topic}
+        
+        Discussion:
+        ${discussionSummary}
+      `)
+      .output("text");
+
+    return consensus;
+  }
+}
+
+// Create specialized agents with different perspectives
+const technicalExpert = new AgentForceAgent({
+  name: "TechnicalExpert",
+  type: "technical-advisor"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a technical expert. Focus on feasibility, implementation details, and technical considerations.");
+
+const businessAnalyst = new AgentForceAgent({
+  name: "BusinessAnalyst", 
+  type: "business-advisor"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a business analyst. Focus on market impact, costs, benefits, and business strategy.");
+
+const userExperienceDesigner = new AgentForceAgent({
+  name: "UXDesigner",
+  type: "ux-advisor"
+})
+  .useLLM("ollama", "phi4-mini:latest")
+  .systemPrompt("You are a UX designer. Focus on user needs, usability, accessibility, and user experience.");
+
+const securitySpecialist = new AgentForceAgent({
+  name: "SecuritySpecialist",
+  type: "security-advisor"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a security specialist. Focus on security risks, privacy concerns, and compliance requirements.");
+
+// Create collaborative system
+const collaborativeSystem = new CollaborativeAgentSystem()
+  .addAgent("technical", technicalExpert)
+  .addAgent("business", businessAnalyst)
+  .addAgent("ux", userExperienceDesigner)
+  .addAgent("security", securitySpecialist);
+
+// Facilitate discussion
+const discussion = await collaborativeSystem.facilitateDiscussion(
+  "Should we implement AI-powered chatbots for customer service?",
+  ["technical", "business", "ux", "security"],
+  3
+);
+
+console.log("Discussion Results:", discussion);
+```
+
+## Advanced Workflow Automation
+
+### Document Processing Workflow
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join, extname, basename } from 'path';
+
+class DocumentWorkflowEngine {
+  private workflows = new Map<string, DocumentWorkflow>();
+  
+  registerWorkflow(name: string, workflow: DocumentWorkflow) {
+    this.workflows.set(name, workflow);
+    return this;
+  }
+
+  async processDocument(workflowName: string, inputPath: string, options: any = {}) {
+    const workflow = this.workflows.get(workflowName);
+    if (!workflow) {
+      throw new Error(`Workflow '${workflowName}' not found`);
+    }
+
+    return await workflow.execute(inputPath, options);
+  }
+
+  listWorkflows() {
+    return Array.from(this.workflows.keys());
+  }
+}
+
+abstract class DocumentWorkflow {
+  protected name: string;
+  protected agents: Map<string, AgentForceAgent> = new Map();
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  abstract execute(inputPath: string, options: any): Promise<any>;
+
+  protected addAgent(name: string, agent: AgentForceAgent) {
+    this.agents.set(name, agent);
+    return this;
+  }
+
+  protected async processWithAgent(agentName: string, content: string, prompt?: string): Promise<string> {
+    const agent = this.agents.get(agentName);
+    if (!agent) {
+      throw new Error(`Agent '${agentName}' not found`);
+    }
+
+    const finalPrompt = prompt || content;
+    return await agent.prompt(finalPrompt).output("text");
+  }
+}
+
+class ResearchPaperWorkflow extends DocumentWorkflow {
+  constructor() {
+    super("research-paper");
+    
+    this.addAgent("extractor", new AgentForceAgent({
+      name: "ResearchExtractor",
+      type: "research-extraction"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        Extract key information from research papers:
+        - Title, authors, abstract
+        - Main research questions and hypotheses
+        - Methodology and approach
+        - Key findings and conclusions
+        - Citations and references
+        
+        Provide structured JSON output.
+      `))
+      
+      .addAgent("summarizer", new AgentForceAgent({
+        name: "ResearchSummarizer",
+        type: "research-summary"
+      })
+        .useLLM("ollama", "gemma3:12b")
+        .systemPrompt("Create concise, academic summaries of research papers highlighting key contributions and significance."))
+        
+      .addAgent("reviewer", new AgentForceAgent({
+        name: "ResearchReviewer",
+        type: "research-review"
+      })
+        .useLLM("openrouter", "openai/gpt-4")
+        .systemPrompt(`
+          Provide academic peer review analysis:
+          - Strengths and weaknesses
+          - Methodological concerns
+          - Significance and impact
+          - Suggestions for improvement
+          - Overall assessment
+        `))
+        
+      .addAgent("citation_analyzer", new AgentForceAgent({
+        name: "CitationAnalyzer",
+        type: "citation-analysis"
+      })
+        .useLLM("ollama", "phi4-mini:latest")
+        .systemPrompt("Analyze citations and references. Identify key related works and research gaps."));
+  }
+
+  async execute(inputPath: string, options: any) {
+    const content = readFileSync(inputPath, 'utf-8');
+    const outputDir = options.outputDir || './output';
+    
+    if (!existsSync(outputDir)) {
+      mkdirSync(outputDir, { recursive: true });
+    }
+
+    const results = {
+      input_file: inputPath,
+      processed_at: new Date().toISOString(),
+      outputs: {}
+    };
+
+    try {
+      // Extract key information
+      console.log("Extracting key information...");
+      const extraction = await this.processWithAgent("extractor", content);
+      results.outputs.extraction = JSON.parse(extraction);
+      writeFileSync(join(outputDir, 'extraction.json'), extraction);
+
+      // Generate summary
+      console.log("Generating summary...");
+      const summary = await this.processWithAgent("summarizer", content);
+      results.outputs.summary = summary;
+      writeFileSync(join(outputDir, 'summary.md'), summary);
+
+      // Peer review analysis
+      console.log("Conducting peer review analysis...");
+      const review = await this.processWithAgent("reviewer", content);
+      results.outputs.review = review;
+      writeFileSync(join(outputDir, 'review.md'), review);
+
+      // Citation analysis
+      console.log("Analyzing citations...");
+      const citations = await this.processWithAgent("citation_analyzer", content);
+      results.outputs.citations = citations;
+      writeFileSync(join(outputDir, 'citations.md'), citations);
+
+      // Generate comprehensive report
+      console.log("Generating comprehensive report...");
+      const report = this.generateComprehensiveReport(results);
+      writeFileSync(join(outputDir, 'comprehensive_report.md'), report);
+
+      console.log(`Research paper analysis complete. Results saved to ${outputDir}`);
+      return results;
+
+    } catch (error) {
+      console.error("Workflow failed:", error.message);
+      results.error = error.message;
+      return results;
+    }
+  }
+
+  private generateComprehensiveReport(results: any): string {
+    return `# Research Paper Analysis Report
+
+## Document Information
+- **File:** ${results.input_file}
+- **Processed:** ${results.processed_at}
+
+## Key Information
+${JSON.stringify(results.outputs.extraction, null, 2)}
+
+## Summary
+${results.outputs.summary}
+
+## Peer Review Analysis
+${results.outputs.review}
+
+## Citation Analysis
+${results.outputs.citations}
+
+---
+*Generated by AgentForce ADK Research Paper Workflow*
+`;
+  }
+}
+
+class LegalDocumentWorkflow extends DocumentWorkflow {
+  constructor() {
+    super("legal-document");
+    
+    this.addAgent("clause_extractor", new AgentForceAgent({
+      name: "ClauseExtractor",
+      type: "legal-extraction"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt(`
+        Extract and categorize legal clauses:
+        - Contract terms and conditions
+        - Rights and obligations
+        - Penalties and consequences
+        - Termination clauses
+        - Liability limitations
+        
+        Provide structured analysis.
+      `))
+      
+      .addAgent("risk_analyzer", new AgentForceAgent({
+        name: "RiskAnalyzer",
+        type: "risk-analysis"
+      })
+        .useLLM("openrouter", "openai/gpt-4")
+        .systemPrompt("Analyze legal risks, potential liabilities, and recommend risk mitigation strategies."))
+        
+      .addAgent("compliance_checker", new AgentForceAgent({
+        name: "ComplianceChecker",
+        type: "compliance-analysis"
+      })
+        .useLLM("ollama", "gemma3:12b")
+        .systemPrompt("Check compliance with common legal standards and identify potential regulatory issues."))
+        
+      .addAgent("plain_language", new AgentForceAgent({
+        name: "PlainLanguageTranslator",
+        type: "plain-language"
+      })
+        .useLLM("ollama", "phi4-mini:latest")
+        .systemPrompt("Translate legal language into plain English while maintaining accuracy and important details."));
+  }
+
+  async execute(inputPath: string, options: any) {
+    const content = readFileSync(inputPath, 'utf-8');
+    const outputDir = options.outputDir || './legal_analysis';
+    
+    if (!existsSync(outputDir)) {
+      mkdirSync(outputDir, { recursive: true });
+    }
+
+    const results = {
+      document: inputPath,
+      analysis_date: new Date().toISOString(),
+      findings: {}
+    };
+
+    // Extract clauses
+    const clauses = await this.processWithAgent("clause_extractor", content);
+    results.findings.clauses = clauses;
+    writeFileSync(join(outputDir, 'clauses.md'), clauses);
+
+    // Risk analysis
+    const risks = await this.processWithAgent("risk_analyzer", content);
+    results.findings.risks = risks;
+    writeFileSync(join(outputDir, 'risk_analysis.md'), risks);
+
+    // Compliance check
+    const compliance = await this.processWithAgent("compliance_checker", content);
+    results.findings.compliance = compliance;
+    writeFileSync(join(outputDir, 'compliance.md'), compliance);
+
+    // Plain language translation
+    const plainLanguage = await this.processWithAgent("plain_language", content);
+    results.findings.plain_language = plainLanguage;
+    writeFileSync(join(outputDir, 'plain_language.md'), plainLanguage);
+
+    return results;
+  }
+}
+
+// Usage example
+const workflowEngine = new DocumentWorkflowEngine()
+  .registerWorkflow("research", new ResearchPaperWorkflow())
+  .registerWorkflow("legal", new LegalDocumentWorkflow());
+
+// Process documents
+async function processDocuments() {
+  try {
+    // Process research paper
+    const researchResults = await workflowEngine.processDocument(
+      "research",
+      "./documents/research_paper.pdf",
+      { outputDir: "./analysis/research" }
+    );
+
+    // Process legal document
+    const legalResults = await workflowEngine.processDocument(
+      "legal", 
+      "./documents/contract.pdf",
+      { outputDir: "./analysis/legal" }
+    );
+
+    console.log("All documents processed successfully");
+    return { research: researchResults, legal: legalResults };
+    
+  } catch (error) {
+    console.error("Document processing failed:", error);
+    throw error;
+  }
+}
+
+processDocuments();
+```
+
+## Advanced Integration Patterns
+
+### Event-Driven Agent System
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+import { EventEmitter } from 'events';
+
+class AgentEventSystem extends EventEmitter {
+  private agents = new Map<string, AgentForceAgent>();
+  private eventHandlers = new Map<string, Array<EventHandler>>();
+  private eventHistory: Array<any> = [];
+
+  registerAgent(name: string, agent: AgentForceAgent) {
+    this.agents.set(name, agent);
+    return this;
+  }
+
+  onEvent(eventType: string, handler: EventHandler) {
+    if (!this.eventHandlers.has(eventType)) {
+      this.eventHandlers.set(eventType, []);
+    }
+    this.eventHandlers.get(eventType)?.push(handler);
+    return this;
+  }
+
+  async triggerEvent(eventType: string, data: any) {
+    const event = {
+      id: crypto.randomUUID(),
+      type: eventType,
+      data,
+      timestamp: new Date().toISOString(),
+      results: []
+    };
+
+    this.eventHistory.push(event);
+    
+    const handlers = this.eventHandlers.get(eventType) || [];
+    
+    for (const handler of handlers) {
+      try {
+        const result = await handler.handle(event, this.agents);
+        event.results.push({
+          handler: handler.name,
+          success: true,
+          result
+        });
+      } catch (error) {
+        event.results.push({
+          handler: handler.name,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    this.emit('event-processed', event);
+    return event;
+  }
+
+  getEventHistory(limit?: number) {
+    return limit ? this.eventHistory.slice(-limit) : this.eventHistory;
+  }
+}
+
+interface EventHandler {
+  name: string;
+  handle(event: any, agents: Map<string, AgentForceAgent>): Promise<any>;
+}
+
+class ContentModerationHandler implements EventHandler {
+  name = "content-moderation";
+
+  async handle(event: any, agents: Map<string, AgentForceAgent>) {
+    const moderator = agents.get("moderator");
+    if (!moderator) throw new Error("Moderator agent not found");
+
+    const content = event.data.content;
+    
+    const analysis = await moderator
+      .prompt(`
+        Analyze this content for moderation:
+        "${content}"
+        
+        Check for:
+        - Inappropriate language
+        - Harmful content
+        - Spam indicators
+        - Privacy violations
+        
+        Respond with JSON: {
+          "approved": boolean,
+          "confidence": number,
+          "issues": string[],
+          "recommendation": string
+        }
+      `)
+      .output("json");
+
+    return {
+      content_id: event.data.id,
+      moderation_result: analysis,
+      action: analysis.approved ? "approve" : "reject"
+    };
+  }
+}
+
+class SentimentAnalysisHandler implements EventHandler {
+  name = "sentiment-analysis";
+
+  async handle(event: any, agents: Map<string, AgentForceAgent>) {
+    const analyzer = agents.get("sentiment");
+    if (!analyzer) throw new Error("Sentiment analyzer not found");
+
+    const content = event.data.content;
+    
+    const sentiment = await analyzer
+      .prompt(`
+        Analyze sentiment of: "${content}"
+        
+        Provide JSON response with:
+        - sentiment: "positive", "negative", or "neutral"
+        - confidence: 0-1
+        - emotions: array of detected emotions
+        - summary: brief explanation
+      `)
+      .output("json");
+
+    return {
+      content_id: event.data.id,
+      sentiment_analysis: sentiment
+    };
+  }
+}
+
+class AutoResponseHandler implements EventHandler {
+  name = "auto-response";
+
+  async handle(event: any, agents: Map<string, AgentForceAgent>) {
+    if (event.data.type !== "customer-inquiry") return null;
+
+    const responder = agents.get("customer-service");
+    if (!responder) throw new Error("Customer service agent not found");
+
+    const inquiry = event.data.message;
+    const customerInfo = event.data.customer;
+    
+    const response = await responder
+      .prompt(`
+        Customer inquiry: "${inquiry}"
+        Customer info: ${JSON.stringify(customerInfo)}
+        
+        Provide helpful, professional response addressing their concern.
+      `)
+      .output("text");
+
+    return {
+      inquiry_id: event.data.id,
+      auto_response: response,
+      should_escalate: inquiry.toLowerCase().includes("urgent") || inquiry.toLowerCase().includes("complaint")
+    };
+  }
+}
+
+// Create agents
+const moderatorAgent = new AgentForceAgent({
+  name: "ModerationAgent",
+  type: "content-moderation"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a content moderator. Analyze content for policy violations, inappropriate material, and safety concerns.");
+
+const sentimentAgent = new AgentForceAgent({
+  name: "SentimentAgent",
+  type: "sentiment-analysis"
+})
+  .useLLM("ollama", "phi4-mini:latest")
+  .systemPrompt("You are a sentiment analysis expert. Detect emotions, tone, and overall sentiment accurately.");
+
+const customerServiceAgent = new AgentForceAgent({
+  name: "CustomerServiceAgent",
+  type: "customer-service"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful customer service representative. Provide professional, empathetic, and solution-oriented responses.");
+
+// Set up event system
+const eventSystem = new AgentEventSystem()
+  .registerAgent("moderator", moderatorAgent)
+  .registerAgent("sentiment", sentimentAgent)
+  .registerAgent("customer-service", customerServiceAgent)
+  .onEvent("content-posted", new ContentModerationHandler())
+  .onEvent("content-posted", new SentimentAnalysisHandler())
+  .onEvent("customer-inquiry", new AutoResponseHandler());
+
+// Usage
+async function handleUserContent(content: string, userId: string) {
+  const event = await eventSystem.triggerEvent("content-posted", {
+    id: crypto.randomUUID(),
+    content,
+    userId,
+    timestamp: new Date().toISOString()
+  });
+
+  console.log("Content processing results:", event.results);
+  return event;
+}
+
+async function handleCustomerInquiry(message: string, customer: any) {
+  const event = await eventSystem.triggerEvent("customer-inquiry", {
+    id: crypto.randomUUID(),
+    type: "customer-inquiry",
+    message,
+    customer,
+    timestamp: new Date().toISOString()
+  });
+
+  console.log("Customer inquiry results:", event.results);
+  return event;
+}
+
+// Example usage
+await handleUserContent("This is a great product! Highly recommend it.", "user123");
+await handleCustomerInquiry("I'm having trouble with my order", { 
+  id: "cust456", 
+  tier: "premium", 
+  history: "loyal customer" 
+});
+```
+
+### Microservices Architecture
+
+```typescript
+import { AgentForceServer, AgentForceAgent } from '@agentforce/adk';
+
+class MicroserviceRegistry {
+  private services = new Map<string, ServiceInfo>();
+  private healthChecks = new Map<string, NodeJS.Timeout>();
+
+  registerService(name: string, info: ServiceInfo) {
+    this.services.set(name, {
+      ...info,
+      registered_at: new Date().toISOString(),
+      status: 'healthy'
+    });
+
+    // Start health checking
+    this.startHealthCheck(name);
+    return this;
+  }
+
+  getService(name: string): ServiceInfo | undefined {
+    return this.services.get(name);
+  }
+
+  getAllServices(): ServiceInfo[] {
+    return Array.from(this.services.values());
+  }
+
+  private startHealthCheck(serviceName: string) {
+    const service = this.services.get(serviceName);
+    if (!service) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${service.base_url}/health`);
+        service.status = response.ok ? 'healthy' : 'unhealthy';
+        service.last_health_check = new Date().toISOString();
+      } catch (error) {
+        service.status = 'unreachable';
+        service.last_health_check = new Date().toISOString();
+      }
+    }, 30000); // Check every 30 seconds
+
+    this.healthChecks.set(serviceName, interval);
+  }
+}
+
+interface ServiceInfo {
+  name: string;
+  base_url: string;
+  version: string;
+  capabilities: string[];
+  registered_at?: string;
+  status?: 'healthy' | 'unhealthy' | 'unreachable';
+  last_health_check?: string;
+}
+
+// Service Discovery Service
+class ServiceDiscoveryService {
+  private registry = new MicroserviceRegistry();
+  private server: AgentForceServer;
+
+  constructor() {
+    this.server = new AgentForceServer({
+      name: "ServiceDiscovery",
+      logger: "json"
+    })
+      .addRoute("POST", "/register", async (context) => {
+        const serviceInfo = await context.req.json();
+        this.registry.registerService(serviceInfo.name, serviceInfo);
+        
+        return context.json({
+          message: "Service registered successfully",
+          service: serviceInfo.name
+        });
+      })
+      
+      .addRoute("GET", "/services", async (context) => {
+        return context.json({
+          services: this.registry.getAllServices()
+        });
+      })
+      
+      .addRoute("GET", "/services/:name", async (context) => {
+        const name = context.req.param("name");
+        const service = this.registry.getService(name);
+        
+        if (!service) {
+          return context.json({ error: "Service not found" }, 404);
+        }
+        
+        return context.json(service);
+      })
+      
+      .addRoute("GET", "/health", async (context) => {
+        return context.json({
+          status: "healthy",
+          services_count: this.registry.getAllServices().length,
+          timestamp: new Date().toISOString()
+        });
+      });
+  }
+
+  async start(port: number = 8500) {
+    await this.server.serve("0.0.0.0", port);
+    console.log(`🔍 Service Discovery running on port ${port}`);
+  }
+}
+
+// Individual Microservices
+class AnalyticsService {
+  private agent: AgentForceAgent;
+  private server: AgentForceServer;
+
+  constructor() {
+    this.agent = new AgentForceAgent({
+      name: "AnalyticsAgent",
+      type: "analytics"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are a data analytics expert. Analyze data patterns, trends, and provide actionable insights.");
+
+    this.server = new AgentForceServer({
+      name: "AnalyticsService",
+      logger: "json"
+    })
+      .addRoute("POST", "/analyze", async (context) => {
+        const { data, analysis_type } = await context.req.json();
+        
+        const analysis = await this.agent
+          .prompt(`
+            Analyze this data for ${analysis_type}:
+            ${JSON.stringify(data)}
+            
+            Provide insights, trends, and recommendations in JSON format.
+          `)
+          .output("json");
+
+        return context.json({
+          analysis_type,
+          insights: analysis,
+          processed_at: new Date().toISOString()
+        });
+      })
+      
+      .addRoute("GET", "/health", async (context) => {
+        return context.json({ status: "healthy" });
+      });
+  }
+
+  async start(port: number = 3001) {
+    await this.server.serve("0.0.0.0", port);
+    
+    // Register with service discovery
+    await this.registerWithDiscovery(port);
+    
+    console.log(`📊 Analytics Service running on port ${port}`);
+  }
+
+  private async registerWithDiscovery(port: number) {
+    try {
+      await fetch("http://localhost:8500/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "analytics",
+          base_url: `http://localhost:${port}`,
+          version: "1.0.0",
+          capabilities: ["data-analysis", "trend-detection", "insights-generation"]
+        })
+      });
+    } catch (error) {
+      console.error("Failed to register with service discovery:", error.message);
+    }
+  }
+}
+
+class ContentService {
+  private agent: AgentForceAgent;
+  private server: AgentForceServer;
+
+  constructor() {
+    this.agent = new AgentForceAgent({
+      name: "ContentAgent",
+      type: "content-management"
+    })
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are a content management expert. Create, edit, and optimize content for various purposes.");
+
+    this.server = new AgentForceServer({
+      name: "ContentService",
+      logger: "json"
+    })
+      .addRoute("POST", "/generate", async (context) => {
+        const { type, topic, parameters } = await context.req.json();
+        
+        const content = await this.agent
+          .prompt(`
+            Generate ${type} content about: ${topic}
+            Parameters: ${JSON.stringify(parameters)}
+            
+            Create engaging, high-quality content optimized for the specified type.
+          `)
+          .output("text");
+
+        return context.json({
+          content_type: type,
+          topic,
+          content,
+          generated_at: new Date().toISOString()
+        });
+      })
+      
+      .addRoute("POST", "/optimize", async (context) => {
+        const { content, optimization_goals } = await context.req.json();
+        
+        const optimized = await this.agent
+          .prompt(`
+            Optimize this content for: ${optimization_goals.join(", ")}
+            
+            Original content:
+            ${content}
+            
+            Provide improved version focusing on the specified goals.
+          `)
+          .output("text");
+
+        return context.json({
+          original_content: content,
+          optimized_content: optimized,
+          optimization_goals,
+          optimized_at: new Date().toISOString()
+        });
+      })
+      
+      .addRoute("GET", "/health", async (context) => {
+        return context.json({ status: "healthy" });
+      });
+  }
+
+  async start(port: number = 3002) {
+    await this.server.serve("0.0.0.0", port);
+    
+    // Register with service discovery
+    await this.registerWithDiscovery(port);
+    
+    console.log(`📝 Content Service running on port ${port}`);
+  }
+
+  private async registerWithDiscovery(port: number) {
+    try {
+      await fetch("http://localhost:8500/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "content",
+          base_url: `http://localhost:${port}`,
+          version: "1.0.0",
+          capabilities: ["content-generation", "content-optimization", "seo-enhancement"]
+        })
+      });
+    } catch (error) {
+      console.error("Failed to register with service discovery:", error.message);
+    }
+  }
+}
+
+// API Gateway Service
+class APIGatewayService {
+  private server: AgentForceServer;
+  private serviceRegistry = new Map<string, string>();
+
+  constructor() {
+    this.server = new AgentForceServer({
+      name: "APIGateway",
+      logger: "json"
+    })
+      .addRoute("POST", "/api/analytics/*", async (context) => {
+        return await this.proxyRequest("analytics", context);
+      })
+      
+      .addRoute("POST", "/api/content/*", async (context) => {
+        return await this.proxyRequest("content", context);
+      })
+      
+      .addRoute("GET", "/api/services", async (context) => {
+        // Get available services from service discovery
+        const response = await fetch("http://localhost:8500/services");
+        const services = await response.json();
+        
+        return context.json(services);
+      })
+      
+      .addRoute("GET", "/health", async (context) => {
+        return context.json({ 
+          status: "healthy",
+          gateway: "operational"
+        });
+      });
+
+    // Discover services on startup
+    this.discoverServices();
+  }
+
+  private async discoverServices() {
+    try {
+      const response = await fetch("http://localhost:8500/services");
+      const data = await response.json();
+      
+      for (const service of data.services) {
+        this.serviceRegistry.set(service.name, service.base_url);
+      }
+      
+      console.log("Discovered services:", Array.from(this.serviceRegistry.keys()));
+    } catch (error) {
+      console.error("Service discovery failed:", error.message);
+    }
+  }
+
+  private async proxyRequest(serviceName: string, context: any) {
+    const serviceUrl = this.serviceRegistry.get(serviceName);
+    if (!serviceUrl) {
+      return context.json({ error: `Service '${serviceName}' not available` }, 503);
+    }
+
+    try {
+      const path = context.req.path.replace(`/api/${serviceName}`, '');
+      const targetUrl = `${serviceUrl}${path}`;
+      
+      const response = await fetch(targetUrl, {
+        method: context.req.method,
+        headers: context.req.headers,
+        body: context.req.method !== 'GET' ? JSON.stringify(await context.req.json()) : undefined
+      });
+
+      const data = await response.json();
+      return context.json(data, response.status);
+      
+    } catch (error) {
+      return context.json({ 
+        error: "Service request failed",
+        service: serviceName,
+        details: error.message 
+      }, 502);
+    }
+  }
+
+  async start(port: number = 3000) {
+    await this.server.serve("0.0.0.0", port);
+    console.log(`🚪 API Gateway running on port ${port}`);
+  }
+}
+
+// Start microservices architecture
+async function startMicroservices() {
+  try {
+    // Start service discovery
+    const discovery = new ServiceDiscoveryService();
+    await discovery.start(8500);
+
+    // Wait a moment for service discovery to be ready
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Start individual services
+    const analytics = new AnalyticsService();
+    await analytics.start(3001);
+
+    const content = new ContentService();
+    await content.start(3002);
+
+    // Start API gateway
+    const gateway = new APIGatewayService();
+    await gateway.start(3000);
+
+    console.log("🎉 All microservices started successfully!");
+    console.log("API Gateway: http://localhost:3000");
+    console.log("Service Discovery: http://localhost:8500");
+    
+  } catch (error) {
+    console.error("Failed to start microservices:", error);
+    process.exit(1);
+  }
+}
+
+// Start the microservices
+startMicroservices();
+```
+
+## Performance Optimization & Monitoring
+
+### Performance Monitoring System
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+
+class PerformanceMonitor {
+  private metrics = new Map<string, Array<PerformanceMetric>>();
+  private thresholds = new Map<string, PerformanceThreshold>();
+
+  recordMetric(agentName: string, operation: string, duration: number, success: boolean, metadata?: any) {
+    const metric: PerformanceMetric = {
+      timestamp: Date.now(),
+      agent: agentName,
+      operation,
+      duration,
+      success,
+      metadata
+    };
+
+    const key = `${agentName}:${operation}`;
+    if (!this.metrics.has(key)) {
+      this.metrics.set(key, []);
+    }
+
+    this.metrics.get(key)?.push(metric);
+
+    // Keep only last 1000 metrics per operation
+    const metrics = this.metrics.get(key)!;
+    if (metrics.length > 1000) {
+      this.metrics.set(key, metrics.slice(-1000));
+    }
+
+    // Check thresholds
+    this.checkThresholds(key, metric);
+  }
+
+  setThreshold(agentName: string, operation: string, threshold: PerformanceThreshold) {
+    this.thresholds.set(`${agentName}:${operation}`, threshold);
+  }
+
+  getStats(agentName: string, operation: string, timeRange?: number): PerformanceStats {
+    const key = `${agentName}:${operation}`;
+    const metrics = this.metrics.get(key) || [];
+    
+    const now = Date.now();
+    const filteredMetrics = timeRange 
+      ? metrics.filter(m => now - m.timestamp <= timeRange)
+      : metrics;
+
+    if (filteredMetrics.length === 0) {
+      return {
+        count: 0,
+        success_rate: 0,
+        avg_duration: 0,
+        min_duration: 0,
+        max_duration: 0,
+        p95_duration: 0
+      };
+    }
+
+    const durations = filteredMetrics.map(m => m.duration).sort((a, b) => a - b);
+    const successCount = filteredMetrics.filter(m => m.success).length;
+
+    return {
+      count: filteredMetrics.length,
+      success_rate: successCount / filteredMetrics.length,
+      avg_duration: durations.reduce((a, b) => a + b, 0) / durations.length,
+      min_duration: durations[0],
+      max_duration: durations[durations.length - 1],
+      p95_duration: durations[Math.floor(durations.length * 0.95)]
+    };
+  }
+
+  private checkThresholds(key: string, metric: PerformanceMetric) {
+    const threshold = this.thresholds.get(key);
+    if (!threshold) return;
+
+    const alerts = [];
+
+    if (metric.duration > threshold.max_duration) {
+      alerts.push(`Duration ${metric.duration}ms exceeds threshold ${threshold.max_duration}ms`);
+    }
+
+    if (!metric.success && threshold.min_success_rate) {
+      const stats = this.getStats(metric.agent, metric.operation, threshold.time_window);
+      if (stats.success_rate < threshold.min_success_rate) {
+        alerts.push(`Success rate ${(stats.success_rate * 100).toFixed(2)}% below threshold ${(threshold.min_success_rate * 100).toFixed(2)}%`);
+      }
+    }
+
+    if (alerts.length > 0) {
+      console.warn(`Performance Alert [${key}]:`, alerts.join(', '));
+      
+      if (threshold.callback) {
+        threshold.callback(metric, alerts);
+      }
+    }
+  }
+}
+
+interface PerformanceMetric {
+  timestamp: number;
+  agent: string;
+  operation: string;
+  duration: number;
+  success: boolean;
+  metadata?: any;
+}
+
+interface PerformanceThreshold {
+  max_duration: number;
+  min_success_rate?: number;
+  time_window?: number;
+  callback?: (metric: PerformanceMetric, alerts: string[]) => void;
+}
+
+interface PerformanceStats {
+  count: number;
+  success_rate: number;
+  avg_duration: number;
+  min_duration: number;
+  max_duration: number;
+  p95_duration: number;
+}
+
+// Performance-aware agent wrapper
+class MonitoredAgent {
+  private agent: AgentForceAgent;
+  private monitor: PerformanceMonitor;
+  private name: string;
+
+  constructor(name: string, agent: AgentForceAgent, monitor: PerformanceMonitor) {
+    this.name = name;
+    this.agent = agent;
+    this.monitor = monitor;
+  }
+
+  async execute(operation: string, prompt: string, outputFormat: string = "text"): Promise<any> {
+    const startTime = Date.now();
+    let success = false;
+    let result;
+
+    try {
+      result = await this.agent
+        .prompt(prompt)
+        .output(outputFormat as any);
+      
+      success = true;
+      return result;
+      
+    } catch (error) {
+      result = error;
+      throw error;
+      
+    } finally {
+      const duration = Date.now() - startTime;
+      
+      this.monitor.recordMetric(
+        this.name,
+        operation,
+        duration,
+        success,
+        {
+          prompt_length: prompt.length,
+          output_format: outputFormat,
+          result_size: typeof result === 'string' ? result.length : JSON.stringify(result).length
+        }
+      );
+    }
+  }
+
+  getStats(operation: string, timeRange?: number) {
+    return this.monitor.getStats(this.name, operation, timeRange);
+  }
+
+  setThreshold(operation: string, threshold: PerformanceThreshold) {
+    this.monitor.setThreshold(this.name, operation, threshold);
+  }
+}
+
+// Usage example
+const monitor = new PerformanceMonitor();
+
+// Create monitored agents
+const chatAgent = new MonitoredAgent(
+  "ChatAgent",
+  new AgentForceAgent({ name: "ChatAgent", type: "chat" }).useLLM("ollama", "phi4-mini:latest"),
+  monitor
+);
+
+const analysisAgent = new MonitoredAgent(
+  "AnalysisAgent", 
+  new AgentForceAgent({ name: "AnalysisAgent", type: "analysis" }).useLLM("ollama", "gemma3:12b"),
+  monitor
+);
+
+// Set performance thresholds
+chatAgent.setThreshold("chat", {
+  max_duration: 5000, // 5 seconds
+  min_success_rate: 0.95, // 95%
+  time_window: 300000, // 5 minutes
+  callback: (metric, alerts) => {
+    console.error(`Chat performance issue: ${alerts.join(', ')}`);
+    // Could send to monitoring system, restart agent, etc.
+  }
+});
+
+analysisAgent.setThreshold("analyze", {
+  max_duration: 15000, // 15 seconds
+  min_success_rate: 0.90, // 90%
+  time_window: 600000, // 10 minutes
+});
+
+// Use monitored agents
+async function performOperations() {
+  // Chat operations
+  for (let i = 0; i < 10; i++) {
+    try {
+      await chatAgent.execute("chat", `Hello, this is message ${i}`);
+    } catch (error) {
+      console.error(`Chat operation ${i} failed:`, error.message);
+    }
+  }
+
+  // Analysis operations
+  for (let i = 0; i < 5; i++) {
+    try {
+      await analysisAgent.execute("analyze", `Analyze data set ${i}`);
+    } catch (error) {
+      console.error(`Analysis operation ${i} failed:`, error.message);
+    }
+  }
+
+  // Print performance stats
+  console.log("Chat Stats:", chatAgent.getStats("chat"));
+  console.log("Analysis Stats:", analysisAgent.getStats("analyze"));
+}
+
+performOperations();
+```
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Production Deployment" icon="rocket">
+    Learn about deploying AgentForce ADK in production environments
+    <a href="/getting-started/server-mode">→ Server Mode Guide</a>
+  </Card>
+  
+  <Card title="API Reference" icon="open-book">
+    Explore the complete API documentation
+    <a href="/reference/">→ API Reference</a>
+  </Card>
+  
+  <Card title="Community Examples" icon="github">
+    See more examples from the community
+    <a href="https://github.com/agentforcezone/agentforce-adk/tree/main/examples" target="_blank">→ GitHub Examples</a>
+  </Card>
+  
+  <Card title="Contributing" icon="heart">
+    Contribute your own advanced examples
+    <a href="https://github.com/agentforcezone/agentforce-adk/blob/main/CONTRIBUTING.md" target="_blank">→ Contributing Guide</a>
+  </Card>
+</CardGrid>
+
+These advanced examples demonstrate the full potential of AgentForce ADK for building sophisticated, production-ready AI systems with complex workflows and integrations!

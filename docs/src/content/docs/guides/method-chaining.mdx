@@ -1,0 +1,633 @@
+---
+title: Method Chaining
+description: Master AgentForce ADK's fluent interface for intuitive agent configuration
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Method Chaining Guide
+
+<br />
+
+<Badge text="Fluent Interface" variant="tip" /> <Badge text="Essential Pattern" variant="note" />
+
+<br />
+<br />
+
+AgentForce ADK uses method chaining to provide an intuitive, readable way to configure and execute agents. Learn how to master this powerful pattern.
+
+## What is Method Chaining?
+
+Method chaining allows you to call multiple methods on an object in sequence, with each method returning the object itself. This creates a fluent, readable interface:
+
+```typescript
+// Without chaining (verbose)
+const agent = new AgentForceAgent(config);
+agent.useLLM("ollama", "gemma3:12b");
+agent.systemPrompt("You are a helpful assistant");
+agent.prompt("Hello, world!");
+agent.debug();
+
+// With chaining (fluent)
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful assistant")
+  .prompt("Hello, world!")
+  .debug();
+```
+
+## Method Categories
+
+AgentForce ADK methods fall into three categories:
+
+<CardGrid>
+  <Card title="Chainable Methods" icon="list-format">
+    **Return**: `AgentForceAgent` instance
+    
+    **Purpose**: Configure the agent
+    
+    **Examples**: `.useLLM()`, `.systemPrompt()`, `.prompt()`, `.debug()`
+  </Card>
+  
+  <Card title="Terminal Methods" icon="approve-check">
+    **Return**: Final result (Promise, string, etc.)
+    
+    **Purpose**: Execute or finalize the agent
+    
+    **Examples**: `.output()`, `.serve()`, `.run()`
+  </Card>
+  
+  <Card title="Protected Methods" icon="setting">
+    **Return**: Various types (internal use)
+    
+    **Purpose**: Internal state management
+    
+    **Examples**: `.getModel()`, `.setProvider()`
+  </Card>
+</CardGrid>
+
+## Core Chainable Methods
+
+### Configuration Methods
+
+<Tabs>
+  <TabItem label="useLLM()">
+    ```typescript
+    // Configure provider and model
+    agent
+      .useLLM("ollama", "gemma3:12b")
+      .useLLM("openrouter", "openai/gpt-4")
+      .useLLM("openrouter", "anthropic/claude-3-sonnet");
+    
+    // Method signature
+    useLLM(provider: string, model: string): AgentForceAgent
+    ```
+  </TabItem>
+  
+  <TabItem label="systemPrompt()">
+    ```typescript
+    // Set system instructions
+    agent
+      .systemPrompt("You are a helpful assistant")
+      .systemPrompt("You are a code reviewer specializing in TypeScript")
+      .systemPrompt(`
+        You are a technical writer.
+        Create clear, concise documentation.
+        Use examples and best practices.
+      `);
+    
+    // Method signature
+    systemPrompt(prompt: string): AgentForceAgent
+    ```
+  </TabItem>
+  
+  <TabItem label="prompt()">
+    ```typescript
+    // Set user input
+    agent
+      .prompt("Hello, how can you help me?")
+      .prompt("Review this code for security issues")
+      .prompt(`
+        Analyze this dataset and provide insights:
+        ${JSON.stringify(data)}
+      `);
+    
+    // Method signature
+    prompt(userPrompt: string): AgentForceAgent
+    ```
+  </TabItem>
+  
+  <TabItem label="debug()">
+    ```typescript
+    // Enable debug logging
+    agent
+      .debug()  // Enables verbose logging
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Test prompt")
+      .prompt("Test input");
+    
+    // Method signature
+    debug(): AgentForceAgent
+    ```
+  </TabItem>
+</Tabs>
+
+### Execution Methods
+
+<Tabs>
+  <TabItem label="run()">
+    ```typescript
+    // Execute the agent (async chainable)
+    const agent = new AgentForceAgent(config)
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are helpful")
+      .prompt("Hello")
+      .run();  // Returns Promise<AgentForceAgent>
+    
+    // Can chain after run()
+    await agent.then(a => a.output("text"));
+    
+    // Method signature
+    run(): Promise<AgentForceAgent>
+    ```
+  </TabItem>
+</Tabs>
+
+## Terminal Methods
+
+Terminal methods end the chain and produce final results:
+
+<Tabs>
+  <TabItem label="output()">
+    ```typescript
+    // Generate formatted output (terminal)
+    const textOutput = await agent
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are helpful")
+      .prompt("Hello")
+      .output("text");  // Returns Promise<string>
+    
+    // Cannot chain after output()
+    // ❌ This won't work:
+    // agent.output("text").debug();
+    
+    // Method signature
+    output(format: "text" | "json" | "md"): Promise<string>
+    ```
+  </TabItem>
+  
+  <TabItem label="serve()">
+    ```typescript
+    // Start agent as server (terminal, async)
+    await agent
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are a web API assistant")
+      .serve("localhost", 3000);  // Returns Promise<void>
+    
+    // Cannot chain after serve()
+    // ❌ This won't work:
+    // agent.serve().debug();
+    
+    // Method signature
+    serve(host?: string, port?: number): Promise<void>
+    ```
+  </TabItem>
+</Tabs>
+
+## Chaining Patterns
+
+### Basic Pattern
+
+```typescript
+import { AgentForceAgent } from '@agentforce/adk';
+
+const response = await new AgentForceAgent({
+  name: "QuickAgent",
+  type: "assistant"
+})
+  .useLLM("ollama", "gemma3:12b")
+  .systemPrompt("You are a helpful assistant")
+  .prompt("Explain quantum computing in simple terms")
+  .debug()
+  .output("text");
+
+console.log(response);
+```
+
+### Step-by-Step Pattern
+
+```typescript
+const agent = new AgentForceAgent({
+  name: "StepByStepAgent",
+  type: "analysis"
+})
+  .useLLM("ollama", "gemma3:12b")        // Step 1: Configure provider
+  .systemPrompt(`                        // Step 2: Set system instructions
+    You are a data analyst.
+    Provide clear, actionable insights.
+  `)
+  .prompt(`                             // Step 3: Set user input
+    Analyze this sales data:
+    ${JSON.stringify(salesData)}
+  `)
+  .debug();                             // Step 4: Enable debugging
+
+// Step 5: Execute and get result
+await agent.run();
+const analysis = await agent.output("md");
+```
+
+### Conditional Chaining
+
+```typescript
+function createAgent(useDebug: boolean, useCloud: boolean) {
+  let agent = new AgentForceAgent({
+    name: "ConditionalAgent",
+    type: "flexible"
+  });
+
+  // Conditional provider selection
+  if (useCloud) {
+    agent = agent.useLLM("openrouter", "openai/gpt-4");
+  } else {
+    agent = agent.useLLM("ollama", "gemma3:12b");
+  }
+
+  // Conditional debugging
+  if (useDebug) {
+    agent = agent.debug();
+  }
+
+  return agent
+    .systemPrompt("You are a flexible assistant")
+    .prompt("Hello, world!");
+}
+
+// Usage
+const devAgent = createAgent(true, false);   // Debug + Local
+const prodAgent = createAgent(false, true);  // No debug + Cloud
+```
+
+### Dynamic Chaining
+
+```typescript
+function buildAgentChain(options: {
+  provider: string;
+  model: string;
+  systemPrompt: string;
+  userPrompt: string;
+  enableDebug?: boolean;
+}) {
+  let chain = new AgentForceAgent({
+    name: "DynamicAgent",
+    type: "configurable"
+  })
+    .useLLM(options.provider, options.model)
+    .systemPrompt(options.systemPrompt)
+    .prompt(options.userPrompt);
+
+  if (options.enableDebug) {
+    chain = chain.debug();
+  }
+
+  return chain;
+}
+
+// Usage
+const agent = buildAgentChain({
+  provider: "ollama",
+  model: "gemma3:12b",
+  systemPrompt: "You are a code reviewer",
+  userPrompt: "Review this TypeScript function",
+  enableDebug: true
+});
+```
+
+## Advanced Chaining Techniques
+
+### Method Extraction
+
+```typescript
+class AgentBuilder {
+  private agent: AgentForceAgent;
+
+  constructor(config: AgentConfig) {
+    this.agent = new AgentForceAgent(config);
+  }
+
+  withOllama(model: string) {
+    this.agent = this.agent.useLLM("ollama", model);
+    return this;
+  }
+
+  withOpenRouter(model: string) {
+    this.agent = this.agent.useLLM("openrouter", model);
+    return this;
+  }
+
+  withSystemPrompt(prompt: string) {
+    this.agent = this.agent.systemPrompt(prompt);
+    return this;
+  }
+
+  withPrompt(prompt: string) {
+    this.agent = this.agent.prompt(prompt);
+    return this;
+  }
+
+  withDebug() {
+    this.agent = this.agent.debug();
+    return this;
+  }
+
+  build() {
+    return this.agent;
+  }
+}
+
+// Usage
+const agent = new AgentBuilder({
+  name: "BuilderAgent",
+  type: "builder-pattern"
+})
+  .withOllama("gemma3:12b")
+  .withSystemPrompt("You are helpful")
+  .withPrompt("Hello")
+  .withDebug()
+  .build();
+```
+
+### Async Chaining
+
+```typescript
+async function createAsyncAgent() {
+  // Chain with async operations
+  const systemPrompt = await fetchSystemPromptFromAPI();
+  const userPrompt = await processUserInput();
+
+  return new AgentForceAgent({
+    name: "AsyncAgent",
+    type: "async-configured"
+  })
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt(systemPrompt)
+    .prompt(userPrompt)
+    .debug();
+}
+
+// Usage
+const agent = await createAsyncAgent();
+await agent.run();
+const response = await agent.output("text");
+```
+
+### Chain Composition
+
+```typescript
+// Base chain factory
+function createBaseAgent(name: string, type: string) {
+  return new AgentForceAgent({ name, type })
+    .useLLM("ollama", "gemma3:12b")
+    .debug();
+}
+
+// Specialized chains
+function createChatAgent(name: string) {
+  return createBaseAgent(name, "chat")
+    .systemPrompt("You are a friendly conversational assistant");
+}
+
+function createCodeAgent(name: string) {
+  return createBaseAgent(name, "code")
+    .systemPrompt("You are an expert code reviewer and generator");
+}
+
+function createAnalysisAgent(name: string) {
+  return createBaseAgent(name, "analysis")
+    .systemPrompt("You are a data analyst providing actionable insights");
+}
+
+// Usage
+const chatBot = createChatAgent("ChatBot").prompt("Hello!");
+const codeReviewer = createCodeAgent("CodeReviewer").prompt("Review this function");
+const dataAnalyst = createAnalysisAgent("DataAnalyst").prompt("Analyze this data");
+```
+
+## Common Patterns and Best Practices
+
+### Configuration First Pattern
+
+```typescript
+// ✅ Good - Configure before prompting
+const agent = new AgentForceAgent(config)
+  .useLLM("ollama", "gemma3:12b")      // 1. Provider first
+  .systemPrompt("You are helpful")      // 2. System prompt second
+  .prompt("User input")                 // 3. User prompt last
+  .debug();                            // 4. Debug if needed
+```
+
+### Early Validation Pattern
+
+```typescript
+function createValidatedAgent(provider: string, model: string) {
+  if (!provider || !model) {
+    throw new Error("Provider and model are required");
+  }
+
+  return new AgentForceAgent({
+    name: "ValidatedAgent",
+    type: "validated"
+  })
+    .useLLM(provider, model);
+}
+
+// Usage
+const agent = createValidatedAgent("ollama", "gemma3:12b")
+  .systemPrompt("You are helpful")
+  .prompt("Hello");
+```
+
+### Template Pattern
+
+```typescript
+// Agent template function
+function createAgentTemplate(
+  name: string,
+  type: string,
+  provider: string,
+  model: string
+) {
+  return new AgentForceAgent({ name, type })
+    .useLLM(provider, model)
+    .debug();
+}
+
+// Specialized templates
+const chatTemplate = (name: string) => 
+  createAgentTemplate(name, "chat", "ollama", "gemma3:12b")
+    .systemPrompt("You are a conversational assistant");
+
+const codeTemplate = (name: string) =>
+  createAgentTemplate(name, "code", "openrouter", "openai/gpt-4")
+    .systemPrompt("You are a code expert");
+
+// Usage
+const myChatBot = chatTemplate("MyChatBot").prompt("Hello!");
+const myCodeBot = codeTemplate("MyCodeBot").prompt("Review this code");
+```
+
+## Error Handling in Chains
+
+### Safe Chaining
+
+```typescript
+function safeAgentChain(config: AgentConfig) {
+  try {
+    return new AgentForceAgent(config)
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("You are helpful")
+      .debug();
+  } catch (error) {
+    console.error("Failed to create agent chain:", error);
+    throw new Error(`Agent creation failed: ${error.message}`);
+  }
+}
+
+// Usage with error handling
+async function executeWithErrorHandling() {
+  try {
+    const agent = safeAgentChain({
+      name: "SafeAgent",
+      type: "error-handled"
+    })
+      .prompt("Test prompt");
+
+    await agent.run();
+    return await agent.output("text");
+    
+  } catch (error) {
+    console.error("Agent execution failed:", error);
+    return "Sorry, I encountered an error.";
+  }
+}
+```
+
+### Validation in Chains
+
+```typescript
+function createValidatedChain(options: {
+  name: string;
+  type: string;
+  provider: string;
+  model: string;
+  systemPrompt: string;
+  userPrompt: string;
+}) {
+  // Validate all required options
+  const required = ['name', 'type', 'provider', 'model', 'systemPrompt', 'userPrompt'];
+  const missing = required.filter(key => !options[key]);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing required options: ${missing.join(', ')}`);
+  }
+
+  return new AgentForceAgent({
+    name: options.name,
+    type: options.type
+  })
+    .useLLM(options.provider, options.model)
+    .systemPrompt(options.systemPrompt)
+    .prompt(options.userPrompt);
+}
+```
+
+## Method Chaining Anti-Patterns
+
+### Avoid These Patterns
+
+<Tabs>
+  <TabItem label="❌ Chaining After Terminal">
+    ```typescript
+    // ❌ Wrong - Cannot chain after terminal methods
+    const result = await agent
+      .useLLM("ollama", "gemma3:12b")
+      .output("text")      // Terminal method
+      .debug();            // Error: output() doesn't return agent
+
+    // ✅ Correct - Debug before terminal
+    const result = await agent
+      .useLLM("ollama", "gemma3:12b")
+      .debug()             // Chainable method
+      .output("text");     // Terminal method
+    ```
+  </TabItem>
+  
+  <TabItem label="❌ Over-chaining">
+    ```typescript
+    // ❌ Wrong - Too many responsibilities in one chain
+    const result = await new AgentForceAgent(config)
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Complex system prompt...")
+      .prompt("Complex user prompt...")
+      .debug()
+      .run()
+      .then(a => a.output("text"))
+      .then(text => processResponse(text))
+      .then(processed => saveToDatabase(processed));
+
+    // ✅ Better - Separate concerns
+    const agent = new AgentForceAgent(config)
+      .useLLM("ollama", "gemma3:12b")
+      .systemPrompt("Complex system prompt...")
+      .prompt("Complex user prompt...")
+      .debug();
+
+    await agent.run();
+    const text = await agent.output("text");
+    const processed = processResponse(text);
+    await saveToDatabase(processed);
+    ```
+  </TabItem>
+  
+  <TabItem label="❌ Missing Configuration">
+    ```typescript
+    // ❌ Wrong - Missing essential configuration
+    const agent = new AgentForceAgent(config)
+      .prompt("Hello")     // No provider/model set
+      .output("text");     // Will fail
+
+    // ✅ Correct - Complete configuration
+    const agent = new AgentForceAgent(config)
+      .useLLM("ollama", "gemma3:12b")  // Provider required
+      .systemPrompt("You are helpful") // System prompt recommended
+      .prompt("Hello")
+      .output("text");
+    ```
+  </TabItem>
+</Tabs>
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Multiple Providers" icon="puzzle">
+    Learn how to work with different AI providers in your chains
+    <a href="/guides/providers">→ Provider Guide</a>
+  </Card>
+  
+  <Card title="Output Formats" icon="document">
+    Explore different output formats and response processing
+    <a href="/guides/output-formats">→ Output Guide</a>
+  </Card>
+  
+  <Card title="Server Deployment" icon="rocket">
+    Chain agents into server configurations
+    <a href="/getting-started/server-mode">→ Server Guide</a>
+  </Card>
+  
+  <Card title="Examples" icon="approve-check">
+    See advanced chaining patterns in real applications
+    <a href="/examples/basic">→ View Examples</a>
+  </Card>
+</CardGrid>
+
+You now understand AgentForce ADK's method chaining system! This fluent interface makes agent configuration intuitive and code more readable and maintainable.

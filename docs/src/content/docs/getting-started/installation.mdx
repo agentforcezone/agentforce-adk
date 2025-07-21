@@ -1,0 +1,259 @@
+---
+title: Installation
+description: Install AgentForce ADK in your project using npm, JSR, or Bun
+---
+
+import { Badge, Aside, Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Installation Guide
+
+<br />
+
+<Badge text="NPM" variant="tip" /> 
+<Badge text="JSR" variant="note" /> 
+<Badge text="BUN" variant="caution" />
+
+<br />
+<br />
+
+AgentForce ADK is available on both [**npm**](https://www.npmjs.com/package/@agentforce/adk) and [**JSR**](https://jsr.io/@agentforce/adk) (JavaScript Registry), making it easy to install in any JavaScript/TypeScript project regardless of your runtime preference.
+
+## Quick Installation
+
+Choose your preferred package manager and runtime:
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @agentforce/adk
+    ```
+  </TabItem>
+  
+  <TabItem label="Bun">
+    ```bash
+    bun add @agentforce/adk
+    ```
+  </TabItem>
+  
+  <TabItem label="JSR (Node.js)">
+    ```bash
+    npx jsr add @agentforce/adk
+    ```
+  </TabItem>
+  
+  <TabItem label="JSR (Bun)">
+    ```bash
+    bunx jsr add @agentforce/adk
+    ```
+  </TabItem>
+  
+  <TabItem label="JSR (Deno)">
+    ```bash
+    deno add jsr:@agentforce/adk
+    ```
+  </TabItem>
+</Tabs>
+
+## Installation Methods Comparison
+
+| Method | Best For | Benefits | Compatibility |
+|--------|----------|----------|---------------|
+| **npm** | Node.js projects, existing npm workflows | Largest ecosystem, familiar tooling | Node.js, Bun |
+| **JSR** | TypeScript-first projects, cross-runtime compatibility | Native TypeScript, better type checking | Node.js, Bun, Deno |
+| **Bun (npm)** | Fast development, modern JavaScript projects | Fastest package manager, built-in TypeScript | Bun, Node.js |
+
+## Runtime Compatibility
+
+<CardGrid>
+  <Card title="Node.js" icon="laptop">
+    **Recommended Versions**: 18.x, 20.x, 22.x+
+    
+    ```bash
+    # Using npm
+    npm install @agentforce/adk
+    
+    # Using JSR
+    npx jsr add @agentforce/adk
+    ```
+  </Card>
+  
+  <Card title="Bun" icon="rocket">
+    **Recommended Version**: 1.0.0+
+    
+    ```bash
+    # Using Bun (from npm)
+    bun add @agentforce/adk
+    
+    # Using JSR
+    bunx jsr add @agentforce/adk
+    ```
+  </Card>
+  
+  <Card title="Deno" icon="external">
+    **Recommended Version**: 1.40.0+
+    
+    ```bash
+    # Using JSR (recommended)
+    deno add jsr:@agentforce/adk
+    ```
+  </Card>
+  
+  <Card title="Browsers" icon="laptop">
+    **Build Tools**: Vite, Webpack, Rollup
+    
+    Works with bundlers using any installation method above.
+  </Card>
+</CardGrid>
+
+## Verify Installation
+
+After installation, verify that AgentForce ADK is working correctly:
+
+<Tabs>
+  <TabItem label="TypeScript/ES Modules">
+    ```typescript
+    // test-installation.ts
+    import { AgentForceAgent } from '@agentforce/adk';
+    
+    const agent = new AgentForceAgent({
+      name: "TestAgent",
+      type: "test"
+    });
+    
+    console.log("✅ AgentForce ADK installed successfully!");
+    console.log("Agent created:", agent);
+    ```
+  </TabItem>
+  
+  <TabItem label="CommonJS (Node.js)">
+    ```javascript
+    // test-installation.js
+    const { AgentForceAgent } = require('@agentforce/adk');
+    
+    const agent = new AgentForceAgent({
+      name: "TestAgent",
+      type: "test"
+    });
+    
+    console.log("✅ AgentForce ADK installed successfully!");
+    console.log("Agent created:", agent);
+    ```
+  </TabItem>
+  
+  <TabItem label="Deno">
+    ```typescript
+    // test-installation.ts
+    import { AgentForceAgent } from "jsr:@agentforce/adk";
+    
+    const agent = new AgentForceAgent({
+      name: "TestAgent",
+      type: "test"
+    });
+    
+    console.log("✅ AgentForce ADK installed successfully!");
+    console.log("Agent created:", agent);
+    ```
+  </TabItem>
+</Tabs>
+
+Run the test:
+
+<Tabs>
+  <TabItem label="Node.js">
+    ```bash
+    node test-installation.js
+    # or for TypeScript
+    npx tsx test-installation.ts
+    ```
+  </TabItem>
+  
+  <TabItem label="Bun">
+    ```bash
+    bun run test-installation.ts
+    ```
+  </TabItem>
+  
+  <TabItem label="Deno">
+    ```bash
+    deno run test-installation.ts
+    ```
+  </TabItem>
+</Tabs>
+
+## TypeScript Configuration
+
+For the best TypeScript experience, ensure your `tsconfig.json` includes:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+<br />
+
+<Aside type="tip">
+  For JSR installations, TypeScript types are included automatically. For npm installations, types are bundled with the package.
+</Aside>
+
+## Package.json Configuration
+
+Add scripts to your `package.json` for easy development:
+
+```json
+{
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "bun test"
+  }
+}
+```
+
+## Next Steps
+
+Now that AgentForce ADK is installed, you'll need to set up AI providers to power your agents:
+
+1. **[Provider Setup](/getting-started/provider-setup)** - Configure Ollama (local) or OpenRouter (cloud)
+2. **[Quick Start](/getting-started/quick-start)** - Create your first agent
+3. **[Basic Agents Guide](/guides/basic-agents)** - Learn agent fundamentals
+
+## Troubleshooting
+
+### Common Installation Issues
+
+**Module not found errors:**
+- Ensure you're using the correct import syntax for your runtime
+- For Node.js with CommonJS, use `require()`
+- For ES modules, use `import`
+
+**TypeScript errors:**
+- Update to TypeScript 4.5+ for best compatibility
+- Ensure `moduleResolution` is set to `"bundler"` or `"node"`
+
+**Deno permissions:**
+- Deno may require network permissions for some operations:
+  ```bash
+  deno run --allow-net your-script.ts
+  ```
+
+**Version conflicts:**
+- Use exact versions in package.json to avoid conflicts
+- Clear cache: `npm cache clean --force` or `bun cache clean`
+
+<br />
+<br />
+
+<Aside type="note">
+  If you encounter any installation issues, please check our [GitHub Issues](https://github.com/agentforcezone/agentforce-adk/issues) or create a new issue for support.
+</Aside>
