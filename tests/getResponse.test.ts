@@ -6,9 +6,7 @@ describe('AgentForceAgent getResponse Method Tests', () => {
     
     beforeEach(() => {
         const config: AgentConfig = {
-            name: "TestAgent",
-            type: "test-agent",
-            logger: "json"
+            name: "TestAgent"
         };
         agent = new AgentForceAgent(config);
     });
@@ -81,8 +79,7 @@ describe('AgentForceAgent getResponse Method Tests', () => {
 
         for (const config of providers) {
             const testAgent = new AgentForceAgent({
-                name: "TestAgent",
-                type: "test-agent"
+                name: "TestAgent"
             });
             
             const result = await testAgent

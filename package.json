@@ -62,12 +62,10 @@
     "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0"
   },
   "dependencies": {
+    "@google/genai": "^1.11.0",
     "handlebars": "^4.7.8",
     "hono": "^4.7.11",
     "ollama": "^0.5.16",
-    "openai": "5.10.1",
-    "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0"
-  },
-  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
+    "openai": "5.10.1"
+  }
 }

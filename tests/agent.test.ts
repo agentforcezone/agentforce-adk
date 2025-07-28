@@ -4,8 +4,7 @@ import { AgentForceAgent, type AgentConfig } from "../lib/agent";
 import { MockOllamaProvider } from './mocks/MockOllamaProvider';
 
 const agentConfig: AgentConfig = {
-    name: "TestAgent",
-    type: "TestType"
+    name: "TestAgent"
 };
 
 // Test-specific run method that uses MockOllamaProvider for testing

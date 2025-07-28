@@ -87,8 +87,7 @@ async function testRun(this: AgentForceAgent): Promise<AgentForceAgent> {
 describe('AgentForceAgent run Method Tests (Mocked)', () => {
     let agent: AgentForceAgent;
     const agentConfig: AgentConfig = {
-        name: "TestAgent",
-        type: "test-agent"
+        name: "TestAgent"
     };
 
     // Store original console.log to restore later

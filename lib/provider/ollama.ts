@@ -29,6 +29,9 @@ export class OllamaProvider implements OllamaProviderInterface {
                 model: this.model,
                 prompt: prompt,
                 system: system,
+                options: {
+                    keep_alive: "60s",
+                }
             });
             return response.response;
         } catch (error) {
@@ -46,6 +49,9 @@ export class OllamaProvider implements OllamaProviderInterface {
             const response = await ollama.chat({
                 model: this.model,
                 messages: messages,
+                options: {
+                    keep_alive: "60s",
+                }
             });
             return response.message.content;
         } catch (error) {

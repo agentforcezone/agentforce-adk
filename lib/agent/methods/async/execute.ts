@@ -1,4 +1,5 @@
 import type { AgentForceAgent } from "../../../agent";
+import { GoogleProvider } from "../../../provider/google";
 import { OllamaProvider } from "../../../provider/ollama";
 import { OpenRouterProvider } from "../../../provider/openrouter";
 
@@ -8,6 +9,8 @@ import { OpenRouterProvider } from "../../../provider/openrouter";
  * @returns {Promise<string>} Returns the generated response from the provider
  */
 export async function execute(this: AgentForceAgent): Promise<string> {
+    const logger = this.getLogger();
+    
     // Get agent configuration
     const provider = this.getProvider();
     const model = this.getModel();
@@ -20,10 +23,17 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     if (template && template.trim()) {
         fullSystemPrompt = `${systemPrompt}\n\n${template}`;
     }
-    console.log(`Executing with provider: ${provider}, model: ${model}`);
-    console.log(`Full system prompt: ${fullSystemPrompt}`);
-    console.log(`User prompt: ${userPrompt}`);
 
+    // Log the execution details
+    logger.debug(
+        "Run execute", 
+        { agent: this.getName() }, 
+        { provider: provider },
+        { model: model }, 
+        { systemPrompt: fullSystemPrompt }, 
+        { userPrompt: userPrompt }
+    );
+    
     // Store the user prompt in chat history if not already stored
     const chatHistory = this.getChatHistory();
     const lastUserMessage = chatHistory.findLast(msg => msg.role === "user");
@@ -37,20 +47,25 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         // Execute based on provider
         switch (provider.toLowerCase()) {
             case "ollama":
-                // Use the real OllamaProvider for production
+                // Initialize Ollama provider
                 const ollamaProvider = new OllamaProvider(model);
-                
-                // Use generate method with prompt and system parameters (including template)
+                // Generate response using Ollama
                 response = await ollamaProvider.generate(userPrompt, fullSystemPrompt);
                 break;
 
             case "openrouter":
-                // Use the real OpenRouterProvider for production
+                // Initialize OpenRouter provider
                 const openRouterProvider = new OpenRouterProvider(model);
-                
-                // Use generate method with prompt and system parameters (including template)
+                // Generate response using OpenRouter
                 response = await openRouterProvider.generate(userPrompt, fullSystemPrompt);
                 break;
+
+            case "google":
+                // Initialize Google provider
+                const googleProvider = new GoogleProvider(model);
+                // Generate response using Google
+                response = await googleProvider.generate(userPrompt, fullSystemPrompt);
+                break;    
 
             case "openai":
                 response = "OpenAI integration not implemented yet.";
@@ -58,10 +73,6 @@ export async function execute(this: AgentForceAgent): Promise<string> {
 
             case "anthropic":
                 response = "Anthropic integration not implemented yet.";
-                break;
-
-            case "google":
-                response = "Google integration not implemented yet.";
                 break;
 
             default:
@@ -78,7 +89,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         // Store error in chat history as well
         const errorMessage = `Error: ${error}`;
         this.pushToChatHistory("assistant", errorMessage);
-        
+        logger.error("Execution error:", errorMessage);
         throw error; // Re-throw to let caller handle the error
     }
 }

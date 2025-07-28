@@ -6,8 +6,7 @@ describe("AgentForceServer addRoute Method Tests", () => {
 
     beforeEach(() => {
         const config: ServerConfig = {
-            name: "TestServer",
-            logger: "json",
+            name: "TestServer"
         };
         server = new AgentForceServer(config);
     });

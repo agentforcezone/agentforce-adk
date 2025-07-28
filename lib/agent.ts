@@ -14,14 +14,14 @@ import {
 
 import type { 
     AgentConfig, 
-    LoggerType,
     ProviderType, 
-    OutputType, 
+    OutputType,
+    AgentForceLogger,
 } from "./types";
 
 export type { AgentConfig };
 
-import pino from "pino";
+import { defaultLogger } from "./logger";
 
 /**
  * Represents an AI agent within the AgentForce framework.
@@ -33,14 +33,12 @@ import pino from "pino";
 export class AgentForceAgent {
 
     private name: string;
-    private type: string;
     private agentSystemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
     private userPrompt: string = "";
     private template: string = "";
+    private tools: string[] = [];
     private chatHistory: {role: string, content: string}[] = [];
-
-    private logger: LoggerType = "json";
-    private pinoLogger: pino.Logger;
+    private logger: AgentForceLogger;
 
     private provider: string = "ollama";
     private model: string = "gemma3:4b";
@@ -51,29 +49,9 @@ export class AgentForceAgent {
      */
     constructor(config: AgentConfig) {
         this.name = config.name;
-        this.type = config.type;
-        this.logger = config.logger || "json";
-
-        // Initialize pino logger based on the logger type
-        if (this.logger === "pretty") {
-            try {
-                this.pinoLogger = pino({
-                    transport: {
-                        target: "pino-pretty",
-                        options: {
-                            colorize: true,
-                        },
-                    },
-                });
-            } catch {
-                // Fallback to JSON logger if pino-pretty is not available
-                console.warn("⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty");
-                this.pinoLogger = pino();
-                this.logger = "json";
-            }
-        } else {
-            this.pinoLogger = pino();
-        }
+        this.tools = config.tools || [];
+        // Accept injected logger or use default
+        this.logger = config.logger || defaultLogger;
     }
 
     /**
@@ -84,10 +62,10 @@ export class AgentForceAgent {
     }
 
     /**
-     * Get the type of the agent.
+     * Get the tools of the agent.
      */
-    public getType(): string {
-        return this.type;
+    public getTools(): string[] {
+        return this.tools;
     }
 
     /**
@@ -183,19 +161,16 @@ export class AgentForceAgent {
     }
 
     /**
-     * Get the logger type of the agent.
+     * Get the logger instance.
      */
-    public getLoggerType(): LoggerType {
+    protected getLogger(): AgentForceLogger {
         return this.logger;
     }
 
     /**
-     * Get the pino logger instance.
+     * Execute the agent with the current user prompt.
+     * @returns The response from the agent
      */
-    protected getLogger(): pino.Logger {
-        return this.pinoLogger;
-    }
-
     protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);
 
     // Chainable methods

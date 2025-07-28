@@ -13,14 +13,12 @@ describe('AgentForceServer addRouteAgent Method Tests', () => {
     
     beforeEach(() => {
         const serverConfig: ServerConfig = {
-            name: "TestServer",
-            logger: "json"
+            name: "TestServer"
         };
         server = new AgentForceServer(serverConfig);
         
         const agentConfig: AgentConfig = {
-            name: "TestAgent",
-            type: "test-agent"
+            name: "TestAgent"
         };
         agent = new AgentForceAgent(agentConfig);
     });
@@ -95,7 +93,7 @@ describe('AgentForceServer addRouteAgent Method Tests', () => {
     });
 
     test("should handle multiple route agents", () => {
-        const agent2 = new AgentForceAgent({ name: "TestAgent2", type: "test-agent-2" });
+        const agent2 = new AgentForceAgent({ name: "TestAgent2" });
         
         server
             .addRouteAgent("POST", "/story", agent)

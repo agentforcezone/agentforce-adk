@@ -1,8 +1,7 @@
 import { AgentForceServer,  type ServerConfig } from "../../lib/server"; //"@agentforce/adk";
 
 const serverConfig: ServerConfig = {
-    name: "BaseServer",
-    logger: "json",
+    name: "BaseServer"
 };
 
 new AgentForceServer(serverConfig)

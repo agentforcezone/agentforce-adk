@@ -10,8 +10,7 @@ describe('AgentForceAgent saveToFile Method Tests', () => {
     
     beforeEach(() => {
         const agentConfig: AgentConfig = {
-            name: "TestAgent",
-            type: "test-agent"
+            name: "TestAgent"
         };
         agent = new AgentForceAgent(agentConfig);
     });

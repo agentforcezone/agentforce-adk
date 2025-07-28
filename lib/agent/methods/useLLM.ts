@@ -1,6 +1,7 @@
 import type { AgentForceAgent } from "../../agent";
 import { OllamaProvider } from "../../provider/ollama";
 import { OpenRouterProvider } from "../../provider/openrouter";
+import { GoogleProvider } from "../../provider/google";
 import type { ProviderType } from "../../types";
 
 /**
@@ -48,16 +49,16 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
             //console.log(`✅ OpenRouter provider initialized with model: ${model}`);
             break;
         
+        case "google":
+            new GoogleProvider(model);
+            break;
+        
         case "openai":
             console.log(`⚠️  OpenAI provider not implemented yet. Model: ${model}`);
             break;
         
         case "anthropic":
             console.log(`⚠️  Anthropic provider not implemented yet. Model: ${model}`);
-            break;
-        
-        case "google":
-            console.log(`⚠️  Google provider not implemented yet. Model: ${model}`);
             break;
         
         default:

@@ -113,7 +113,7 @@ export function createAgentRouteHandler(
     agent: AgentForceAgent, 
     method: string, 
     path: string, 
-    schema?: RouteAgentSchema
+    schema?: RouteAgentSchema,
 ): (c: Context) => Promise<Response> {
     return async (c: Context): Promise<Response> => {
         try {
@@ -288,8 +288,8 @@ export function createAgentRouteHandler(
                 // Include any additional input fields from the request
                 ...Object.fromEntries(
                     Object.entries(requestData).filter(([key]) => 
-                        expectedInputFields.includes(key) && key !== "prompt"
-                    )
+                        expectedInputFields.includes(key) && key !== "prompt",
+                    ),
                 ),
             };
 
@@ -297,8 +297,8 @@ export function createAgentRouteHandler(
             const expectedOutputFields = schema?.output || ["success", "method", "path", "agentName", "agentType", "prompt", "response"];
             const filteredResponseData = Object.fromEntries(
                 Object.entries(baseResponseData).filter(([key]) => 
-                    expectedOutputFields.includes(key)
-                )
+                    expectedOutputFields.includes(key),
+                ),
             );
 
             return c.json(filteredResponseData);

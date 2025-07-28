@@ -11,14 +11,12 @@ import type { AgentForceAgent } from "../../agent";
 export function debug(this: AgentForceAgent): AgentForceAgent {
     const debugInfo = {
         name: this.getName(),
-        type: this.getType(),
         provider: this.getProvider(),
-        model: this.getModel(),
-        loggerType: this.getLoggerType(),
+        model: this.getModel()
     };
     
-    // Log debug info using the configured pino logger
-    this.getLogger().info(debugInfo, "AgentForce Debug");
+    // Log debug info
+    this.getLogger().debug(debugInfo, "AgentForce Debug");
     
     return this;
 }

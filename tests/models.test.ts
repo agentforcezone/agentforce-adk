@@ -5,8 +5,7 @@ import type { ProviderType } from "../lib/types";
 describe('Models Route Tests', () => {
     let agent: AgentForceAgent;
     const agentConfig: AgentConfig = {
-        name: "ModelsTestAgent",
-        type: "models-test-agent"
+        name: "ModelsTestAgent"
     };
 
     beforeEach(() => {

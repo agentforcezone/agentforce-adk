@@ -1,9 +1,7 @@
 import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "OpenrouterTestAgent",
-    type: "openrouter-agent",
-    logger: "pretty"
+    name: "OpenrouterTestAgent"
 };
 
 const output = await new AgentForceAgent(agentConfig)

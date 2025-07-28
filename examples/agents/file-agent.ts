@@ -1,9 +1,7 @@
 import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "FileTestAgent",
-    type: "file-agent",
-    logger: "pretty"
+    name: "FileTestAgent"
 };
 
 const output = await new AgentForceAgent(agentConfig)

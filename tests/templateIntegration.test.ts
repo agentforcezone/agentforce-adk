@@ -7,7 +7,7 @@ describe('Template Integration in Execute Method', () => {
     let testTemplateFile: string;
     
     beforeEach(() => {
-        agent = new AgentForceAgent({ name: "TemplateTestAgent", type: "test-agent" });
+        agent = new AgentForceAgent({ name: "TemplateTestAgent" });
         
         // Create a test template file
         testTemplateFile = 'test-template-execute.md';

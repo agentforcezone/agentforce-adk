@@ -4,8 +4,7 @@ import { AgentForceAgent, type AgentConfig } from "../lib/agent";
 describe('AgentForceAgent useLLM Method Tests', () => {
     let agent: AgentForceAgent;
     const agentConfig: AgentConfig = {
-        name: "TestAgent",
-        type: "test-agent"
+        name: "TestAgent"
     };
 
     beforeEach(() => {

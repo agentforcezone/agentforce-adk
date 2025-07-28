@@ -11,7 +11,7 @@ describe('AgentForceAgent withTemplate Method Tests', () => {
     let testHandlebarsContent: string;
     
     beforeEach(() => {
-        agent = new AgentForceAgent({ name: "TestAgent", type: "test-agent" });
+        agent = new AgentForceAgent({ name: "TestAgent" });
         
         // Create a test template file
         testTemplateFile = resolve('test-template.md');

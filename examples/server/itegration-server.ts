@@ -7,8 +7,7 @@ import {
 } from "../../lib/mod"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "IntegrationAgent",
-    type: "integration-agent"
+    name: "IntegrationAgent"
 };
 
 const Agent = new AgentForceAgent(agentConfig)
@@ -27,8 +26,7 @@ const userStorySchema: RouteAgentSchema = {
 };
 
 const serverConfig: ServerConfig = {
-    name: "IntegrationTestServer",
-    logger: "json",
+    name: "IntegrationTestServer"
 };
 
 new AgentForceServer(serverConfig)
@@ -43,6 +41,8 @@ new AgentForceServer(serverConfig)
     
     // add custom route without schema (default in and output)
     .addRouteAgent("GET", "/user-story", StoryAgent)
+
+    // .addWorkflowTrigger("POST", "/trigger-workflow", workflow)
     
     // Add static routes
     .addRoute("GET", "/health", {"status": "ok"})

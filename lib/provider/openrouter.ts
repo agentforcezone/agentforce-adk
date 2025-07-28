@@ -72,7 +72,7 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
             // Convert messages to OpenAI format
             const openAIMessages: ChatCompletionMessageParam[] = messages.map(msg => ({
                 role: msg.role as "system" | "user" | "assistant",
-                content: msg.content
+                content: msg.content,
             }));
 
             const completion = await this.client.chat.completions.create({

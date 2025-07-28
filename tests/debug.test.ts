@@ -2,8 +2,7 @@ import {describe, expect, test} from "bun:test";
 import { AgentForceAgent, type AgentConfig } from "../lib/agent";
 
 const agentConfig: AgentConfig = {
-    name: "TestAgent",
-    type: "TestType"
+    name: "TestAgent"
 };
 
 describe('AgentForceAgent Debug Method Tests', () => {

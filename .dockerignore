@@ -49,3 +49,7 @@ build
 .env.development.local
 .env.test.local
 .env.production.local
+
+# AI related files
+.claude
+CLAUDE.md
