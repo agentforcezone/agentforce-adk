@@ -1,9 +1,7 @@
 import { AgentForceAgent, type AgentConfig } from "../../lib/agent"; //"@agentforce/adk";
 
 const agentConfig: AgentConfig = {
-    name: "StoryTestAgent",
-    type: "product-owner-agent",
-    logger: "pretty"
+    name: "StoryTestAgent"
 };
 
 const output = await new AgentForceAgent(agentConfig)
