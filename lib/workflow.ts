@@ -13,9 +13,9 @@ import {
     debug
 } from "./workflow/mod";
 
-import pino from "pino";
-import type { WorkflowConfig, LoggerType } from "./types";
+import type { WorkflowConfig, LoggerType, AgentForceLogger } from "./types";
 import type { AgentForceAgent } from "./agent";
+import { defaultLogger } from "./logger";
 
 export type { WorkflowConfig };
 
@@ -45,7 +45,7 @@ export class AgentForceWorkflow {
 
     private name: string;
     private logger: LoggerType = "json";
-    private pinoLogger: pino.Logger;
+    private workflowLogger: AgentForceLogger;
     
     // Properties accessed by method files should be protected
     protected userPrompt: string = "";
@@ -63,24 +63,8 @@ export class AgentForceWorkflow {
         this.name = config.name;
         this.logger = config.logger || "json";
         
-        if (this.logger === "pretty") {
-            try {
-                this.pinoLogger = pino({
-                    transport: {
-                        target: "pino-pretty",
-                        options: {
-                            colorize: true,
-                        },
-                    },
-                });
-            } catch {
-                console.warn("⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty");
-                this.pinoLogger = pino();
-                this.logger = "json";
-            }
-        } else {
-            this.pinoLogger = pino();
-        }
+        // Initialize logger
+        this.workflowLogger = defaultLogger;
     }
 
     // --- Getters & Setters ---
@@ -100,10 +84,10 @@ export class AgentForceWorkflow {
     }
 
     /**
-     * Get the pino logger instance.
+     * Get the logger instance.
      */
-    public getLogger(): pino.Logger {
-        return this.pinoLogger;
+    public getLogger(): AgentForceLogger {
+        return this.workflowLogger;
     }
 
     /**

@@ -42,7 +42,7 @@ describe('AgentForceAgent getResponse Method Tests', () => {
 
     test("should work with method chaining", async () => {
         const result = await agent
-            .useLLM("google", "gemini-pro")
+            .useLLM("google", "gemini-1.5-flash")
             .systemPrompt("You are a test agent")
             .prompt("Generate a test response")
             .getResponse();
@@ -74,7 +74,7 @@ describe('AgentForceAgent getResponse Method Tests', () => {
         const providers = [
             { provider: "openai" as const, model: "gpt-4" },
             { provider: "anthropic" as const, model: "claude-3" },
-            { provider: "google" as const, model: "gemini-pro" },
+            { provider: "google" as const, model: "gemini-1.5-flash" },
         ];
 
         for (const config of providers) {
@@ -120,7 +120,7 @@ describe('AgentForceAgent getResponse Method Tests', () => {
 
     test("should work with multiple getResponse calls", async () => {
         const setupAgent = agent
-            .useLLM("google", "gemini-pro")
+            .useLLM("google", "gemini-1.5-flash")
             .systemPrompt("You are helpful");
         
         // First call

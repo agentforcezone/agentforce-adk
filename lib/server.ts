@@ -1,4 +1,3 @@
-import pino from "pino";
 import {
     serve,
     addRouteAgent,
@@ -11,7 +10,8 @@ import {
 } from "./server/mod";
 
 import type { AgentForceAgent } from "./agent";
-import type { ServerConfig, LoggerType } from "./types";
+import type { ServerConfig, LoggerType, AgentForceLogger } from "./types";
+import { defaultLogger } from "./logger";
 export type { ServerConfig, RouteAgentSchema };
 
 /**
@@ -25,7 +25,7 @@ export class AgentForceServer {
 
     private name: string;
     private logger: LoggerType = "json";
-    private pinoLogger: pino.Logger;
+    private serverLogger: AgentForceLogger;
     private routeAgents: RouteAgent[] = [];
     private staticRoutes: StaticRoute[] = [];
 
@@ -37,26 +37,8 @@ export class AgentForceServer {
         this.name = config.name;
         this.logger = config.logger || "json";
         
-        // Initialize pino logger based on the logger type
-        if (this.logger === "pretty") {
-            try {
-                this.pinoLogger = pino({
-                    transport: {
-                        target: "pino-pretty",
-                        options: {
-                            colorize: true,
-                        },
-                    },
-                });
-            } catch {
-                // Fallback to JSON logger if pino-pretty is not available
-                console.warn("⚠️  pino-pretty not found. Falling back to JSON logger. Install pino-pretty for pretty logging: npm install pino-pretty");
-                this.pinoLogger = pino();
-                this.logger = "json";
-            }
-        } else {
-            this.pinoLogger = pino();
-        }
+        // Initialize logger
+        this.serverLogger = defaultLogger;
     }
 
     /**
@@ -74,10 +56,10 @@ export class AgentForceServer {
     }
 
     /**
-     * Get the pino logger instance.
+     * Get the logger instance.
      */
-    public getLogger(): pino.Logger {
-        return this.pinoLogger;
+    public getLogger(): AgentForceLogger {
+        return this.serverLogger;
     }
 
     /**

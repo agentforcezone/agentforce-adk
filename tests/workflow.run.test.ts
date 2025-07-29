@@ -10,18 +10,24 @@ describe('AgentForceWorkflow run Method Tests', () => {
     });
 
     test("should run the workflow", async () => {
-        // @ts-ignore - setTaskList is protected
-        workflow.setTaskList([
-            { id: 1, description: "Task 1", status: "pending" },
-            { id: 2, description: "Task 2", status: "pending" },
-        ]);
+        // Create a test agent
+        const { AgentForceAgent } = await import("../lib/agent");
+        const testAgent = new AgentForceAgent({ name: "TestAgent" });
+        
+        // Set up a simple workflow execution plan with a sequence
+        workflow.prompt("Test prompt").sequence([testAgent]);
 
         const result = await workflow.run();
-        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveProperty("finalOutput");
+        expect(result).toHaveProperty("sharedStore");
+        // The output will be the result of running the agent, not just the prompt
+        expect(typeof result.finalOutput).toBe("string");
     });
 
-    test("should handle an empty task list", async () => {
+    test("should handle an empty execution plan", async () => {
         const result = await workflow.run();
-        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveProperty("finalOutput");
+        expect(result).toHaveProperty("sharedStore");
+        expect(result.finalOutput).toBeUndefined();
     });
 });

@@ -33,7 +33,7 @@ describe('AgentForceAgent useLLM Method Tests', () => {
         const testCases = [
             { provider: "openai" as const, model: "gpt-3.5-turbo" },
             { provider: "anthropic" as const, model: "claude-3" },
-            { provider: "google" as const, model: "gemini-pro" },
+            { provider: "google" as const, model: "gemini-1.5-flash" },
             { provider: "huggingface" as any, model: "llama2" },
             { provider: "azure" as any, model: "gpt-4" }
         ];
@@ -91,7 +91,7 @@ describe('AgentForceAgent useLLM Method Tests', () => {
     });
 
     test("should support method chaining with multiple useLLM calls", () => {
-        const result = agent.useLLM("google", "gemini-pro").useLLM("anthropic", "claude-3");
+        const result = agent.useLLM("google", "gemini-1.5-flash").useLLM("anthropic", "claude-3");
         
         // Verify final method chaining works
         expect(result).toBe(agent);

@@ -29,18 +29,8 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
     console.log(`Current config: ${currentProvider}/${currentModel}`);
     console.log(`Server will bind to: ${host}:${port}`);
 
-    // Create Pino logger instance
-    const log = pino({
-        name: "agentforce-sdk-server",
-        level: process.env.LOG_LEVEL || "warning", // Use LOG_LEVEL env var or default
-        timestamp: pino.stdTimeFunctions.isoTime,
-        base: undefined, // Remove default fields like pid and hostname
-        formatters: {
-            level: (label) => {
-                return { level: label };
-            },
-        },
-    });
+    // Get the agent's logger instance
+    const log = this.getLogger();
 
     // Custom logger function for Hono middleware that parses HTTP request info
     const customLogger = (message: string, ...rest: string[]): void => {

@@ -212,7 +212,7 @@ describe('AgentForceAgent run Method Tests (Mocked)', () => {
         // Test Google (not implemented - should not throw)
         await expect(
             agent
-                .useLLM("google", "gemini-pro")
+                .useLLM("google", "gemini-1.5-flash")
                 .systemPrompt("Test")
                 .prompt("Test")
                 .run()
@@ -297,7 +297,7 @@ describe('AgentForceAgent run Method Tests (Mocked)', () => {
         
         // Test with non-Ollama provider
         const otherResult = await agent
-            .useLLM("google", "gemini-pro")
+            .useLLM("google", "gemini-1.5-flash")
             .systemPrompt("You are a test assistant")
             .prompt("Hello world")
             .run()

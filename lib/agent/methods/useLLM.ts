@@ -27,7 +27,7 @@ import type { ProviderType } from "../../types";
  * agent.useLLM("openrouter", "moonshotai/kimi-k2:free");
  * 
  * // Method chaining
- * agent.useLLM("google", "gemini-pro").useLLM("ollama", "llama2");
+ * agent.useLLM("google", "gemini-1.5-flash").useLLM("ollama", "llama2");
  * ```
  */
 export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama", model = "gemma3:4b"): AgentForceAgent {
