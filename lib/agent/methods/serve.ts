@@ -58,8 +58,37 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
     const app = new Hono();
     app.use(loggerMiddleware(customLogger));
 
-    // Default route
-    app.get("/", (c) => {
+    // Default route - enhanced to handle prompt query parameter
+    app.get("/", async (c) => {
+        const prompt = c.req.query("prompt");
+        
+        if (prompt) {
+            try {
+                // Execute the agent with the provided prompt
+                const response = await this.prompt(prompt).getResponse();
+                return c.json({ 
+                    status: "ok", 
+                    agent: agentName, 
+                    prompt: prompt,
+                    response: response 
+                });
+            } catch (error) {
+                log.error({
+                    agentName,
+                    prompt,
+                    error: error instanceof Error ? error.message : String(error),
+                    action: "prompt_execution_failed",
+                }, "Failed to execute agent with prompt");
+                
+                return c.json({ 
+                    status: "error", 
+                    agent: agentName, 
+                    prompt: prompt,
+                    error: error instanceof Error ? error.message : "Unknown error" 
+                }, 500);
+            }
+        }
+        
         return c.json({ status: "ok", agent: agentName });
     });
 

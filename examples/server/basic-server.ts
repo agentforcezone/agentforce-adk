@@ -1,10 +1,22 @@
-import { AgentForceServer,  type ServerConfig } from "../../lib/server"; //"@agentforce/adk";
+import { AgentForceAgent, AgentForceServer, type RouteAgentSchema } from "../../lib/mod"; //"@agentforce/adk";
 
-const serverConfig: ServerConfig = {
-    name: "BaseServer"
+const UserStoryAgent = new AgentForceAgent({ name: "StoryCreationAgent"})
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt("You are a Product Owner agent. You will respond with a user story.")
+    .withTemplate("examples/templates/user-story.md");
+
+// Define schemas for custom endpoints (reqired inputs and outputs)
+const UserStorySchema: RouteAgentSchema = {
+    input: ["prompt", "persona"],
+    output: ["success", "persona", "prompt", "response"]
 };
 
-new AgentForceServer(serverConfig)
+new AgentForceServer({ name: "StoryCreationServer" })
+    // Add static routes
     .addRoute("GET", "/health", {"status": "ok"})
-    .addRoute("GET", "/version", {"version": "0.5.0"})
-    .serve("0.0.0.0", 3000);
+    
+    // Add custom routes with schemas
+    .addRouteAgent("POST", "/create-user-story", UserStoryAgent, UserStorySchema)
+    
+    // Start server with default host and port (0.0.0.0:3000)
+    .serve();

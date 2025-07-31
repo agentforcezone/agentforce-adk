@@ -35,7 +35,7 @@
     "node_modules",
     "dist",
     "tests",
-    "examples",
+    "_examples",
     "docs",
     "_"
   ]

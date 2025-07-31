@@ -34,6 +34,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .github/instructions/**
 
 _/**
+_examples/**
 
 # AI
 .claude

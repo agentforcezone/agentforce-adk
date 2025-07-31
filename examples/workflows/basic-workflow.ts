@@ -1,9 +1,29 @@
-import { AgentForceWorkflow, type WorkflowConfig } from "../../lib/workflow";
+import { AgentForceAgent, AgentForceWorkflow } from "../../lib/mod";
 
-const workflowConfig: WorkflowConfig = {
-    name: "BasicWorkflow"
-};
+const Dispatcher = new AgentForceAgent({ name: "DispatcherAgent" })
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt("You will manage the workflow and coordinate between different agents.")
 
-const workflow = new AgentForceWorkflow(workflowConfig);
+const GCPAgent = new AgentForceAgent({
+    name: "gcpAgent",
+    skills: ["devops"]
+})
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt("You are a GCP expert. You will run gcloud commands to create resources in GCP.")
 
-console.log(`Workflow "${workflow.getName()}" created successfully.`);
+const ProductOwnerAgent = new AgentForceAgent({
+    name: "productOwnerAgent",
+    skills: ["productOwner"]
+})
+    .useLLM("ollama", "gemma3:12b")
+    .systemPrompt("You will create a user story based on the user prompt.");
+
+const workflowOutput = await new AgentForceWorkflow({ name: "TaskListWorkflow"})
+    .prompt("I want to create a Cloudbucket in GCP using gcloud cli")
+    .dispatcher(Dispatcher) 
+    .sharedStore("projectId", "my-gcp-project")
+    .registerAgent(GCPAgent)
+    .registerAgent(ProductOwnerAgent)
+    .run();
+
+console.log(JSON.stringify(workflowOutput, null, 2));

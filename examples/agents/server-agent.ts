@@ -4,8 +4,9 @@ const agentConfig: AgentConfig = {
     name: "ServerTestAgent"
 };
 
-// Create an agent and start a web server (serve is terminal - doesn't return agent)
+// Create an agent and start a web server
+// now you can run http://localhost:3000/?prompt="Tell me a joke"
 new AgentForceAgent(agentConfig)
-    .useLLM("ollama", "phi4-mini:latest")
+    .useLLM("ollama", "gemma3:4b")
     .debug()
     .serve("0.0.0.0", 3000);
