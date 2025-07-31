@@ -31,7 +31,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         { provider: provider },
         { model: model }, 
         { systemPrompt: fullSystemPrompt }, 
-        { userPrompt: userPrompt }
+        { userPrompt: userPrompt },
     );
     
     // Store the user prompt in chat history if not already stored

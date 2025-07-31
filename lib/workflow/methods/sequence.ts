@@ -9,6 +9,6 @@ import type { AgentForceAgent } from "../../agent";
  * @returns The AgentForceWorkflow instance for method chaining.
  */
 export function sequence(this: AgentForceWorkflow, agents: AgentForceAgent[]): AgentForceWorkflow {
-    this.executionPlan.push({ type: 'sequence', payload: agents });
+    this.executionPlan.push({ type: "sequence", payload: agents });
     return this;
 }

@@ -66,7 +66,7 @@ export function addRouteAgent(
     if (schema) {
         normalizedSchema = {
             input: schema.input || ["prompt"],
-            output: schema.output || ["success", "method", "path", "agentName", "agentType", "prompt", "response"],
+            output: schema.output || ["success", "method", "path", "agentName", "prompt", "response"],
         };
 
         // Ensure "prompt" is always included in input (required field)
@@ -282,7 +282,6 @@ export function createAgentRouteHandler(
                 method,
                 path,
                 agentName: agent.getName(),
-                agentType: agent.getType(),
                 prompt,
                 response,
                 // Include any additional input fields from the request

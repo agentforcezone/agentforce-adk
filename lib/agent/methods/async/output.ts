@@ -60,7 +60,7 @@ export async function output(this: AgentForceAgent, outputType: OutputType): Pro
             return jsonOutput;
             
         case "md":
-            const mdOutput = `=== Agent ${agentName} Output (Markdown Format) ===\n# Agent Response\n\n**Agent:** ${agentName}\n**Provider:** ${provider}\n**Model:** ${model}\n\n## System Prompt\n${systemPrompt}\n\n## User Prompt\n${userPrompt}\n\n## Response\n${assistantResponse}\n\n*Generated at: ${new Date().toISOString()}*`;
+            const mdOutput = `${assistantResponse}\n\n*Generated at: ${new Date().toISOString()}*`;
             return mdOutput;
             
         default:

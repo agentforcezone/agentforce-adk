@@ -40,12 +40,12 @@ const logLevels: {
     info: 20,
     warn: 30,
     error: 40,
-    silent: Infinity
+    silent: Infinity,
 };
 
 // Get the log level from environment variables, default to 'info'.
 const getLogLevel = (): number => {
-    const envLevel = process.env.LOG_LEVEL?.toLowerCase() || 'info';
+    const envLevel = process.env.LOG_LEVEL?.toLowerCase() || "info";
     return logLevels[envLevel] ?? logLevels.info;
 };
 
@@ -80,7 +80,7 @@ export const defaultLogger = {
             const timestamp = new Date().toISOString();
             console.error(`${red("ERROR")} [${timestamp}]`, formatAsJson(args));
         }
-    }
+    },
 };
 
 /**
@@ -95,14 +95,14 @@ const formatAsJson = (args: unknown[]): string => {
     const objectPayload: { [key:string]: any } = {};
 
     for (const arg of args) {
-        if (typeof arg === 'object' && arg !== null && !Array.isArray(arg)) {
+        if (typeof arg === "object" && arg !== null && !Array.isArray(arg)) {
             Object.assign(objectPayload, arg);
         } else {
-            if (typeof arg === 'object' && arg !== null) {
+            if (typeof arg === "object" && arg !== null) {
                 try {
                     stringParts.push(JSON.stringify(arg));
                 } catch {
-                    stringParts.push('[Circular]');
+                    stringParts.push("[Circular]");
                 }
             } else {
                 stringParts.push(String(arg));
@@ -111,7 +111,7 @@ const formatAsJson = (args: unknown[]): string => {
     }
 
     // To ensure 'msg' is the first key, we construct the final object in order.
-    const message = stringParts.join(' ');
+    const message = stringParts.join(" ");
     const finalLogObject = message ? { msg: message, ...objectPayload } : { ...objectPayload };
 
     return JSON.stringify(finalLogObject);

@@ -2,6 +2,8 @@ import {
     serve,
     addRouteAgent,
     addRoute,
+    addFormTrigger,
+    addWorkflowTrigger,
     useOpenAICompatibleRouting,
     useOllamaCompatibleRouting,
     type RouteAgent,
@@ -10,7 +12,7 @@ import {
 } from "./server/mod";
 
 import type { AgentForceAgent } from "./agent";
-import type { ServerConfig, LoggerType, AgentForceLogger } from "./types";
+import type { ServerConfig, AgentForceLogger } from "./types";
 import { defaultLogger } from "./logger";
 export type { ServerConfig, RouteAgentSchema };
 
@@ -24,7 +26,6 @@ export type { ServerConfig, RouteAgentSchema };
 export class AgentForceServer {
 
     private name: string;
-    private logger: LoggerType = "json";
     private serverLogger: AgentForceLogger;
     private routeAgents: RouteAgent[] = [];
     private staticRoutes: StaticRoute[] = [];
@@ -35,10 +36,8 @@ export class AgentForceServer {
      */
     constructor(config: ServerConfig) {
         this.name = config.name;
-        this.logger = config.logger || "json";
-        
-        // Initialize logger
-        this.serverLogger = defaultLogger;
+        // Accept injected logger or use default
+        this.serverLogger = config.logger || defaultLogger;
     }
 
     /**
@@ -46,13 +45,6 @@ export class AgentForceServer {
      */
     public getName(): string {
         return this.name;
-    }
-
-    /**
-     * Get the logger type of the server.
-     */
-    public getLoggerType(): LoggerType {
-        return this.logger;
     }
 
     /**
@@ -97,6 +89,8 @@ export class AgentForceServer {
     // Chainable methods
     addRouteAgent: (method: string, path: string, agent: AgentForceAgent, schema?: RouteAgentSchema) => AgentForceServer = addRouteAgent.bind(this);
     addRoute: (method: string, path: string, responseData: any) => AgentForceServer = addRoute.bind(this);
+    addFormTrigger: (formName: string, htmlFilePath: string, agent: AgentForceAgent, schema?: RouteAgentSchema) => AgentForceServer = addFormTrigger.bind(this);
+    addWorkflowTrigger: (method: string, path: string, workflowFilePath: string) => AgentForceServer = addWorkflowTrigger.bind(this);
     useOpenAICompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOpenAICompatibleRouting.bind(this);
     useOllamaCompatibleRouting: (agent: AgentForceAgent) => AgentForceServer = useOllamaCompatibleRouting.bind(this);
 

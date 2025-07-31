@@ -33,7 +33,7 @@ export class GoogleProvider implements GoogleProviderInterface {
      * @param system - Optional system prompt to provide context
      * @returns Promise with the model's response
      */
-    public async generate(prompt: string, system?: string): Promise<string> {
+    public async generate(prompt: string, _system?: string): Promise<string> {
         try {
             const response = await this.ai.models.generateContent({
                 model: this.model,
@@ -52,16 +52,16 @@ export class GoogleProvider implements GoogleProviderInterface {
      */
     async chat(messages: Array<{ role: string; content: string }>): Promise<string> {
         try {
-            let systemInstruction: string | undefined;
             const contents: Content[] = [];
 
             for (const msg of messages) {
-                if (msg.role === 'system') {
-                    systemInstruction = msg.content;
+                if (msg.role === "system") {
+                    // System messages are handled differently in Gemini API
+                    // For now, we'll skip them as they're not directly supported in contents
                 } else {
                     // The Gemini API uses 'user' and 'model' roles
                     contents.push({
-                        role: msg.role === 'assistant' ? 'model' : 'user',
+                        role: msg.role === "assistant" ? "model" : "user",
                         parts: [{ text: msg.content }],
                     });
                 }
@@ -69,7 +69,7 @@ export class GoogleProvider implements GoogleProviderInterface {
             const tools = [
                 {
                     googleSearch: {
-                    }
+                    },
                 },
             ];
 
@@ -78,7 +78,7 @@ export class GoogleProvider implements GoogleProviderInterface {
                     thinkingBudget: 0,
                 },
                 tools,
-                responseMimeType: 'text/plain',
+                responseMimeType: "text/plain",
             };
 
             const response = await this.ai.models.generateContent({

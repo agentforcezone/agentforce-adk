@@ -17,12 +17,12 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
 
     try {
         switch (step.type) {
-            case 'prompt':
+            case "prompt":
                 this.setUserPrompt(step.payload);
                 output = step.payload; // Pass the prompt content as output
                 break;
 
-            case 'sequence':
+            case "sequence":
                 let sequenceInput = input;
                 const sequenceAgents = step.payload as AgentForceAgent[];
                 for (const agent of sequenceAgents) {
@@ -32,18 +32,18 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
                 output = sequenceInput;
                 break;
 
-            case 'parallel':
+            case "parallel":
                 const parallelAgents = step.payload as AgentForceAgent[];
                 this.getLogger().info({ message: `Executing ${parallelAgents.length} agents in parallel.` });
                 const parallelPromises = parallelAgents.map(agent => agent.execute(input));
                 output = await Promise.all(parallelPromises);
                 break;
 
-            case 'iterate':
+            case "iterate":
                 const { items, agent } = step.payload;
                 let itemList: any[] = [];
 
-                if (typeof items === 'string') {
+                if (typeof items === "string") {
                     itemList = this.getSharedStoreItem(items);
                     if (!Array.isArray(itemList)) {
                         throw new Error(`Shared store key "${items}" for iteration does not contain an array.`);
@@ -105,6 +105,6 @@ export async function run(this: AgentForceWorkflow): Promise<any> {
 
     return { 
         finalOutput: lastOutput, 
-        sharedStore: Object.fromEntries(this.internalSharedStore.entries()) 
+        sharedStore: Object.fromEntries(this.internalSharedStore.entries()), 
     };
 }

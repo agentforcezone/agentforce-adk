@@ -86,11 +86,23 @@ export function createStaticRouteHandler(responseData: any, method: string, path
             if (typeof responseData === "function") {
                 const result = responseData(c);
                 
-                // Handle async functions
-                if (result instanceof Promise) {
-                    return result.then(data => c.json(data));
+                // If the function returns a Response object (or Promise<Response>), 
+                // return it directly without wrapping in c.json()
+                if (result instanceof Response) {
+                    return result;
                 }
                 
+                // Handle async functions that might return Response
+                if (result instanceof Promise) {
+                    return result.then(data => {
+                        if (data instanceof Response) {
+                            return data;
+                        }
+                        return c.json(data);
+                    });
+                }
+                
+                // Otherwise wrap in JSON response
                 return c.json(result);
             }
 

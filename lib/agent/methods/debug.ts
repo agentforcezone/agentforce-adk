@@ -12,7 +12,7 @@ export function debug(this: AgentForceAgent): AgentForceAgent {
     const debugInfo = {
         name: this.getName(),
         provider: this.getProvider(),
-        model: this.getModel()
+        model: this.getModel(),
     };
     
     // Log debug info

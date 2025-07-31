@@ -10,7 +10,7 @@ import {
     iterate,
     run,
     loop,
-    debug
+    debug,
 } from "./workflow/mod";
 
 import type { WorkflowConfig, LoggerType, AgentForceLogger } from "./types";
@@ -24,7 +24,7 @@ export interface AgentOutput {
     output: any;
 }
 
-export type ExecutionStepType = 'prompt' | 'sequence' | 'parallel' | 'iterate';
+export type ExecutionStepType = "prompt" | "sequence" | "parallel" | "iterate";
 
 export interface ExecutionStep {
     type: ExecutionStepType;

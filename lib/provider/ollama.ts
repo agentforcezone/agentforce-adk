@@ -31,7 +31,7 @@ export class OllamaProvider implements OllamaProviderInterface {
                 system: system,
                 options: {
                     keep_alive: "60s",
-                }
+                },
             });
             return response.response;
         } catch (error) {
@@ -51,7 +51,7 @@ export class OllamaProvider implements OllamaProviderInterface {
                 messages: messages,
                 options: {
                     keep_alive: "60s",
-                }
+                },
             });
             return response.message.content;
         } catch (error) {
