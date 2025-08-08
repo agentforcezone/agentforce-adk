@@ -13,7 +13,7 @@ import { join, isAbsolute, basename } from "path";
 export function get_file_tree(
     path: string,
     outputFormat: "array" | "json" | "yaml",
-    excludes: string[] = []
+    excludes: string[] = [],
 ): string[] | object | string {
     if (!isAbsolute(path)) {
         throw new Error("The path must be absolute.");
