@@ -6,6 +6,7 @@ export * from "./methods/useLLM";
 export * from "./methods/systemPrompt";
 export * from "./methods/prompt";
 export * from "./methods/withTemplate";
+export * from "./methods/task";
 
 // Async methods
 export * from "./methods/async/run";

@@ -10,3 +10,5 @@ new AgentForceAgent(agentConfig)
     .useLLM("ollama", "gemma3:4b")
     .debug()
     .serve("0.0.0.0", 3000);
+
+// use `af deploy agent` to deploy this agent to the cloud 

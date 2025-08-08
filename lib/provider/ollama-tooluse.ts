@@ -29,20 +29,32 @@ export class OllamaToolUse implements OllamaToolUseInterface {
      * Get the combined options for Ollama API calls
      * Merges default options with user-provided ModelConfig
      */
-    private getOllamaOptions(): { keep_alive: string; temperature?: number; "num_ctx"?: number } {
-        const defaultOptions = {
-            keep_alive: "60s", // Maintain backward compatibility
-        };
+    private getOllamaOptions(): { temperature?: number; "num_ctx"?: number } {
+        const options: { temperature?: number; "num_ctx"?: number } = {};
 
         if (!this.modelConfig) {
-            return defaultOptions;
+            return options;
         }
 
-        return {
-            ...defaultOptions,
-            ...(this.modelConfig.temperature !== undefined && { temperature: this.modelConfig.temperature }),
-            ...(this.modelConfig.maxTokens !== undefined && { "num_ctx": this.modelConfig.maxTokens }),
-        };
+        if (this.modelConfig.temperature !== undefined) {
+            options.temperature = this.modelConfig.temperature;
+        }
+        if (this.modelConfig.maxTokens !== undefined) {
+            options["num_ctx"] = this.modelConfig.maxTokens;
+        }
+        
+        return options;
+    }
+
+    /**
+     * Apply request delay if configured
+     * Helps prevent rate limiting by spacing out API calls
+     */
+    private async applyRequestDelay(): Promise<void> {
+        if (this.modelConfig?.requestDelay && this.modelConfig.requestDelay > 0) {
+            const delayMs = this.modelConfig.requestDelay * 1000; // Convert seconds to milliseconds
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
     }
 
     /**
@@ -69,9 +81,14 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 { role: "user", content: prompt },
             ];
 
-            const maxRounds = this.modelConfig?.maxToolRounds ?? 10; // configurable via ModelConfig, default 10
+            const maxRounds = this.modelConfig?.maxToolRounds ?? 20; // configurable via ModelConfig, default 10
             let lastToolResults: string[] = [];
             for (let round = 0; round < maxRounds; round++) {
+                // Apply delay before each API call to prevent rate limiting
+                if (round > 0) { // Skip delay on first call
+                    await this.applyRequestDelay();
+                }
+
                 const response = await ollama.chat({
                     model: this.model,
                     messages,
@@ -94,7 +111,31 @@ export class OllamaToolUse implements OllamaToolUseInterface {
 
                 // If no tool_calls but content looks like a tool call JSON, try to parse it
                 if (!toolCalls && response.message.content) {
-                    const content = response.message.content.trim();
+                    let content = response.message.content.trim();
+                    
+                    // Remove markdown code blocks if present
+                    if (content.startsWith("```json") && content.endsWith("```")) {
+                        content = content.slice(7, -3).trim();
+                    } else if (content.startsWith("```") && content.endsWith("```")) {
+                        content = content.slice(3, -3).trim();
+                    } else if (content.startsWith("```json")) {
+                        // Handle incomplete code blocks
+                        const lines = content.split("\n");
+                        const jsonStartIndex = lines.findIndex(line => line.trim() === "```json");
+                        const jsonEndIndex = lines.findIndex((line, idx) => idx > jsonStartIndex && line.trim() === "```");
+                        if (jsonStartIndex !== -1) {
+                            const endIndex = jsonEndIndex !== -1 ? jsonEndIndex : lines.length;
+                            const jsonLines = lines.slice(jsonStartIndex + 1, endIndex);
+                            content = jsonLines.join("\n").trim();
+                        }
+                    } else if (content.startsWith("```")) {
+                        // Handle other incomplete code blocks  
+                        const lines = content.split("\n");
+                        if (lines.length > 1) {
+                            content = lines.slice(1).join("\n").replace(/```$/, "").trim();
+                        }
+                    }
+                    
                     if (content.startsWith("{") && content.includes("\"name\"") && content.includes("\"arguments\"")) {
                         try {
                             const parsed = JSON.parse(content);
@@ -179,6 +220,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 logger.debug("Max tool rounds reached, returning last message content");
             }
             // Fallback to basic generate without tools
+            await this.applyRequestDelay(); // Apply delay before fallback call
             const response = await ollama.generate({
                 model: this.model,
                 prompt: prompt,
@@ -213,9 +255,14 @@ export class OllamaToolUse implements OllamaToolUseInterface {
             }
 
             const convo: Array<{ role: string; content: string }> = [...messages];
-            const maxRounds = this.modelConfig?.maxToolRounds ?? 10; // configurable via ModelConfig, default 10
+            const maxRounds = this.modelConfig?.maxToolRounds ?? 20; // configurable via ModelConfig, default 10
             let lastToolResults: string[] = [];
             for (let round = 0; round < maxRounds; round++) {
+                // Apply delay before each API call to prevent rate limiting
+                if (round > 0) { // Skip delay on first call
+                    await this.applyRequestDelay();
+                }
+
                 const response = await ollama.chat({
                     model: this.model,
                     messages: convo,
@@ -228,7 +275,31 @@ export class OllamaToolUse implements OllamaToolUseInterface {
 
                 // If no tool_calls but content looks like a tool call JSON, try to parse it
                 if (!toolCalls && response.message.content) {
-                    const content = response.message.content.trim();
+                    let content = response.message.content.trim();
+                    
+                    // Remove markdown code blocks if present
+                    if (content.startsWith("```json") && content.endsWith("```")) {
+                        content = content.slice(7, -3).trim();
+                    } else if (content.startsWith("```") && content.endsWith("```")) {
+                        content = content.slice(3, -3).trim();
+                    } else if (content.startsWith("```json")) {
+                        // Handle incomplete code blocks
+                        const lines = content.split("\n");
+                        const jsonStartIndex = lines.findIndex(line => line.trim() === "```json");
+                        const jsonEndIndex = lines.findIndex((line, idx) => idx > jsonStartIndex && line.trim() === "```");
+                        if (jsonStartIndex !== -1) {
+                            const endIndex = jsonEndIndex !== -1 ? jsonEndIndex : lines.length;
+                            const jsonLines = lines.slice(jsonStartIndex + 1, endIndex);
+                            content = jsonLines.join("\n").trim();
+                        }
+                    } else if (content.startsWith("```")) {
+                        // Handle other incomplete code blocks  
+                        const lines = content.split("\n");
+                        if (lines.length > 1) {
+                            content = lines.slice(1).join("\n").replace(/```$/, "").trim();
+                        }
+                    }
+                    
                     if (content.startsWith("{") && content.includes("\"name\"") && content.includes("\"arguments\"")) {
                         try {
                             const parsed = JSON.parse(content);
@@ -305,6 +376,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
             if (logger) {
                 logger.debug("Max tool rounds reached, returning last attempt content");
             }
+            await this.applyRequestDelay(); // Apply delay before final attempt
             const lastAttempt = await ollama.chat({ model: this.model, messages: convo, options: this.getOllamaOptions() });
             return lastAttempt.message.content;
         } catch (error) {

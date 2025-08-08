@@ -137,7 +137,7 @@ describe('AgentForceAgent systemPrompt Method Tests', () => {
 
     test("should handle existing dispatcher.md file", () => {
         // Test with the actual dispatcher.md file
-        const dispatcherPath = "lib/systemprompt/dispatcher.md";
+        const dispatcherPath = "lib/dispatcher/systemprompt/dispatcher.md";
         agent.systemPrompt(dispatcherPath);
         
         // Should load the file content (not just the path)

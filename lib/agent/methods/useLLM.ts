@@ -49,11 +49,11 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
         
         case "openrouter":
             // Initialize OpenRouter provider
-            new OpenRouterProvider(model);
+            new OpenRouterProvider(model, modelConfig);
             break;
         
         case "google":
-            new GoogleProvider(model);
+            new GoogleProvider(model, modelConfig);
             break;
         
         case "openai":

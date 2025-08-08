@@ -10,6 +10,7 @@ import {
     saveToFile,
     getResponse,
     withTemplate,
+    task,
 } from "./agent/mod";
 
 import type { 
@@ -39,6 +40,7 @@ export class AgentForceAgent {
     private template: string = "";
     private tools: string[] = [];
     private skills: string[] = [];
+    private taskList: {description: string, result: string | null}[] = [];
     private chatHistory: {role: string, content: string}[] = [];
     private logger: AgentForceLogger;
 
@@ -193,6 +195,28 @@ export class AgentForceAgent {
     }
 
     /**
+     * Get the task list.
+     */
+    protected getTaskList(): {description: string, result: string | null}[] {
+        return this.taskList;
+    }
+
+    /**
+     * Set the task list.
+     * @param taskList - The task list to set
+     */
+    protected setTaskList(taskList: {description: string, result: string | null}[]): void {
+        this.taskList = taskList;
+    }
+
+    /**
+     * Clear the task list.
+     */
+    protected clearTaskList(): void {
+        this.taskList = [];
+    }
+
+    /**
      * Execute the agent with the current user prompt.
      * @returns The response from the agent
      */
@@ -204,6 +228,7 @@ export class AgentForceAgent {
     systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
     prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
     withTemplate: (templatePath: string, templateData?: Record<string, unknown>) => AgentForceAgent = withTemplate.bind(this);
+    task: (taskDescription: string) => AgentForceAgent = task.bind(this);
     run: () => Promise<AgentForceAgent> = run.bind(this);
     
     // Terminal/Non-chainable methods (return output, not this)

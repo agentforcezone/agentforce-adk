@@ -30,20 +30,21 @@ export class OllamaProvider implements OllamaProviderInterface {
      * Get the combined options for Ollama API calls
      * Merges default options with user-provided ModelConfig
      */
-    private getOllamaOptions(): { keep_alive: string; temperature?: number; "num_ctx"?: number } {
-        const defaultOptions = {
-            keep_alive: "60s", // Maintain backward compatibility
-        };
+    private getOllamaOptions(): { temperature?: number; "num_ctx"?: number } {
+        const options: { temperature?: number; "num_ctx"?: number } = {};
 
         if (!this.modelConfig) {
-            return defaultOptions;
+            return options;
         }
 
-        return {
-            ...defaultOptions,
-            ...(this.modelConfig.temperature !== undefined && { temperature: this.modelConfig.temperature }),
-            ...(this.modelConfig.maxTokens !== undefined && { "num_ctx": this.modelConfig.maxTokens }),
-        };
+        if (this.modelConfig.temperature !== undefined) {
+            options.temperature = this.modelConfig.temperature;
+        }
+        if (this.modelConfig.maxTokens !== undefined) {
+            options["num_ctx"] = this.modelConfig.maxTokens;
+        }
+        
+        return options;
     }
 
     /**

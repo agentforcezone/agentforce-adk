@@ -1,4 +1,5 @@
 import { GoogleGenAI, Content } from "@google/genai";
+import type { ModelConfig } from "../types";
 
 // Type for Google provider interface
 export interface GoogleProviderInterface {
@@ -14,10 +15,12 @@ export interface GoogleProviderInterface {
  */
 export class GoogleProvider implements GoogleProviderInterface {
     private model: string;
+    private modelConfig?: ModelConfig;
     private ai: GoogleGenAI;
 
-    constructor(model: string) {
+    constructor(model: string, modelConfig?: ModelConfig) {
         this.model = model;
+        this.modelConfig = modelConfig;
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
@@ -35,9 +38,18 @@ export class GoogleProvider implements GoogleProviderInterface {
      */
     public async generate(prompt: string, _system?: string): Promise<string> {
         try {
+            const generationConfig: any = {};
+            if (this.modelConfig?.temperature !== undefined) {
+                generationConfig.temperature = this.modelConfig.temperature;
+            }
+            if (this.modelConfig?.maxTokens !== undefined) {
+                generationConfig.maxOutputTokens = this.modelConfig.maxTokens;
+            }
+            
             const response = await this.ai.models.generateContent({
                 model: this.model,
                 contents: prompt,
+                ...(Object.keys(generationConfig).length > 0 && { generationConfig }),
             });
             return response.text ?? "No response text available";
         } catch (error) {
@@ -79,6 +91,10 @@ export class GoogleProvider implements GoogleProviderInterface {
                 },
                 tools,
                 responseMimeType: "text/plain",
+                generationConfig: {
+                    ...(this.modelConfig?.temperature !== undefined && { temperature: this.modelConfig.temperature }),
+                    ...(this.modelConfig?.maxTokens !== undefined && { maxOutputTokens: this.modelConfig.maxTokens }),
+                },
             };
 
             const response = await this.ai.models.generateContent({

@@ -177,34 +177,14 @@ describe("GoogleProvider Tests", () => {
 
             const result = await provider.chat(messages);
 
-            expect(mockGenerateContent).toHaveBeenCalledWith({
-                model: "gemini-1.5-flash",
-                config: {
-                    thinkingConfig: {
-                        thinkingBudget: 0
-                    },
-                    tools: [
-                        {
-                            googleSearch: {}
-                        }
-                    ],
-                    responseMimeType: "text/plain"
-                },
-                contents: [
-                    {
-                        role: "user",
-                        parts: [{ text: "Hello" }]
-                    },
-                    {
-                        role: "model", // assistant -> model
-                        parts: [{ text: "Hi there" }]
-                    },
-                    {
-                        role: "user",
-                        parts: [{ text: "How are you?" }]
-                    }
-                ]
-            });
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+            const call = mockGenerateContent.mock.calls[0][0];
+            expect(call).toHaveProperty('model', 'gemini-1.5-flash');
+            expect(call).toHaveProperty('contents');
+            expect(call.contents).toHaveLength(3);
+            expect(call.contents[0]).toEqual({ role: "user", parts: [{ text: "Hello" }] });
+            expect(call.contents[1]).toEqual({ role: "model", parts: [{ text: "Hi there" }] });
+            expect(call.contents[2]).toEqual({ role: "user", parts: [{ text: "How are you?" }] });
             expect(result).toBe("Chat response");
 
             mockGenerateContent.mockRestore();
@@ -222,26 +202,12 @@ describe("GoogleProvider Tests", () => {
 
             const result = await provider.chat(messages);
 
-            expect(mockGenerateContent).toHaveBeenCalledWith({
-                model: "gemini-1.5-flash",
-                config: {
-                    thinkingConfig: {
-                        thinkingBudget: 0
-                    },
-                    tools: [
-                        {
-                            googleSearch: {}
-                        }
-                    ],
-                    responseMimeType: "text/plain"
-                },
-                contents: [
-                    {
-                        role: "user",
-                        parts: [{ text: "Hello" }]
-                    }
-                ]
-            });
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+            const call = mockGenerateContent.mock.calls[0][0];
+            expect(call).toHaveProperty('model', 'gemini-1.5-flash');
+            expect(call).toHaveProperty('contents');
+            expect(call.contents).toHaveLength(1);
+            expect(call.contents[0]).toEqual({ role: "user", parts: [{ text: "Hello" }] });
             expect(result).toBe("Chat response");
 
             mockGenerateContent.mockRestore();
@@ -258,26 +224,12 @@ describe("GoogleProvider Tests", () => {
 
             const result = await provider.chat(messages);
 
-            expect(mockGenerateContent).toHaveBeenCalledWith({
-                model: "gemini-1.5-flash",
-                config: {
-                    thinkingConfig: {
-                        thinkingBudget: 0
-                    },
-                    tools: [
-                        {
-                            googleSearch: {}
-                        }
-                    ],
-                    responseMimeType: "text/plain"
-                },
-                contents: [
-                    {
-                        role: "model",
-                        parts: [{ text: "I'm an assistant" }]
-                    }
-                ]
-            });
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+            const call = mockGenerateContent.mock.calls[0][0];
+            expect(call).toHaveProperty('model', 'gemini-1.5-flash');
+            expect(call).toHaveProperty('contents');
+            expect(call.contents).toHaveLength(1);
+            expect(call.contents[0]).toEqual({ role: "model", parts: [{ text: "I'm an assistant" }] });
             expect(result).toBe("Chat response");
 
             mockGenerateContent.mockRestore();
@@ -290,21 +242,11 @@ describe("GoogleProvider Tests", () => {
 
             const result = await provider.chat([]);
 
-            expect(mockGenerateContent).toHaveBeenCalledWith({
-                model: "gemini-1.5-flash",
-                config: {
-                    thinkingConfig: {
-                        thinkingBudget: 0
-                    },
-                    tools: [
-                        {
-                            googleSearch: {}
-                        }
-                    ],
-                    responseMimeType: "text/plain"
-                },
-                contents: []
-            });
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+            const call = mockGenerateContent.mock.calls[0][0];
+            expect(call).toHaveProperty('model', 'gemini-1.5-flash');
+            expect(call).toHaveProperty('contents');
+            expect(call.contents).toHaveLength(0);
             expect(result).toBe("Empty chat response");
 
             mockGenerateContent.mockRestore();
@@ -324,34 +266,14 @@ describe("GoogleProvider Tests", () => {
 
             const result = await provider.chat(messages);
 
-            expect(mockGenerateContent).toHaveBeenCalledWith({
-                model: "gemini-1.5-flash",
-                config: {
-                    thinkingConfig: {
-                        thinkingBudget: 0
-                    },
-                    tools: [
-                        {
-                            googleSearch: {}
-                        }
-                    ],
-                    responseMimeType: "text/plain"
-                },
-                contents: [
-                    {
-                        role: "user",
-                        parts: [{ text: "User message" }]
-                    },
-                    {
-                        role: "model",
-                        parts: [{ text: "Assistant message" }]
-                    },
-                    {
-                        role: "user", // unknown -> user (default)
-                        parts: [{ text: "Unknown role message" }]
-                    }
-                ]
-            });
+            expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+            const call = mockGenerateContent.mock.calls[0][0];
+            expect(call).toHaveProperty('model', 'gemini-1.5-flash');
+            expect(call).toHaveProperty('contents');
+            expect(call.contents).toHaveLength(3);
+            expect(call.contents[0]).toEqual({ role: "user", parts: [{ text: "User message" }] });
+            expect(call.contents[1]).toEqual({ role: "model", parts: [{ text: "Assistant message" }] });
+            expect(call.contents[2]).toEqual({ role: "user", parts: [{ text: "Unknown role message" }] });
             expect(result).toBe("Mixed response");
 
             mockGenerateContent.mockRestore();

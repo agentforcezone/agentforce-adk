@@ -1,9 +1,14 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type { Tool } from "../tools/types";
+import { OpenRouterToolUse } from "./openrouter-tooluse";
+import type { AgentForceLogger, ModelConfig } from "../types";
 
 // Type for OpenRouter provider interface
 export interface OpenRouterProviderInterface {
     generate(prompt: string, system?: string): Promise<string>;
+    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;
+    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger): Promise<string>;
     chat(messages: Array<{ role: string; content: string }>): Promise<string>;
     getModel(): string;
     setModel(model: string): void;
@@ -15,10 +20,13 @@ export interface OpenRouterProviderInterface {
  */
 export class OpenRouterProvider implements OpenRouterProviderInterface {
     private model: string;
+    private modelConfig?: ModelConfig;
     private client: OpenAI;
+    private toolUse: OpenRouterToolUse;
 
-    constructor(model: string) {
+    constructor(model: string, modelConfig?: ModelConfig) {
         this.model = model;
+        this.modelConfig = modelConfig;
         
         const apiKey = process.env.OPENROUTER_API_KEY;
         if (!apiKey) {
@@ -33,6 +41,8 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
                 "X-Title": process.env.YOUR_SITE_NAME || "AgentForce ADK",
             },
         });
+
+        this.toolUse = new OpenRouterToolUse(model, modelConfig);
     }
 
     /**
@@ -54,6 +64,8 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
             const completion = await this.client.chat.completions.create({
                 model: this.model,
                 messages: messages,
+                ...(this.modelConfig?.temperature !== undefined && { temperature: this.modelConfig.temperature }),
+                ...(this.modelConfig?.maxTokens !== undefined && { max_tokens: this.modelConfig.maxTokens }),
             });
 
             return completion.choices[0]?.message?.content || "";
@@ -78,6 +90,8 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
             const completion = await this.client.chat.completions.create({
                 model: this.model,
                 messages: openAIMessages,
+                ...(this.modelConfig?.temperature !== undefined && { temperature: this.modelConfig.temperature }),
+                ...(this.modelConfig?.maxTokens !== undefined && { max_tokens: this.modelConfig.maxTokens }),
             });
 
             return completion.choices[0]?.message?.content || "";
@@ -98,5 +112,33 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
      */
     setModel(model: string): void {
         this.model = model;
+        this.toolUse = new OpenRouterToolUse(model, this.modelConfig);
+    }
+
+    /**
+     * Generate response with tool support using the OpenRouter model
+     * @param prompt - The user prompt to send to the model
+     * @param tools - Array of tool definitions
+     * @param system - Optional system prompt
+     * @param logger - Optional logger for debugging
+     * @returns Promise with the model's response after tool execution
+     */
+    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string> {
+        return this.toolUse.generateWithTools(prompt, tools, system, logger);
+    }
+
+    /**
+     * Chat with tool support
+     * @param messages - Array of messages for the conversation
+     * @param tools - Array of tool definitions
+     * @param logger - Optional logger for debugging
+     * @returns Promise with the model's response after tool execution
+     */
+    async chatWithTools(
+        messages: Array<{ role: string; content: string }>,
+        tools: Tool[],
+        logger?: AgentForceLogger,
+    ): Promise<string> {
+        return this.toolUse.chatWithTools(messages, tools, logger);
     }
 }

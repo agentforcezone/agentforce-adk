@@ -112,11 +112,11 @@ export const fs_search_content: ToolImplementation = {
             let searchRegex: RegExp;
             try {
                 if (useRegex) {
-                    searchRegex = new RegExp(pattern, caseSensitive ? 'g' : 'gi');
+                    searchRegex = new RegExp(pattern, caseSensitive ? "g" : "gi");
                 } else {
                     // Escape special regex characters for literal search
-                    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    searchRegex = new RegExp(escapedPattern, caseSensitive ? 'g' : 'gi');
+                    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                    searchRegex = new RegExp(escapedPattern, caseSensitive ? "g" : "gi");
                 }
             } catch (error: any) {
                 return {
@@ -134,10 +134,10 @@ export const fs_search_content: ToolImplementation = {
 
             // Common binary file extensions to skip
             const binaryExtensions = new Set([
-                '.exe', '.dll', '.so', '.dylib', '.a', '.lib', '.bin', '.dat',
-                '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.svg',
-                '.mp3', '.mp4', '.avi', '.mov', '.wav', '.pdf', '.zip',
-                '.tar', '.gz', '.rar', '.7z', '.node', '.wasm'
+                ".exe", ".dll", ".so", ".dylib", ".a", ".lib", ".bin", ".dat",
+                ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".ico", ".svg",
+                ".mp3", ".mp4", ".avi", ".mov", ".wav", ".pdf", ".zip",
+                ".tar", ".gz", ".rar", ".7z", ".node", ".wasm",
             ]);
 
             const results: Array<{
@@ -172,7 +172,7 @@ export const fs_search_content: ToolImplementation = {
                 }
 
                 if (stats.isDirectory()) {
-                    const baseName = require('path').basename(currentPath);
+                    const baseName = require("path").basename(currentPath);
                     
                     // Check if directory should be excluded
                     if (useGitignore && excludes.includes(baseName)) {
@@ -213,15 +213,15 @@ export const fs_search_content: ToolImplementation = {
                     }
 
                     // Check if file should be excluded
-                    const baseName = require('path').basename(currentPath);
+                    const baseName = require("path").basename(currentPath);
                     if (useGitignore && excludes.includes(baseName)) {
                         continue;
                     }
 
                     try {
                         // Read file content
-                        const content = readFileSync(currentPath, 'utf-8');
-                        const lines = content.split('\n');
+                        const content = readFileSync(currentPath, "utf-8");
+                        const lines = content.split("\n");
                         searchedFiles.push(relativePath);
 
                         let fileMatches = 0;
