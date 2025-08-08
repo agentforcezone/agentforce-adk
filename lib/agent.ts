@@ -17,6 +17,7 @@ import type {
     ProviderType, 
     OutputType,
     AgentForceLogger,
+    ModelConfig,
 } from "./types";
 
 export type { AgentConfig };
@@ -33,15 +34,17 @@ import { defaultLogger } from "./logger";
 export class AgentForceAgent {
 
     private name: string;
-    private agentSystemPrompt: string = "You are an AI agent created by AgentForce. You can perform various tasks based on the methods provided.";
+    private agentSystemPrompt: string = "You are an AI agent created by AgentForceZone. You can perform various tasks based on the methods provided.";
     private userPrompt: string = "";
     private template: string = "";
     private tools: string[] = [];
+    private skills: string[] = [];
     private chatHistory: {role: string, content: string}[] = [];
     private logger: AgentForceLogger;
 
     private provider: string = "ollama";
     private model: string = "gemma3:4b";
+    private modelConfig?: ModelConfig; // store provider model configuration
 
     /**
      * Constructs the AgentForceAgent class.
@@ -50,6 +53,7 @@ export class AgentForceAgent {
     constructor(config: AgentConfig) {
         this.name = config.name;
         this.tools = config.tools || [];
+        this.skills = config.skills || [];
         // Accept injected logger or use default
         this.logger = config.logger || defaultLogger;
     }
@@ -57,15 +61,22 @@ export class AgentForceAgent {
     /**
      * Get the name of the agent.
      */
-    public getName(): string {
+    protected getName(): string {
         return this.name;
     }
 
     /**
      * Get the tools of the agent.
      */
-    public getTools(): string[] {
+    protected getTools(): string[] {
         return this.tools;
+    }
+
+    /**
+     * Get the skills of the agent.
+     */
+    protected getSkills(): string[] {
+        return this.skills;
     }
 
     /**
@@ -86,7 +97,7 @@ export class AgentForceAgent {
     /**
      * Get the system prompt of the agent.
      */
-    public getSystemPrompt(): string {
+    protected getSystemPrompt(): string {
         return this.agentSystemPrompt;
     }
 
@@ -101,7 +112,7 @@ export class AgentForceAgent {
     /**
      * Get the template content of the agent.
      */
-    public getTemplate(): string {
+    protected getTemplate(): string {
         return this.template;
     }
 
@@ -116,7 +127,7 @@ export class AgentForceAgent {
     /**
      * Get the name of the AgentForceAgent model.
      */
-    public getModel(): string {
+    protected getModel(): string {
         return this.model;
     }
 
@@ -124,14 +135,14 @@ export class AgentForceAgent {
      * Set the name of the AgentForceAgent model.
      * @param model
      */
-    public setModel(model: string): void {
+    protected setModel(model: string): void {
         this.model = model;
     }
 
     /**
      * Get the name of the AgentForceAgent provider.
      */
-    public getProvider(): string {
+    protected getProvider(): string {
         return this.provider;
     }
 
@@ -139,8 +150,22 @@ export class AgentForceAgent {
      * Set the name of the AgentForceAgent provider.
      * @param provider
      */
-    public setProvider(provider: string): void {
+    protected setProvider(provider: string): void {
         this.provider = provider;
+    }
+
+    /**
+     * Get the provider model configuration.
+     */
+    protected getModelConfig(): ModelConfig | undefined {
+        return this.modelConfig;
+    }
+
+    /**
+     * Set the provider model configuration.
+     */
+    protected setModelConfig(config?: ModelConfig): void {
+        this.modelConfig = config;
     }
 
     /**
@@ -175,7 +200,7 @@ export class AgentForceAgent {
 
     // Chainable methods
     debug: () => AgentForceAgent = debug.bind(this);
-    useLLM: (provider?: ProviderType, model?: string) => AgentForceAgent = useLLM.bind(this);
+    useLLM: (provider?: ProviderType, model?: string, modelConfig?: ModelConfig) => AgentForceAgent = useLLM.bind(this);
     systemPrompt: (prompt: string) => AgentForceAgent = systemPrompt.bind(this);
     prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
     withTemplate: (templatePath: string, templateData?: Record<string, unknown>) => AgentForceAgent = withTemplate.bind(this);

@@ -51,6 +51,21 @@ export type OutputType = "text" | "json" | "md";
 export type ProviderType = "ollama" | "openai" | "anthropic" | "google" | "openrouter";
 
 /**
+ * Configuration for model parameters
+ * @typedef {Object} ModelConfig
+ * @property {number} [temperature] - Controls randomness in generation (0.0-1.0)
+ * @property {number} [maxTokens] - Maximum number of tokens to generate
+ * @property {number} [maxToolRounds] - Maximum number of tool-execution rounds per request (default 10)
+ * @property {boolean} [appendToolResults] - If true, append raw tool results after the final model response
+ */
+export type ModelConfig = {
+    temperature?: number;
+    maxTokens?: number;
+    maxToolRounds?: number;
+    appendToolResults?: boolean;
+};
+
+/**
  * Configuration object for creating an AgentForce workflow
  * @typedef {Object} WorkflowConfig
  * @property {string} name - Name of the workflow

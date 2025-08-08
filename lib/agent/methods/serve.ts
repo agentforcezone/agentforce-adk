@@ -70,7 +70,7 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
                     status: "ok", 
                     agent: agentName, 
                     prompt: prompt,
-                    response: response 
+                    response: response, 
                 });
             } catch (error) {
                 log.error({
@@ -84,7 +84,7 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
                     status: "error", 
                     agent: agentName, 
                     prompt: prompt,
-                    error: error instanceof Error ? error.message : "Unknown error" 
+                    error: error instanceof Error ? error.message : "Unknown error", 
                 }, 500);
             }
         }

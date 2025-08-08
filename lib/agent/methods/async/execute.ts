@@ -2,6 +2,8 @@ import type { AgentForceAgent } from "../../../agent";
 import { GoogleProvider } from "../../../provider/google";
 import { OllamaProvider } from "../../../provider/ollama";
 import { OpenRouterProvider } from "../../../provider/openrouter";
+import { loadSkills } from "../../functions/skills";
+import { loadTools } from "../../functions/tools";
 
 /**
  * Executes the agent's provider call to generate response
@@ -17,11 +19,27 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     const systemPrompt = this.getSystemPrompt();
     const template = this.getTemplate();
     const userPrompt = this.getUserPrompt();
+    const modelConfig = (this as any).getModelConfig?.() || undefined; // access if available
+    
+    // Load skills content
+    const skills = this.getSkills();
+    const skillsContent = (skills && skills.length > 0) ? loadSkills(this) : "";
 
-    // Construct the full system prompt with template if available
+    // Load tools if configured
+    const tools = this.getTools();
+    const loadedTools = (tools && tools.length > 0) ? loadTools(this) : [];
+
+    // Construct the full system prompt in order: systemPrompt + skills + template
     let fullSystemPrompt = systemPrompt;
+    
+    // Add skills content if available
+    if (skillsContent) {
+        fullSystemPrompt = `${fullSystemPrompt}${skillsContent}`;
+    }
+    
+    // Add template if available
     if (template && template.trim()) {
-        fullSystemPrompt = `${systemPrompt}\n\n${template}`;
+        fullSystemPrompt = `${fullSystemPrompt}\n\n${template}`;
     }
 
     // Log the execution details
@@ -47,10 +65,15 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         // Execute based on provider
         switch (provider.toLowerCase()) {
             case "ollama":
-                // Initialize Ollama provider
-                const ollamaProvider = new OllamaProvider(model);
-                // Generate response using Ollama
-                response = await ollamaProvider.generate(userPrompt, fullSystemPrompt);
+                // Initialize Ollama provider with model config
+                const ollamaProvider = new OllamaProvider(model, modelConfig);
+                // Generate response using Ollama with tools if available
+                if (loadedTools.length > 0) {
+                    logger.debug("Using Ollama with tools", { toolCount: loadedTools.length });
+                    response = await ollamaProvider.generateWithTools(userPrompt, loadedTools, fullSystemPrompt, logger);
+                } else {
+                    response = await ollamaProvider.generate(userPrompt, fullSystemPrompt);
+                }
                 break;
 
             case "openrouter":
