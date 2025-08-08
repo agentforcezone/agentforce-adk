@@ -85,26 +85,8 @@ export function createWorkflowTriggerHandler(
             let workflowResult: any;
             
             if (typeof globalThis.Bun !== "undefined") {
-                // Bun runtime - use dynamic import
+                // Bun runtime - execute the file using Bun subprocess to avoid dynamic import issues
                 try {
-                    // Clear require cache to ensure fresh execution
-                    delete require.cache[absolutePath];
-                    
-                    // Import and execute the workflow
-                    const workflowModule = await import(absolutePath);
-                    
-                    // If the module exports a workflow, run it
-                    if (workflowModule.default && typeof workflowModule.default.run === "function") {
-                        workflowResult = await workflowModule.default.run();
-                    } else if (workflowModule.workflow && typeof workflowModule.workflow.run === "function") {
-                        workflowResult = await workflowModule.workflow.run();
-                    } else {
-                        // If no explicit workflow export, the file execution itself is the workflow
-                        workflowResult = workflowModule;
-                    }
-                } catch (importError) {
-                    console.error(`❌ Error importing workflow: ${importError}`);
-                    // Fallback: execute the file using Bun subprocess
                     const proc = Bun.spawn(["bun", "run", absolutePath], {
                         stdout: "pipe",
                         stderr: "pipe",
@@ -117,7 +99,15 @@ export function createWorkflowTriggerHandler(
                         throw new Error(`Workflow execution failed: ${error}`);
                     }
                     
-                    workflowResult = { output, executedAt: new Date().toISOString() };
+                    // Try to parse output as JSON, fallback to string
+                    try {
+                        workflowResult = JSON.parse(output);
+                    } catch {
+                        workflowResult = { output, executedAt: new Date().toISOString() };
+                    }
+                } catch (bunError) {
+                    console.error(`❌ Error executing workflow with Bun: ${bunError}`);
+                    throw new Error(`Workflow execution failed: ${bunError instanceof Error ? bunError.message : "Unknown error"}`);
                 }
             } else {
                 // Node.js runtime - use child_process
