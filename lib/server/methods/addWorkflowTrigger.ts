@@ -96,7 +96,15 @@ export function createWorkflowTriggerHandler(
                     const error = await new Response(proc.stderr).text();
                     
                     if (proc.exitCode !== 0) {
-                        throw new Error(`Workflow execution failed: ${error}`);
+                        console.error(`❌ Workflow execution failed: ${error}`);
+                        return c.json({
+                            success: false,
+                            error: "Workflow execution failed",
+                            message: error,
+                            method,
+                            path,
+                            workflowPath: absolutePath,
+                        }, 500);
                     }
                     
                     // Try to parse output as JSON, fallback to string
@@ -107,7 +115,15 @@ export function createWorkflowTriggerHandler(
                     }
                 } catch (bunError) {
                     console.error(`❌ Error executing workflow with Bun: ${bunError}`);
-                    throw new Error(`Workflow execution failed: ${bunError instanceof Error ? bunError.message : "Unknown error"}`);
+                    const errorMessage = bunError instanceof Error ? bunError.message : "Unknown error";
+                    return c.json({
+                        success: false,
+                        error: "Workflow execution failed",
+                        message: errorMessage,
+                        method,
+                        path,
+                        workflowPath: absolutePath,
+                    }, 500);
                 }
             } else {
                 // Node.js runtime - use child_process
@@ -128,7 +144,15 @@ export function createWorkflowTriggerHandler(
                         stderr: stderr || null,
                     };
                 } catch (execError: any) {
-                    throw new Error(`Workflow execution failed: ${execError.message}`);
+                    console.error(`❌ Error executing workflow with Node: ${execError.message}`);
+                    return c.json({
+                        success: false,
+                        error: "Workflow execution failed",
+                        message: execError.message,
+                        method,
+                        path,
+                        workflowPath: absolutePath,
+                    }, 500);
                 }
             }
             

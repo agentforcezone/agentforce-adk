@@ -1,9 +1,7 @@
-// Mock for puppeteer-extra-plugin-stealth
-import { jest } from "@jest/globals";
-
-const mockStealthPlugin = jest.fn().mockReturnValue({
-  name: "StealthPlugin",
-  requirements: new Set(["headful"]),
-});
+// Mock puppeteer-extra-plugin-stealth
+const mockStealthPlugin = jest.fn(() => ({
+  pluginName: 'stealth',
+  requirements: new Set(),
+}));
 
 export default mockStealthPlugin;

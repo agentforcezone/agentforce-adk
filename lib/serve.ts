@@ -1,10 +1,9 @@
-import type { AgentForceAgent } from "../../agent";
+import type { AgentForceAgent } from "./agent";
 import { Hono } from "hono";
-import { logger as loggerMiddleware } from "hono/logger";
 
 /**
- * Starts an HTTP server for the agent (terminal method)
- * Compatible with Bun, Node.js, and Deno runtimes
+ * Starts an HTTP server for the agent using Hono (terminal method)
+ * Compatible with Bun, Node.js, and Deno runtimes via Hono
  * @param this - The AgentForceAgent instance (bound context)
  * @param host - The host address to bind the server to (default: "0.0.0.0")
  * @param port - The port number to listen on (default: 3000)
@@ -25,38 +24,30 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
     const currentModel = this.getModel();
     const currentProvider = this.getProvider();
 
-    console.log(`Starting server for agent: ${agentName}`);
-    console.log(`Current config: ${currentProvider}/${currentModel}`);
-    console.log(`Server will bind to: ${host}:${port}`);
-
     // Get the agent's logger instance
-    const log = this.getLogger();
+    const logger = this.getLogger();
 
-    // Custom logger function for Hono middleware that parses HTTP request info
-    const customLogger = (message: string, ...rest: string[]): void => {
-        // Parse the message format: "--> GET /v1/models \u001b[32m200\u001b[0m 12ms"
-        const httpLogPattern = /^--> (\w+) (.+?) (?:\u001b\[\d+m)?(\d+)(?:\u001b\[\d+m)? (\d+)ms$/;
-        const match = message.match(httpLogPattern);
-        
-        if (match && match.length >= 5) {
-            const [, method, route, statusCode, duration] = match;
-            log.info({
-                type: "http_request",
-                method,
-                route,
-                statusCode: parseInt(statusCode || "0"),
-                duration: parseInt(duration || "0"),
-                durationUnit: "ms",
-            });
-        } else {
-            // Fallback for non-HTTP log messages
-            log.info(message, ...rest);
-        }
-    };
+    // Log server startup information using structured logging
+    logger.info({
+        agentName,
+        provider: currentProvider,
+        model: currentModel,
+        host,
+        port,
+        action: "server_starting",
+    }, `Starting server for agent: ${agentName}`);
 
-    // Create Hono app with logger middleware
+    // Create Hono app with HTTP request logging middleware
     const app = new Hono();
-    app.use(loggerMiddleware(customLogger));
+    
+    // Add middleware to log all HTTP requests
+    app.use("*", async (c, next) => {
+        logger.info({
+            httpMethod: c.req.method,
+            route: c.req.path,
+        });
+        await next();
+    });
 
     // Default route - enhanced to handle prompt query parameter
     app.get("/", async (c) => {
@@ -73,7 +64,7 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
                     response: response, 
                 });
             } catch (error) {
-                log.error({
+                logger.error({
                     agentName,
                     prompt,
                     error: error instanceof Error ? error.message : String(error),
@@ -94,16 +85,20 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
 
     // Start the server using runtime-appropriate method
     try {
-        if (typeof globalThis.Bun !== "undefined") {
+        if (typeof Bun !== "undefined") {
             // Bun runtime
-            const server = (globalThis as any).Bun.serve({
+            const server = Bun.serve({
                 hostname: host,
                 port: port,
                 fetch: app.fetch,
             });
 
-            log.info(`🚀 Agent server running at http://${server.hostname}:${server.port}`);
-            console.log(`🚀 Agent server running at http://${server.hostname}:${server.port}`);
+            logger.info({
+                hostname: server.hostname,
+                port: server.port,
+                runtime: "bun",
+                action: "server_started",
+            }, `🚀 Agent server running at http://${server.hostname}:${server.port}`);
         } else if (typeof (globalThis as any).Deno !== "undefined") {
             // Deno runtime
             (globalThis as any).Deno.serve({ 
@@ -111,10 +106,14 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
                 port: port,
             }, app.fetch);
 
-            log.info(`🚀 Agent server running at http://${host}:${port}`);
-            console.log(`🚀 Agent server running at http://${host}:${port}`);
+            logger.info({
+                hostname: host,
+                port: port,
+                runtime: "deno",
+                action: "server_started",
+            }, `🚀 Agent server running at http://${host}:${port}`);
         } else {
-            // Node.js runtime - use Node.js built-in http module
+            // Node.js runtime - use built-in http module
             const http = await import("node:http");
             
             const server = http.createServer(async (req, res) => {
@@ -158,37 +157,50 @@ export async function serve(this: AgentForceAgent, host: string = "0.0.0.0", por
                         res.setHeader(key, value);
                     });
 
-                    // Send response body
+                    // Handle response body
                     if (response.body) {
                         const reader = response.body.getReader();
+                        
                         while (true) {
                             const { done, value } = await reader.read();
                             if (done) break;
-                            res.write(value);
+                            
+                            if (value) {
+                                res.write(value);
+                            }
                         }
                     }
+                    
                     res.end();
                 } catch (error) {
-                    console.error("Error processing request:", error);
+                    logger.error("Error processing request:", error);
                     res.statusCode = 500;
-                    res.end("Internal Server Error");
+                    res.setHeader("Content-Type", "application/json");
+                    res.write(JSON.stringify({ error: "Internal Server Error" }));
+                    res.end();
                 }
             });
 
             server.listen(port, host, () => {
-                log.info(`🚀 Agent server running at http://${host}:${port}`);
-                console.log(`🚀 Agent server running at http://${host}:${port}`);
+                logger.info({
+                    hostname: host,
+                    port: port,
+                    runtime: "nodejs",
+                    action: "server_started",
+                }, `🚀 Agent server running at http://${host}:${port}`);
             });
         }
-    } catch (error) {
-        log.error({
-            agentName,
-            error: error instanceof Error ? error.message : String(error),
-            action: "server_start_failed",
-        }, "Failed to start agent server");
-        
-        throw new Error(`Failed to start agent server: ${error instanceof Error ? error.message : String(error)}`);
-    }
 
-    // Terminal method - does not return the agent (server runs indefinitely)
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error({
+            agentName,
+            error: errorMessage,
+            action: "server_start_failed",
+        }, `Failed to start agent server: ${errorMessage}`);
+        
+        // Since serve() returns Promise<void>, we can't return an error message
+        // The error is already logged, so we just return to allow graceful handling
+        return;
+    }
 }

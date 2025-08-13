@@ -13,7 +13,8 @@ export function onSuccess(this: AgentForceWorkflow, agent: AgentForceAgent): Age
     if (lastStep) {
         lastStep.onSuccess = agent;
     } else {
-        this.getLogger().warn("Cannot call .onSuccess() before defining a step.");
+        const logger = this.getLogger();
+        logger.warn("Cannot call .onSuccess() before defining a step.");
     }
     return this;
 }

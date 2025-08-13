@@ -6,19 +6,23 @@ import type { AgentForceWorkflow } from "../../workflow";
  * @param this - The AgentForceWorkflow instance.
  */
 export function debug(this: AgentForceWorkflow): AgentForceWorkflow {
-    this.getLogger().info({
+    const logger = this.getLogger();
+    const dispatcherAgent = this.getDispatcher();
+    const name = dispatcherAgent!["getName"]();
+
+    logger.info({
         message: "Workflow Debug Information",
         configuration: {
             name: this.getName(),
-            logger: this.getLoggerType(),
+            logger: "AgentForceLogger",
         },
         prompt: this.getUserPrompt(),
-        dispatcher: this.getDispatcher()?.getName() || "None",
+        dispatcher: name || "None",
         executionPlan: this.executionPlan.map(step => ({
             type: step.type,
             description: step.description,
-            onSuccess: step.onSuccess?.getName(),
-            onFail: step.onFail?.getName(),
+            onSuccess: step.onSuccess?.["getName"](),
+            onFail: step.onFail?.["getName"](),
         })),
         registeredAgents: this.agents.map(a => a.name),
         sharedStoreItems: Object.fromEntries(this.internalSharedStore.entries()),

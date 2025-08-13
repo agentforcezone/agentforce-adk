@@ -29,6 +29,7 @@ export type AgentConfig = {
     logger?: AgentForceLogger;
 };
 
+
 /**
  * Configuration object for creating an AgentForce server
  * @typedef {Object} ServerConfig

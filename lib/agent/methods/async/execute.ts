@@ -25,11 +25,11 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     
     // Load skills content
     const skills = this.getSkills();
-    const skillsContent = (skills && skills.length > 0) ? loadSkills(this) : "";
+    const skillsContent = (skills && skills.length > 0) ? (loadSkills(this) || "") : "";
 
     // Load tools if configured
     const tools = this.getTools();
-    const loadedTools = (tools && tools.length > 0) ? loadTools(this) : [];
+    const loadedTools = (tools && tools.length > 0) ? (loadTools(this) || []) : [];
 
     // Construct the full system prompt in order: systemPrompt + skills + template
     let fullSystemPrompt = systemPrompt;
@@ -180,7 +180,7 @@ async function executeProviderCallWithChatHistory(
             // Initialize Ollama provider with model config
             const ollamaProvider = new OllamaProvider(model, modelConfig);
             // Generate response using Ollama with tools if available
-            if (loadedTools.length > 0) {
+            if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using Ollama with tools and chat history", { 
                     toolCount: loadedTools.length,
                     chatHistoryLength: chatHistory.length,
@@ -199,7 +199,7 @@ async function executeProviderCallWithChatHistory(
             // Initialize OpenRouter provider
             const openRouterProvider = new OpenRouterProvider(model, modelConfig);
             // Generate response using OpenRouter with tools if available
-            if (loadedTools.length > 0) {
+            if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using OpenRouter with tools and chat history", { 
                     toolCount: loadedTools.length,
                     chatHistoryLength: chatHistory.length,
@@ -255,7 +255,7 @@ async function executeProviderCall(
             // Initialize Ollama provider with model config
             const ollamaProvider = new OllamaProvider(model, modelConfig);
             // Generate response using Ollama with tools if available
-            if (loadedTools.length > 0) {
+            if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using Ollama with tools", { toolCount: loadedTools.length });
                 return await ollamaProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger);
             } else {
@@ -266,7 +266,7 @@ async function executeProviderCall(
             // Initialize OpenRouter provider
             const openRouterProvider = new OpenRouterProvider(model, modelConfig);
             // Generate response using OpenRouter with tools if available
-            if (loadedTools.length > 0) {
+            if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using OpenRouter with tools", { toolCount: loadedTools.length });
                 return await openRouterProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger);
             } else {

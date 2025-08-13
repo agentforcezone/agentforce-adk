@@ -111,7 +111,7 @@ export function useOpenAICompatibleRouting(
         serverName,
         method,
         path,
-        agentName: agent.getName(),
+        agentName: agent["getName"](),
         action: "openai_compatible_agent_added",
     }, `Adding OpenAI-compatible agent: ${method} ${path}`);
 

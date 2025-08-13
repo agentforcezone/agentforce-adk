@@ -35,6 +35,8 @@ import type { ProviderType, ModelConfig } from "../../types";
  * ```
  */
 export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama", model = "gemma3:4b", modelConfig?: ModelConfig): AgentForceAgent {
+    const logger = this.getLogger();
+    
     // Update agent settings with provided parameters
     this.setProvider(provider);
     this.setModel(model);
@@ -57,15 +59,15 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
             break;
         
         case "openai":
-            console.log(`⚠️  OpenAI provider not implemented yet. Model: ${model}`);
+            logger.debug(`⚠️  OpenAI provider not implemented yet. Model: ${model}`);
             break;
         
         case "anthropic":
-            console.log(`⚠️  Anthropic provider not implemented yet. Model: ${model}`);
+            logger.debug(`⚠️  Anthropic provider not implemented yet. Model: ${model}`);
             break;
         
         default:
-            console.log(`⚠️  Unknown provider: ${provider}. Model: ${model}`);
+            logger.debug(`⚠️  Unknown provider: ${provider}. Model: ${model}`);
             break;
     }
 

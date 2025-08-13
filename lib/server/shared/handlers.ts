@@ -160,7 +160,7 @@ export function createFormPostHandler(
                 success: true,
                 prompt,
                 response,
-                agentName: agent.getName(),
+                agentName: agent["getName"](),
                 // Include any additional input fields from the request
                 ...Object.fromEntries(
                     Object.entries(requestData).filter(([key]) => 

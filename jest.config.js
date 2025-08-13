@@ -7,9 +7,20 @@ export default {
   transform: {
     "^.+\\.ts$": ["ts-jest", {
       useESM: true,
-      isolatedModules: true,
+      tsconfig: {
+        module: "esnext",
+        target: "esnext",
+        moduleResolution: "node",
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        skipLibCheck: true,
+      },
+      isolatedModules: false,
     }],
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!(puppeteer-extra|puppeteer-extra-plugin-stealth)/)"
+  ],
   collectCoverageFrom: [
     "lib/**/*.ts",
     "!lib/**/*.d.ts",
@@ -20,4 +31,8 @@ export default {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  moduleNameMapper: {
+    "^puppeteer-extra$": "<rootDir>/tests/__mocks__/puppeteer-extra.ts",
+    "^puppeteer-extra-plugin-stealth$": "<rootDir>/tests/__mocks__/puppeteer-extra-plugin-stealth.ts"
+  },
 };

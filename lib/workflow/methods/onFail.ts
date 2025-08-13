@@ -13,7 +13,8 @@ export function onFail(this: AgentForceWorkflow, agent: AgentForceAgent): AgentF
     if (lastStep) {
         lastStep.onFail = agent;
     } else {
-        this.getLogger().warn("Cannot call .onFail() before defining a step.");
+        const logger = this.getLogger();
+        logger.warn("Cannot call .onFail() before defining a step.");
     }
     return this;
 }

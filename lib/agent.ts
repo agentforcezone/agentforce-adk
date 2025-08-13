@@ -222,6 +222,7 @@ export class AgentForceAgent {
      */
     protected execute: (userPrompt?: string) => Promise<string> = execute.bind(this);
 
+
     // Chainable methods
     debug: () => AgentForceAgent = debug.bind(this);
     useLLM: (provider?: ProviderType, model?: string, modelConfig?: ModelConfig) => AgentForceAgent = useLLM.bind(this);
@@ -231,7 +232,7 @@ export class AgentForceAgent {
     task: (taskDescription: string) => AgentForceAgent = task.bind(this);
     run: () => Promise<AgentForceAgent> = run.bind(this);
     
-    // Terminal/Non-chainable methods (return output, not this)
+    // Execution/Non-chainable methods (return output, not this)
     serve: (host?: string, port?: number) => Promise<void> = serve.bind(this);
     output: (outputType: OutputType) => Promise<string | object> = output.bind(this);
     getResponse: () => Promise<string> = getResponse.bind(this);

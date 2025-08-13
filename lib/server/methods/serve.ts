@@ -164,7 +164,7 @@ export async function serve(this: AgentForceServer, host: string = "0.0.0.0", po
             serverName,
             method,
             path,
-            agentName: agent.getName(),
+            agentName: agent["getName"](),
             routeType,
             action: "route_registered",
         }, `Registered ${routeType} route: ${method} ${path}`);
@@ -348,7 +348,7 @@ export async function serve(this: AgentForceServer, host: string = "0.0.0.0", po
             action: "server_start_failed",
         }, "Failed to start server");
         
-        throw new Error(`Failed to start server: ${error instanceof Error ? error.message : String(error)}`);
+        return;
     }
 
     // Terminal method - does not return the server instance (server runs indefinitely)

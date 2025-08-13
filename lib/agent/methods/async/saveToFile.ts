@@ -5,10 +5,10 @@ import { writeFile } from "fs/promises";
 import { join, extname } from "path";
 
 /**
- * Executes the agent and saves the response to a file (terminal method)
+ * Executes the agent and saves the response to a file (execution method)
  * @param this - The AgentForceAgent instance (bound context)
  * @param fileName - The filename to save to (extension determines format: .txt, .json, .md)
- * @returns {Promise<string>} Returns the file path where content was saved - NOT the agent instance (terminal method)
+ * @returns {Promise<string>} Returns the file path where content was saved - NOT the agent instance (execution method)
  */
 export async function saveToFile(this: AgentForceAgent, fileName: string): Promise<string> {
     // Validate input
@@ -31,7 +31,9 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
             outputType = "md";
             break;
         default:
-            throw new Error("Unsupported file extension. Use .txt, .json, or .md");
+            const logger = this.getLogger();
+            logger.error(`Unsupported file extension: ${fileExtension}. Use .txt, .json, or .md`);
+            return `Error: Unsupported file extension: ${fileExtension}`;
     }
 
     // Execute the provider call first to get the response
@@ -79,8 +81,11 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
             content = `${assistantResponse}`;
             break;
             
+        /* istanbul ignore next - defensive code for impossible case */
         default:
-            throw new Error(`Unsupported output type: ${outputType}`);
+            const logger = this.getLogger();
+            logger.error(`Unsupported output type: ${outputType}`);
+            content = `Error: Unsupported output type: ${outputType}`;
     }
     
     // Write content to file
@@ -89,6 +94,9 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
         await writeFile(fullPath, content, "utf8");
         return fullPath;
     } catch (error) {
-        throw new Error(`Failed to write file: ${error instanceof Error ? error.message : "Unknown error"}`);
+        const logger = this.getLogger();
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        logger.error(`Failed to write file: ${errorMessage}`);
+        return `Error: Failed to write file: ${errorMessage}`;
     }
 }

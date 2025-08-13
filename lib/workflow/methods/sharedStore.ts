@@ -10,8 +10,8 @@ import type { AgentForceWorkflow } from "../../workflow";
  * @returns The AgentForceWorkflow instance for method chaining.
  */
 export function sharedStore(this: AgentForceWorkflow, key: string, value: any): AgentForceWorkflow {
-    // @ts-ignore
     this.setSharedStoreItem(key, value);
-    this.getLogger().info({ message: `Set shared store key '${key}'` });
+    const logger = this.getLogger();
+    logger.info({ message: `Set shared store key '${key}'` });
     return this;
 }

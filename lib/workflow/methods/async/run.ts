@@ -11,7 +11,8 @@ import type { AgentForceAgent } from "../../../agent";
  * @returns The output of the executed step.
  */
 async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input: any): Promise<any> {
-    this.getLogger().debug({ message: `Executing step: ${step.type}`, input });
+    const logger = this.getLogger();
+    logger.debug({ message: `Executing step: ${step.type}`, input });
     let output: any;
     let success = true;
 
@@ -26,7 +27,7 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
                 let sequenceInput = input;
                 const sequenceAgents = step.payload as AgentForceAgent[];
                 for (const agent of sequenceAgents) {
-                    this.getLogger().info({ message: `Executing agent '${agent.getName()}' in sequence.` });
+                    logger.info({ message: `Executing agent '${agent["getName"]()}' in sequence.` });
                     sequenceInput = await agent.execute(sequenceInput);
                 }
                 output = sequenceInput;
@@ -34,7 +35,7 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
 
             case "parallel":
                 const parallelAgents = step.payload as AgentForceAgent[];
-                this.getLogger().info({ message: `Executing ${parallelAgents.length} agents in parallel.` });
+                logger.info({ message: `Executing ${parallelAgents.length} agents in parallel.` });
                 const parallelPromises = parallelAgents.map(agent => agent.execute(input));
                 output = await Promise.all(parallelPromises);
                 break;
@@ -46,13 +47,14 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
                 if (typeof items === "string") {
                     itemList = this.getSharedStoreItem(items);
                     if (!Array.isArray(itemList)) {
-                        throw new Error(`Shared store key "${items}" for iteration does not contain an array.`);
+                        logger.error(`Shared store key "${items}" for iteration does not contain an array.`);
+                        return `Error: Shared store key "${items}" for iteration does not contain an array.`;
                     }
                 } else {
                     itemList = items;
                 }
                 
-                this.getLogger().info({ message: `Iterating over ${itemList.length} items with agent '${agent.getName()}'.` });
+                logger.info({ message: `Iterating over ${itemList.length} items with agent '${agent["getName"]()}'.` });
                 const iterationPromises = itemList.map(item => agent.execute(item));
                 output = await Promise.all(iterationPromises);
                 break;
@@ -60,10 +62,10 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
     } catch (error) {
         success = false;
         output = error;
-        this.getLogger().error({ message: `Step ${step.type} failed`, error: (error as Error).message, stack: (error as Error).stack });
+        logger.error({ message: `Step ${step.type} failed`, error: (error as Error).message, stack: (error as Error).stack });
         
         if (step.onFail) {
-            this.getLogger().warn({ message: `Executing onFail handler for step: ${step.type}` });
+            logger.warn({ message: `Executing onFail handler for step: ${step.type}` });
             // The input to the onFail handler is the error message
             return await step.onFail.execute((error as Error).message);
         } else {
@@ -73,7 +75,7 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
     }
 
     if (success && step.onSuccess) {
-        this.getLogger().info({ message: `Executing onSuccess handler for step: ${step.type}` });
+        logger.info({ message: `Executing onSuccess handler for step: ${step.type}` });
         // The input to the onSuccess handler is the output of the successful step
         return await step.onSuccess.execute(output);
     }
@@ -88,10 +90,11 @@ async function executeStep(this: AgentForceWorkflow, step: ExecutionStep, input:
  * @returns An object containing the final output and the state of the shared store.
  */
 export async function run(this: AgentForceWorkflow): Promise<any> {
-    this.getLogger().info({ message: "Running workflow...", name: this.getName() });
+    const logger = this.getLogger();
+    logger.info({ message: "Running workflow...", name: this.getName() });
 
     if (!this.executionPlan || this.executionPlan.length === 0) {
-        this.getLogger().warn({ message: "Execution plan is empty. Nothing to run." });
+        logger.warn({ message: "Execution plan is empty. Nothing to run." });
         return { finalOutput: undefined, sharedStore: Object.fromEntries(this.internalSharedStore.entries()) };
     }
 
@@ -101,7 +104,7 @@ export async function run(this: AgentForceWorkflow): Promise<any> {
         lastOutput = await executeStep.call(this, step, lastOutput);
     }
 
-    this.getLogger().info({ message: "Workflow execution finished." });
+    logger.info({ message: "Workflow execution finished." });
 
     return { 
         finalOutput: lastOutput, 

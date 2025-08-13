@@ -41,17 +41,26 @@ export function loadTools(agent: AgentForceAgent): Tool[] {
 export async function executeTool(
     toolName: string, 
     args: Record<string, any>,
+    logger?: any,
 ): Promise<any> {
     const tool = getTool(toolName);
     
     if (!tool) {
-        throw new Error(`Tool ${toolName} not found in registry`);
+        const errorMessage = `Tool ${toolName} not found in registry`;
+        if (logger) {
+            logger.error(errorMessage);
+        }
+        return { error: errorMessage };
     }
     
     try {
         const result = await tool.execute(args);
         return result;
     } catch (error: any) {
-        throw new Error(`Tool execution failed for ${toolName}: ${error.message}`);
+        const errorMessage = `Tool execution failed for ${toolName}: ${error.message}`;
+        if (logger) {
+            logger.error(errorMessage);
+        }
+        return { error: errorMessage };
     }
 }

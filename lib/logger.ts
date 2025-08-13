@@ -60,25 +60,25 @@ export const defaultLogger = {
     debug: (...args: unknown[]) => {
         if (currentLogLevel <= logLevels.debug) {
             const timestamp = new Date().toISOString();
-            console.debug(`${blue("DEBUG")} [${timestamp}]`, formatAsJson(args));
+            process.stdout.write(`${blue("DEBUG")} [${timestamp}] ${formatAsJson(args)}\n`);
         }
     },
     info: (...args: unknown[]) => {
         if (currentLogLevel <= logLevels.info) {
             const timestamp = new Date().toISOString();
-            console.log(`${green("INFO")} [${timestamp}]`, formatAsJson(args));
+            process.stdout.write(`${green("INFO")} [${timestamp}] ${formatAsJson(args)}\n`);
         }
     },
     warn: (...args: unknown[]) => {
         if (currentLogLevel <= logLevels.warn) {
             const timestamp = new Date().toISOString();
-            console.warn(`${yellow("WARN")} [${timestamp}]`, formatAsJson(args));
+            process.stderr.write(`${yellow("WARN")} [${timestamp}] ${formatAsJson(args)}\n`);
         }
     },
     error: (...args: unknown[]) => {
         if (currentLogLevel <= logLevels.error) {
             const timestamp = new Date().toISOString();
-            console.error(`${red("ERROR")} [${timestamp}]`, formatAsJson(args));
+            process.stderr.write(`${red("ERROR")} [${timestamp}] ${formatAsJson(args)}\n`);
         }
     },
 };

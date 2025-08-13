@@ -2,7 +2,7 @@ import type { AgentForceAgent } from "../../../agent";
 import { execute } from "./execute";
 
 /**
- * Executes the agent's chain by making the actual API call to the configured provider
+ * Executes the agent's chain by making the actual API call to the configured provider (execution method)
  * @param this - The AgentForceAgent instance (bound context)
  * @returns {Promise<AgentForceAgent>} Returns the agent instance for method chaining
  */

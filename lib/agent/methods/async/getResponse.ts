@@ -2,7 +2,11 @@ import type { AgentForceAgent } from "../../../agent";
 import { execute } from "./execute";
 
 /**
- * Executes the agent and returns only the raw LLM response (terminal method)
+ * Executes the agent and returns only the raw LLM response (execution method)
+ * 
+ * Use this when you only need the assistant's response content without any metadata.
+ * For structured output with metadata, timestamps, and formatting options, use output() instead.
+ * 
  * @param this - The AgentForceAgent instance (bound context)
  * @returns {Promise<string>} Returns only the LLM response - NOT the agent instance (terminal method)
  */
@@ -20,7 +24,10 @@ export async function getResponse(this: AgentForceAgent): Promise<string> {
             return latestAssistantMessage.content;
         }
         
-        // If no error message in history, throw the original error
-        throw error;
+        // If no error message in history, log and return error message
+        const logger = this.getLogger();
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error(`Failed to get response: ${errorMessage}`);
+        return `Error: Failed to get response - ${errorMessage}`;
     }
 }

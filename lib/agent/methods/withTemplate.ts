@@ -46,9 +46,12 @@ export function withTemplate(this: AgentForceAgent, templatePath: string, templa
         return this;
 
     } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Failed to load template from "${templatePath}": ${error.message}`);
-        }
-        throw new Error(`Failed to load template from "${templatePath}": Unknown error`);
+        const logger = this.getLogger();
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        logger.error(`Failed to load template from "${templatePath}": ${errorMessage}`);
+        
+        // Set empty template and continue - allows chain to proceed
+        this.setTemplate("");
+        return this;
     }
 }

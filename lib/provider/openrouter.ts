@@ -70,7 +70,8 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
 
             return completion.choices[0]?.message?.content || "";
         } catch (error) {
-            throw new Error(`OpenRouter provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: OpenRouter provider error - ${errorMessage}`;
         }
     }
 
@@ -96,7 +97,8 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
 
             return completion.choices[0]?.message?.content || "";
         } catch (error) {
-            throw new Error(`OpenRouter provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: OpenRouter provider error - ${errorMessage}`;
         }
     }
 

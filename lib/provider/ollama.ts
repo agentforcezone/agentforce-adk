@@ -63,7 +63,8 @@ export class OllamaProvider implements OllamaProviderInterface {
             });
             return response.response;
         } catch (error) {
-            throw new Error(`Ollama provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: Ollama provider error - ${errorMessage}`;
         }
     }
 
@@ -81,7 +82,8 @@ export class OllamaProvider implements OllamaProviderInterface {
             });
             return response.message.content;
         } catch (error) {
-            throw new Error(`Ollama provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: Ollama provider error - ${errorMessage}`;
         }
     }
 

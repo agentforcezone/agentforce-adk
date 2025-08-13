@@ -53,7 +53,8 @@ export class GoogleProvider implements GoogleProviderInterface {
             });
             return response.text ?? "No response text available";
         } catch (error) {
-            throw new Error(`Google gemini provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: Google Gemini provider error - ${errorMessage}`;
         }
     }
 
@@ -104,12 +105,13 @@ export class GoogleProvider implements GoogleProviderInterface {
             });
 
             if (!response.text) {
-                throw new Error("No response text available from Google Gemini");
+                return "Error: No response text available from Google Gemini";
             }
             return response.text;
 
         } catch (error) {
-            throw new Error(`Google Gemini provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Error: Google Gemini provider error - ${errorMessage}`;
         }
     }
 

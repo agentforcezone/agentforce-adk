@@ -229,7 +229,11 @@ export class OllamaToolUse implements OllamaToolUseInterface {
             });
             return response.response;
         } catch (error) {
-            throw new Error(`Ollama provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (logger) {
+                logger.error(`Ollama provider error: ${errorMessage}`);
+            }
+            return `Error: Ollama provider error - ${errorMessage}`;
         }
     }
 
@@ -380,7 +384,11 @@ export class OllamaToolUse implements OllamaToolUseInterface {
             const lastAttempt = await ollama.chat({ model: this.model, messages: convo, options: this.getOllamaOptions() });
             return lastAttempt.message.content;
         } catch (error) {
-            throw new Error(`Ollama provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (logger) {
+                logger.error(`Ollama provider error: ${errorMessage}`);
+            }
+            return `Error: Ollama provider error - ${errorMessage}`;
         }
     }
 }

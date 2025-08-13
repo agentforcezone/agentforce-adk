@@ -69,7 +69,7 @@ export function useOllamaCompatibleRouting(
         serverName,
         method: generateMethod,
         path: generatePath,
-        agentName: agent.getName(),
+        agentName: agent["getName"](),
         action: "ollama_compatible_agent_added",
     }, `Adding Ollama-compatible agent: ${generateMethod} ${generatePath}`);
 
@@ -89,7 +89,7 @@ export function useOllamaCompatibleRouting(
         serverName,
         method: chatMethod,
         path: chatPath,
-        agentName: agent.getName(),
+        agentName: agent["getName"](),
         action: "ollama_compatible_agent_added",
     }, `Adding Ollama-compatible agent: ${chatMethod} ${chatPath}`);
 

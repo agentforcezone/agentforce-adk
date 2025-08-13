@@ -3,10 +3,14 @@ import type { OutputType } from "../../../types";
 import { execute } from "./execute";
 
 /**
- * Executes the agent and outputs the response in the specified format (terminal method)
+ * Executes the agent and outputs the response in the specified format (execution method)
+ * 
+ * Use this when you need structured output with metadata, timestamps, and formatting control.
+ * For simple access to just the assistant's response content, use getResponse() instead.
+ * 
  * @param this - The AgentForceAgent instance (bound context)
  * @param outputType - The output format type ('text', 'json', 'md')
- * @returns {Promise<string|object>} Returns the formatted output - NOT the agent instance (terminal method)
+ * @returns {Promise<string|object>} Returns the formatted output - NOT the agent instance (execution method)
  */
 export async function output(this: AgentForceAgent, outputType: OutputType): Promise<string | object> {
     // Validate input
@@ -34,6 +38,7 @@ export async function output(this: AgentForceAgent, outputType: OutputType): Pro
     const provider = this.getProvider();
     const model = this.getModel();
     const chatHistory = this.getChatHistory();
+    const logger = this.getLogger();
     
     // Get the latest assistant response from chat history
     const latestAssistantMessage = chatHistory.findLast(msg => msg.role === "assistant");
@@ -64,6 +69,7 @@ export async function output(this: AgentForceAgent, outputType: OutputType): Pro
             return mdOutput;
             
         default:
-            throw new Error(`Unsupported output type: ${outputType}`);
+            logger.error(`Unsupported output type: ${outputType}`);
+            return `Error: Unsupported output type: ${outputType}`;
     }
 }

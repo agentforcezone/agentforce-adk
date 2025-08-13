@@ -46,7 +46,7 @@ export function addFormTrigger(
         formName,
         path: normalizedPath,
         filePath,
-        agentName: agent.getName(),
+        agentName: agent["getName"](),
         schema,
         action: "form_trigger_adding",
     }, `Adding form trigger: ${normalizedPath}`);

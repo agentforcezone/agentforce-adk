@@ -13,7 +13,7 @@ import {
     debug,
 } from "./workflow/mod";
 
-import type { WorkflowConfig, LoggerType, AgentForceLogger } from "./types";
+import type { WorkflowConfig, AgentForceLogger } from "./types";
 import type { AgentForceAgent } from "./agent";
 import { defaultLogger } from "./logger";
 
@@ -44,8 +44,7 @@ export interface ExecutionStep {
 export class AgentForceWorkflow {
 
     private name: string;
-    private logger: LoggerType = "json";
-    private workflowLogger: AgentForceLogger;
+    private logger: AgentForceLogger;
     
     // Properties accessed by method files should be protected
     protected userPrompt: string = "";
@@ -61,10 +60,9 @@ export class AgentForceWorkflow {
      */
     constructor(config: WorkflowConfig) {
         this.name = config.name;
-        this.logger = config.logger || "json";
         
         // Initialize logger
-        this.workflowLogger = defaultLogger;
+        this.logger = config.logger || defaultLogger;
     }
 
     // --- Getters & Setters ---
@@ -77,17 +75,10 @@ export class AgentForceWorkflow {
     }
 
     /**
-     * Get the logger type of the workflow.
-     */
-    public getLoggerType(): LoggerType {
-        return this.logger;
-    }
-
-    /**
      * Get the logger instance.
      */
     public getLogger(): AgentForceLogger {
-        return this.workflowLogger;
+        return this.logger;
     }
 
     /**

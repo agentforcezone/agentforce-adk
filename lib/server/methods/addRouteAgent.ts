@@ -273,7 +273,12 @@ export function createAgentRouteHandler(
                 console.log("✅ Agent Response Received:", response.substring(0, 100) + (response.length > 100 ? "..." : ""));
             } catch (error) {
                 console.error("❌ Error executing agent:", error);
-                throw new Error(`Agent execution failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+                const errorMessage = error instanceof Error ? error.message : "Unknown error";
+                return c.json({
+                    error: "Agent execution failed",
+                    message: errorMessage,
+                    success: false,
+                }, 500);
             }
 
             // Build response data based on schema configuration
@@ -281,7 +286,7 @@ export function createAgentRouteHandler(
                 success: true,
                 method,
                 path,
-                agentName: agent.getName(),
+                agentName: agent["getName"](),
                 prompt,
                 response,
                 // Include any additional input fields from the request

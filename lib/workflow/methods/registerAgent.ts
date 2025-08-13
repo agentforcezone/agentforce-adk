@@ -10,10 +10,11 @@ import type { AgentForceAgent } from "../../agent";
  * @returns The AgentForceWorkflow instance for method chaining.
  */
 export function registerAgent(this: AgentForceWorkflow, agent: AgentForceAgent): AgentForceWorkflow {
-    // @ts-ignore
-    this.pushAgent(agent.getName(), agent, [], agent.getTools());
-    // @ts-ignore
-    this.agentToolRegistry.set(agent.getName(), agent.getTools());
-    this.getLogger().info({ message: `Registered agent: ${agent.getName()}` });
+    const name = agent["getName"]();
+    const tools = agent["getTools"]();
+    this.pushAgent(name, agent, [], tools);
+    this.agentToolRegistry.set(name, tools);
+    const logger = this.getLogger();
+    logger.info({ message: `Registered agent: ${name}` });
     return this;
 }

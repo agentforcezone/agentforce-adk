@@ -203,7 +203,10 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
 
                 const response = completion.choices[0]?.message;
                 if (!response) {
-                    throw new Error("No response from OpenRouter API");
+                    if (logger) {
+                        logger.error("No response from OpenRouter API");
+                    }
+                    return "Error: No response from OpenRouter API";
                 }
 
                 // Debug: log the response structure
@@ -345,7 +348,11 @@ ${lastToolResults.join("\n\n")}`;
 
             return fallbackCompletion.choices[0]?.message?.content || "";
         } catch (error) {
-            throw new Error(`OpenRouter provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (logger) {
+                logger.error(`OpenRouter provider error: ${errorMessage}`);
+            }
+            return `Error: OpenRouter provider error - ${errorMessage}`;
         }
     }
 
@@ -409,7 +416,10 @@ ${lastToolResults.join("\n\n")}`;
 
                 const response = completion.choices[0]?.message;
                 if (!response) {
-                    throw new Error("No response from OpenRouter API");
+                    if (logger) {
+                        logger.error("No response from OpenRouter API");
+                    }
+                    return "Error: No response from OpenRouter API";
                 }
 
                 // Check if model wants to use tools
@@ -536,7 +546,11 @@ ${lastToolResults.join("\n\n")}`;
             
             return lastAttempt.choices[0]?.message?.content || "";
         } catch (error) {
-            throw new Error(`OpenRouter provider error: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (logger) {
+                logger.error(`OpenRouter provider error: ${errorMessage}`);
+            }
+            return `Error: OpenRouter provider error - ${errorMessage}`;
         }
     }
 }
