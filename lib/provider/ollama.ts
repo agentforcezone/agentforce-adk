@@ -1,5 +1,5 @@
 import ollama from "ollama";
-import type { Tool } from "../tools/types";
+import type { Tool } from "../types";
 import { OllamaToolUse } from "./ollama-tooluse";
 import type { AgentForceLogger, ModelConfig } from "../types";
 

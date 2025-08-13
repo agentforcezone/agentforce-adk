@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import type { Tool } from "../tools/types";
+import type { Tool } from "../types";
 import { OpenRouterToolUse } from "./openrouter-tooluse";
 import type { AgentForceLogger, ModelConfig } from "../types";
 

@@ -1,6 +1,6 @@
 import type { AgentForceServer } from "../../server";
 import type { Context } from "hono";
-import { validateHttpMethod, normalizePath } from "../shared/handlers";
+import { validateHttpMethod, normalizePath } from "../handler/validationHandler";
 
 /**
  * Adds a workflow trigger that executes a workflow file when the route is called (chainable method)

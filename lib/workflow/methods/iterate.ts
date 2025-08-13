@@ -10,6 +10,6 @@ import type { AgentForceAgent } from "../../agent";
  * @returns The AgentForceWorkflow instance for method chaining.
  */
 export function iterate(this: AgentForceWorkflow, items: any[] | string, agent: AgentForceAgent): AgentForceWorkflow {
-    this.executionPlan.push({ type: "iterate", payload: { items, agent } });
+    this.executionPlan.push({ type: "iterate", description: "Iterate over items with agent", payload: { items, agent } });
     return this;
 }

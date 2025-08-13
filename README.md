@@ -19,6 +19,10 @@
     <a href="#api-reference">API Reference</a> •
     <a href="#license">License</a>
   </p>
+  <p> or goto </p>
+  <p> 
+  <a href="https://docs.agentforce.zone">The AgentForceZone Documentation Page 
+  </p>
 </div>
 
 <br/>
@@ -82,8 +86,17 @@ bun add @agentforce/adk
 
 #### Ollama (Recommended for local development)
 ```bash
-# Install Ollama
+# Install Ollama on macOS using Homebrew
+brew install ollama
+
+# Or install via curl
 curl -fsSL https://ollama.ai/install.sh | sh
+
+# Verify installation
+ollama --version
+
+# Start Ollama server
+ollama serve
 
 # Pull a model, e.g
 ollama pull gemma3:12b

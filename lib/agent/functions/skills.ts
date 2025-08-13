@@ -34,10 +34,10 @@ export function loadSkills(agent: AgentForceAgent): string {
                 absolutePath = resolve(process.cwd(), skillPath);
                 skillName = skillPath.split("/").pop()?.replace(/\.(md|txt)$/, "") || "skill";
             } else {
-                // Skill name only - look in lib/skills directory relative to this package
+                // Skill name only - look in lib/_assets/skills directory relative to this package
                 const currentDir = dirname(fileURLToPath(import.meta.url));
                 const packageRoot = join(currentDir, "../../..");  // Go up to package root from lib/agent/functions/
-                absolutePath = join(packageRoot, "lib", "skills", `${skillPath}.md`);
+                absolutePath = join(packageRoot, "lib", "_assets", "skills", `${skillPath}.md`);
                 skillName = skillPath;
             }
             
@@ -59,7 +59,7 @@ export function loadSkills(agent: AgentForceAgent): string {
     
     // Return skill contents if any were loaded
     if (skillContents.length > 0) {
-        logger.info({ skills: loadedSkills }, "Skills loaded successfully");
+        logger.debug({ skills: loadedSkills }, "Skills loaded successfully");
         return `\n\n# Loaded Skills\n${skillContents.join("\n")}`;
     }
     

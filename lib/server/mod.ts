@@ -9,4 +9,4 @@ export * from "./methods/useOpenAICompatibleRouting";
 export * from "./methods/useOllamaCompatibleRouting";
 
 // Server methods
-export * from "./methods/serve";
+export * from "./methods/async/serve";

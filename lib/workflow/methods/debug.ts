@@ -8,7 +8,7 @@ import type { AgentForceWorkflow } from "../../workflow";
 export function debug(this: AgentForceWorkflow): AgentForceWorkflow {
     const logger = this.getLogger();
     const dispatcherAgent = this.getDispatcher();
-    const name = dispatcherAgent!["getName"]();
+    const name = dispatcherAgent ? dispatcherAgent["getName"]() : "None";
 
     logger.info({
         message: "Workflow Debug Information",

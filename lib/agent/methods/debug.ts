@@ -10,12 +10,13 @@ import type { AgentForceAgent } from "../../agent";
  */
 export function debug(this: AgentForceAgent): AgentForceAgent {
     const debugInfo = {
-        name: (this as any)["getName"](),
-        provider: (this as any)["getProvider"](),
-        model: (this as any)["getModel"](),
-        tools: (this as any)["getTools"](),
-        systemPrompt: (this as any)["getSystemPrompt"](),
-        template: (this as any)["getTemplate"](),
+        name: this.getName(),
+        provider: this.getProvider(),
+        model: this.getModel(),
+        tools: this.getTools(),
+        systemPrompt: this.getSystemPrompt(),
+        template: this.getTemplate(),
+        prompt: this.getUserPrompt(),
     };
     
     // Log debug info

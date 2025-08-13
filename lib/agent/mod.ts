@@ -16,4 +16,4 @@ export * from "./methods/async/getResponse";
 export * from "./methods/async/saveToFile";
 
 // Server methods
-export * from "../serve";
+export * from "./serve";

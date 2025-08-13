@@ -1,7 +1,9 @@
 import type { AgentForceServer } from "../../server";
 import type { AgentForceAgent } from "../../agent";
 import type { RouteAgentSchema } from "./addRouteAgent";
-import { createHtmlFileHandler, createFormPostHandler, normalizePath } from "../shared/handlers";
+import { createHtmlFileHandler } from "../handler/htmlFileHandler";
+import { createFormPostHandler } from "../handler/formPostHandler";
+import { normalizePath } from "../handler/validationHandler";
 
 /**
  * Adds a form trigger that creates both GET and POST routes for form handling (chainable method)

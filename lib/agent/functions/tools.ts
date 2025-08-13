@@ -1,6 +1,6 @@
 import type { AgentForceAgent } from "../../agent";
-import type { Tool } from "../../tools/types";
-import { getTool, hasTool } from "../../tools/registry";
+import type { Tool } from "../../types";
+import { getTool, hasTool } from "../../_assets/tools/registry";
 
 /**
  * Internal function to load tools defined in agent config

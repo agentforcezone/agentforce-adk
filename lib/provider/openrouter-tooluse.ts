@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
-import type { Tool } from "../tools/types";
+import type { Tool } from "../types";
 import { executeTool } from "../agent/functions/tools";
 import type { AgentForceLogger, ModelConfig } from "../types";
 import { writeFileSync, mkdirSync } from "fs";
