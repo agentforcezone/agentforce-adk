@@ -14,7 +14,7 @@ const modelConfig: ModelConfig = {
 
 // Create and configure your agent
 const IntegrationAgent = new AgentForceAgent(config)
-  .useLLM("openrouter", "openai/gpt-oss-20b:free", modelConfig) 
+  .useLLM("openrouter", "openai/gpt-oss-20b", modelConfig) 
   .prompt(`Create a user story for the Game Development Marketplace website project initialization.`)
 
 const response = await IntegrationAgent.saveToFile("examples/files/responses/integration-agent.md")
