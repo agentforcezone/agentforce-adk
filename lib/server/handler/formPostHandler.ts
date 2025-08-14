@@ -15,6 +15,7 @@ export function createFormPostHandler(
     schema?: RouteAgentSchema,
 ): (c: Context) => Promise<Response> {
     return async (c: Context): Promise<Response> => {
+        const logger = agent["getLogger"]();
         try {
             // Parse form data
             const formData = await c.req.parseBody();
@@ -112,7 +113,7 @@ export function createFormPostHandler(
             return c.json(filteredResponseData);
             
         } catch (error) {
-            console.error(`Error in form POST handler ${path}:`, error);
+            logger.error(`Error in form POST handler ${path}:`, error);
             
             return c.json({
                 success: false,

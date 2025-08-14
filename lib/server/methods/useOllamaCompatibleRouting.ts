@@ -53,8 +53,8 @@ export function useOllamaCompatibleRouting(
         throw new Error("Agent instance is required");
     }
 
-    // Validate that the agent has the required methods
-    if (typeof agent.getName !== "function") {
+    // Validate that the agent has the required methods using bracket notation
+    if (typeof agent["getName"] !== "function") {
         throw new Error("Agent instance is required");
     }
 

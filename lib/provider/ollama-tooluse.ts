@@ -2,6 +2,7 @@ import ollama from "ollama";
 import type { Tool } from "../types";
 import { executeTool } from "../agent/functions/tools";
 import type { AgentForceLogger, ModelConfig } from "../types";
+import { truncate } from "../utils/truncate";
 
 // Type for Ollama tool use interface
 export interface OllamaToolUseInterface {
@@ -154,7 +155,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 if (toolCalls && toolCalls.length > 0) {
                     if (logger) {
                         logger.debug("Model requested tool calls", {
-                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: tc.function.arguments })),
+                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(tc.function.arguments, 200) })),
                         });
                     }
 
@@ -163,7 +164,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                     // Execute each tool call
                     for (const toolCall of toolCalls) {
                         if (logger) {
-                            logger.debug("Executing tool", { tool: toolCall.function.name, args: toolCall.function.arguments });
+                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(toolCall.function.arguments, 200) });
                         }
                         try {
                             const result = await executeTool(
@@ -322,7 +323,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 if (toolCalls && toolCalls.length > 0) {
                     if (logger) {
                         logger.debug("Model requested tool calls", {
-                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: tc.function.arguments })),
+                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(tc.function.arguments, 200) })),
                         });
                     }
 
@@ -330,7 +331,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                     // Execute each tool call
                     for (const toolCall of toolCalls) {
                         if (logger) {
-                            logger.debug("Executing tool", { tool: toolCall.function.name, args: toolCall.function.arguments });
+                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(toolCall.function.arguments, 200) });
                         }
                         try {
                             const result = await executeTool(

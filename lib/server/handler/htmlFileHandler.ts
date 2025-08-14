@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { renderTemplateFile } from "../../utils/handlebars";
+import { defaultLogger } from "../../logger";
 
 /**
  * Creates a handler for serving HTML or Handlebars template files
@@ -15,7 +16,7 @@ export function createHtmlFileHandler(filePath: string, templateData?: Record<st
             // Return HTML response
             return c.html(htmlContent);
         } catch (error) {
-            console.error(`Error serving file ${filePath}:`, error);
+            defaultLogger.error(`Error serving file ${filePath}:`, error);
             
             if (error instanceof Error && error.message.includes("ENOENT")) {
                 return c.html(`

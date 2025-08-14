@@ -3,11 +3,13 @@ import type { OutputType } from "../../../types";
 import { execute } from "./execute";
 import { writeFile } from "fs/promises";
 import { join, extname } from "path";
+import { stringifyYaml } from "../../../utils/yaml";
+import { formatResponseAsHtml } from "../../../utils/html";
 
 /**
  * Executes the agent and saves the response to a file (execution method)
  * @param this - The AgentForceAgent instance (bound context)
- * @param fileName - The filename to save to (extension determines format: .txt, .json, .md)
+ * @param fileName - The filename to save to (extension determines format: .txt, .json, .md, .yaml, .yml, .html, .htm)
  * @returns {Promise<string>} Returns the file path where content was saved - NOT the agent instance (execution method)
  */
 export async function saveToFile(this: AgentForceAgent, fileName: string): Promise<string> {
@@ -30,9 +32,17 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
         case ".md":
             outputType = "md";
             break;
+        case ".yaml":
+        case ".yml":
+            outputType = "yaml";
+            break;
+        case ".html":
+        case ".htm":
+            outputType = "html";
+            break;
         default:
             const logger = this.getLogger();
-            logger.error(`Unsupported file extension: ${fileExtension}. Use .txt, .json, or .md`);
+            logger.error(`Unsupported file extension: ${fileExtension}. Use .txt, .json, .md, .yaml, .yml, .html, or .htm`);
             return `Error: Unsupported file extension: ${fileExtension}`;
     }
 
@@ -79,6 +89,23 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
             
         case "md":
             content = `${assistantResponse}`;
+            break;
+            
+        case "yaml":
+            const yamlOutput = {
+                agent: agentName,
+                provider: provider,
+                model: model,
+                systemPrompt: systemPrompt,
+                userPrompt: userPrompt,
+                response: assistantResponse,
+                timestamp: new Date().toISOString(),
+            };
+            content = stringifyYaml(yamlOutput);
+            break;
+            
+        case "html":
+            content = formatResponseAsHtml(assistantResponse);
             break;
             
         /* istanbul ignore next - defensive code for impossible case */

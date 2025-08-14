@@ -178,7 +178,11 @@ console.log(response);
 
 [Advanced Agent Example](https://docs.agentforce.zone/adk/examples/advanced/)
 
+<br/>
+
 And many more!
+
+[The Awesome ADK Example Repository](https://github.com/agentforcezone/agentforce-adk-awesome)
 
 <br/>
 

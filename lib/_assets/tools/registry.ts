@@ -12,6 +12,7 @@ import { os_exec } from "./os_exec";
 import { api_fetch } from "./api_fetch";
 import { web_fetch } from "./web_fetch";
 import { fs_get_file_tree } from "./fs_get_file_tree";
+import { filter_content } from "./filter_content";
 
 /**
  * Central registry for all available tools
@@ -31,6 +32,7 @@ export const toolRegistry: ToolRegistry = {
     api_fetch: api_fetch,
     web_fetch: web_fetch,
     fs_get_file_tree: fs_get_file_tree,
+    filter_content: filter_content,
 };
 
 /**

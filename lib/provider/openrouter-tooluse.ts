@@ -5,6 +5,7 @@ import { executeTool } from "../agent/functions/tools";
 import type { AgentForceLogger, ModelConfig } from "../types";
 import { writeFileSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
+import { truncate } from "../utils/truncate";
 
 // Type for OpenRouter tool use interface
 export interface OpenRouterToolUseInterface {
@@ -226,7 +227,7 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                             toolCalls: response.tool_calls.map(tc => ({ 
                                 id: tc.id,
                                 tool: tc.function.name, 
-                                args: tc.function.arguments, 
+                                args: truncate(tc.function.arguments, 200), 
                             })),
                         });
                     }
@@ -239,7 +240,7 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                             logger.debug("Executing tool", { 
                                 toolId: toolCall.id,
                                 tool: toolCall.function.name, 
-                                args: toolCall.function.arguments, 
+                                args: truncate(toolCall.function.arguments, 200), 
                             });
                         }
 
@@ -429,7 +430,7 @@ ${lastToolResults.join("\n\n")}`;
                             toolCalls: response.tool_calls.map(tc => ({ 
                                 id: tc.id,
                                 tool: tc.function.name, 
-                                args: tc.function.arguments, 
+                                args: truncate(tc.function.arguments, 200), 
                             })),
                         });
                     }
@@ -445,7 +446,7 @@ ${lastToolResults.join("\n\n")}`;
                             logger.debug("Executing tool", { 
                                 toolId: toolCall.id,
                                 tool: toolCall.function.name, 
-                                args: toolCall.function.arguments, 
+                                args: truncate(toolCall.function.arguments, 200), 
                             });
                         }
 

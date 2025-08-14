@@ -96,8 +96,8 @@ export function useOpenAICompatibleRouting(
         throw new Error("Agent instance is required");
     }
 
-    // Validate that the agent has the required methods
-    if (typeof agent.getName !== "function") {
+    // Validate that the agent has the required methods using bracket notation
+    if (typeof agent["getName"] !== "function") {
         throw new Error("Agent instance is required");
     }
 
@@ -433,8 +433,8 @@ export function createOpenAICompatibleRouteHandler(agent: AgentForceAgent, path:
                 // Parse and set provider/model from the request
                 try {
                     const { provider, model } = parseModelParameter(openAIRequest.model);
-                    agent.setProvider(provider);
-                    agent.setModel(model);
+                    agent["setProvider"](provider);
+                    agent["setModel"](model);
                 } catch (parseError) {
                     console.log("❌ Model Parameter Parse Error:", parseError);
                     console.log("Failed Model Parameter:", openAIRequest.model);

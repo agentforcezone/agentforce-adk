@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from "fs";
 import { join, resolve, basename, relative } from "path";
 import type { ToolImplementation } from "../../types";
-import { parseGitignore } from "../utils/gitignore_parser";
+import { parseGitignore } from "../../utils/gitignore_parser";
 
 /**
  * Enhanced file system search tool - finds both files and directories matching a pattern
