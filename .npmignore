@@ -17,6 +17,8 @@ docs/
 examples/
 templates/
 _/
+!lib/_assets/
+!lib/_assets/**
 
 # Build and deployment
 Dockerfile

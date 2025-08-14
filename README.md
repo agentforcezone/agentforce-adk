@@ -17,6 +17,7 @@
     <a href="#features">Features</a> •
     <a href="#examples">Examples</a> •
     <a href="#api-reference">API Reference</a> •
+    <a href="#tool-use">Tool Use</a> •
     <a href="#license">License</a>
   </p>
   <p> or goto </p>
@@ -186,6 +187,55 @@ And many more!
 
 <br/>
 
+## Tool Use
+
+AgentForce ADK supports tool use for advanced agent capabilities. You can define tools that agents can call during execution, allowing for dynamic interactions and enhanced functionality.
+
+### Available Tools
+
+The AgentForce ADK includes the following built-in tools:
+
+#### File System Tools
+- **`fs_read_file`** - Read the contents of a specified file
+- **`fs_write_file`** - Write content to a specified file
+- **`fs_list_dir`** - List contents of a directory
+- **`fs_move_file`** - Move or rename files
+- **`fs_find_files`** - Find files matching specified patterns
+- **`fs_find_dirs_and_files`** - Find both directories and files
+- **`fs_search_content`** - Search for content within files
+- **`fs_get_file_tree`** - Get a complete file tree structure
+
+#### Web and API Tools
+- **`web_fetch`** - Web scraping with JavaScript rendering using Puppeteer
+- **`api_fetch`** - HTTP requests with security and resource limits
+- **`filter_content`** - Filter and process content
+
+#### Git and GitHub Tools
+- **`gh_list_repos`** - List GitHub repositories
+
+#### System Tools
+- **`os_exec`** - Execute system commands
+
+#### Utility Tools
+- **`md_create_ascii_tree`** - Create ASCII tree representations in Markdown
+
+### Using Tools
+
+Tools can be used by agents during execution to perform various tasks. Here's a basic example:
+
+```typescript
+import { AgentForceAgent } from "@agentforce/adk";
+
+const agent = new AgentForceAgent({ 
+  name: "FileAgent",
+  tools: ["fs_read_file", "fs_write_file"] 
+})
+  .useLLM("ollama", "gemma3:4b")
+  .systemPrompt("You are a file management assistant.")
+  .prompt("Read the README.md file and create a summary");
+
+const response = await agent.run();
+```
 
 ## API Reference
 
@@ -197,24 +247,55 @@ For detailed API documentation, visit the [AgentForce ADK API Reference](https:/
 
 - [x] Method chaining with fluent interface
 - [x] Prompt management (system and user prompts)
-- [x] Agent execution with real API calls (`.run()` method)
-- [x] Multiple output formats (text, JSON, markdown)
+- [x] Agent execution with real LLM calls
+- [x] Multiple output formats (text, JSON, Yaml and markdown)
 - [x] Server deployment capabilities
 - [x] Comprehensive test coverage with mock data support
 - [x] Ollama provider support (local models)
 - [x] OpenRouter provider support (cloud models with multiple providers)
 - [x] Function calling and tool integration
+- [x] Content filter tool and improved file save formats
+- [x] HTML, JSON, Markdown, and YAML output utilities with tools
+- [x] Configurable asset path for agent skills
+- [x] Template support with withTemplate method
+- [x] NPM Publishing
+- [x] JSR support for Bun and Deno
+- [x] AgentForceServer base class
+- [x] Docker support for local server deployment
+- [x] RouteAgent functionality
+- [x] Enhanced logging with Custom logger
+- [x] saveToFile method for AgentForceAgent
+- [x] Ollama ToolUse functionality
+- [x] OpenAI compatible route handling
+- [x] Schema validation for addRouteAgent method
+- [x] Jest Test Runner integration
+- [x] Enhanced server and workflow functions
+- [x] Improved documentation and examples
+- [x] JSR support for Bun and Deno
 
-## Coming soon
+## Coming soon - until 1.0.0
 
-- [ ] Native OpenAI, Anthropic, Google provider support
 - [ ] Streaming responses
 - [ ] Multi-agent workflows and communication
 - [ ] Advanced error handling and retry mechanisms
 - [ ] Performance monitoring and analytics
+- [ ] Enhanced debugging tools
+- [ ] Support for more AI providers
+- [ ] Advanced model management (versioning, rollback)
+- [ ] Improved documentation and examples
+- [ ] MCP Server Integration and plugins
+- [ ] AgentForceZone CLI for easy project setup
+- [ ] AgentForceZone Marketplace for sharing agents and workflows
+- [ ] License Change to Apache 2.0
+- [ ] Enhanced security features
+- [ ] Flow Integration - complex workflow management
 - [ ] ...
 
 <br/>
+
+## Changelog
+
+Check the [CHANGELOG](CHANGELOG.md)
 
 ## License
 
