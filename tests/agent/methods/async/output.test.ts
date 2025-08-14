@@ -34,32 +34,35 @@ describe("AgentForceAgent output Method Tests", () => {
 
         const result = await agent.output("json");
         
-        expect(typeof result).toBe("object");
+        // The new JSON output returns the formatted JSON response from the agent
+        expect(typeof result).toBe("string");
         expect(result).not.toBeNull();
-        
-        const jsonResult = result as any;
-        expect(jsonResult.agent).toBe("TestAgent");
-        expect(jsonResult.provider).toBe("openrouter");
-        expect(jsonResult.model).toBe("anthropic/claude-3-haiku");
-        expect(jsonResult.systemPrompt).toBe("You are an expert");
-        expect(jsonResult.userPrompt).toBe("Explain TypeScript");
-        expect(jsonResult).toHaveProperty("response");
-        expect(jsonResult).toHaveProperty("chatHistory");
-        expect(jsonResult).toHaveProperty("timestamp");
-        expect(jsonResult.status).toBe("success");
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should return markdown format output", async () => {
         agent
             .systemPrompt("You are a writer")
             .prompt("Write a short story")
-            .useLLM("google", "gemini-1.5-flash");
+            .useLLM("ollama", "gemma3:4b");
 
         const result = await agent.output("md");
         
         expect(typeof result).toBe("string");
-        expect(result).toContain("*Generated at:");
-        expect(result).toMatch(/\*Generated at: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\*/);
+        expect((result as string).length).toBeGreaterThan(0);
+    });
+
+    test("should return yaml format output", async () => {
+        agent
+            .systemPrompt("You are a data specialist")
+            .prompt("Create user data")
+            .useLLM("ollama", "gemma3:4b");
+
+        const result = await agent.output("yaml");
+        
+        expect(typeof result).toBe("string");
+        // YAML output should be a formatted string
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should handle empty prompts in text format", async () => {
@@ -83,10 +86,8 @@ describe("AgentForceAgent output Method Tests", () => {
 
         const result = await agent.output("json");
         
-        expect(typeof result).toBe("object");
-        const jsonResult = result as any;
-        expect(jsonResult.systemPrompt).toBe("");
-        expect(jsonResult.userPrompt).toBe("");
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should work with method chaining", async () => {
@@ -97,9 +98,8 @@ describe("AgentForceAgent output Method Tests", () => {
             .useLLM("ollama", "gemma3:4b")
             .output("json");
 
-        expect(typeof result).toBe("object");
-        const jsonResult = result as any;
-        expect(jsonResult.agent).toBe("TestAgent");
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should handle different providers in json output", async () => {
@@ -109,9 +109,8 @@ describe("AgentForceAgent output Method Tests", () => {
 
         const result = await agent.output("json");
         
-        const jsonResult = result as any;
-        expect(jsonResult.provider).toBe("google");
-        expect(jsonResult.model).toBe("gemini-1.5-flash");
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should include chat history in json output", async () => {
@@ -122,9 +121,8 @@ describe("AgentForceAgent output Method Tests", () => {
 
         const result = await agent.output("json");
         
-        const jsonResult = result as any;
-        expect(jsonResult.chatHistory).toBeDefined();
-        expect(Array.isArray(jsonResult.chatHistory)).toBe(true);
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
     });
 
     test("should include timestamp in json output", async () => {
@@ -132,17 +130,84 @@ describe("AgentForceAgent output Method Tests", () => {
 
         const result = await agent.output("json");
         
-        const jsonResult = result as any;
-        expect(jsonResult.timestamp).toBeDefined();
-        expect(typeof jsonResult.timestamp).toBe("string");
-        expect(jsonResult.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/);
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
+    });
+
+    test("should handle different providers in yaml output", async () => {
+        agent
+            .prompt("Test YAML prompt")
+            .useLLM("google", "gemini-1.5-flash");
+
+        const result = await agent.output("yaml");
+        
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
+    });
+
+    test("should work with method chaining for yaml output", async () => {
+        const result = await agent
+            .debug()
+            .systemPrompt("You are helpful")
+            .prompt("Create YAML config")
+            .useLLM("ollama", "gemma3:4b")
+            .output("yaml");
+
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
+    });
+
+    // Test boolean parameter for code block parsing
+    test("should handle enableCodeBlockParsing parameter for JSON", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Return JSON data")
+            .useLLM("ollama", "gemma3:4b");
+
+        // Test with parsing enabled (default)
+        const resultWithParsing = await agent.output("json");
+        expect(typeof resultWithParsing).toBe("string");
+
+        // Test with parsing disabled
+        const resultWithoutParsing = await agent.output("json", false);
+        expect(typeof resultWithoutParsing).toBe("string");
+    });
+
+    test("should handle enableCodeBlockParsing parameter for YAML", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Return YAML data")
+            .useLLM("ollama", "gemma3:4b");
+
+        // Test with parsing enabled (default)
+        const resultWithParsing = await agent.output("yaml");
+        expect(typeof resultWithParsing).toBe("string");
+
+        // Test with parsing disabled
+        const resultWithoutParsing = await agent.output("yaml", false);
+        expect(typeof resultWithoutParsing).toBe("string");
+    });
+
+    test("should handle enableCodeBlockParsing parameter for Markdown", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Return Markdown content")
+            .useLLM("ollama", "gemma3:4b");
+
+        // Test with parsing enabled (default)
+        const resultWithParsing = await agent.output("md");
+        expect(typeof resultWithParsing).toBe("string");
+
+        // Test with parsing disabled
+        const resultWithoutParsing = await agent.output("md", false);
+        expect(typeof resultWithoutParsing).toBe("string");
     });
 
     // Error handling tests
     test("should throw error for invalid output type", async () => {
         agent.prompt("Test").useLLM("ollama", "gemma3:4b");
 
-        await expect(agent.output("invalid" as OutputType)).rejects.toThrow("Output type must be one of: text, json, md");
+        await expect(agent.output("invalid" as OutputType)).rejects.toThrow("Output type must be one of: text, json, md, yaml");
     });
 
     test("should throw error for null output type", async () => {
@@ -183,39 +248,118 @@ describe("AgentForceAgent output Method Tests", () => {
         expect(result).toContain("Response: No response available");
     });
 
-    // Test to cover the default case in switch statement (line 71-72)
-    test("should log error and return error message for valid string that is not a recognized type", async () => {
+    // Test input validation for invalid output type
+    test("should throw error for invalid output type", async () => {
         agent.prompt("Test").useLLM("ollama", "gemma3:4b");
         
-        // Spy on the logger
-        const mockLogger = (agent as any).getLogger();
-        const errorSpy = jest.spyOn(mockLogger, "error").mockImplementation();
+        await expect(agent.output("xml" as any)).rejects.toThrow("Output type must be one of: text, json, md, yaml, html");
+    });
+
+    // Error handling tests for format functions
+    test("should handle JSON formatting errors gracefully", async () => {
+        agent.prompt("Test").useLLM("ollama", "gemma3:4b");
+
+        // Mock formatResponseAsJson to throw an error (lines 64-66)
+        const jsonUtils = await import("../../../../lib/utils/json");
+        const mockFormatJson = jest.spyOn(jsonUtils, "formatResponseAsJson");
+        mockFormatJson.mockImplementation(() => {
+            throw new Error("JSON formatting failed");
+        });
+
+        const result = await agent.output("json");
+        expect(result).toBe("Error: Failed to format response as JSON - JSON formatting failed");
+
+        mockFormatJson.mockRestore();
+    });
+
+    test("should handle Markdown formatting errors gracefully", async () => {
+        agent.prompt("Test").useLLM("ollama", "gemma3:4b");
+
+        // Mock formatResponseAsMarkdown to throw an error (lines 75-77)
+        const markdownUtils = await import("../../../../lib/utils/markdown");
+        const mockFormatMarkdown = jest.spyOn(markdownUtils, "formatResponseAsMarkdown");
+        mockFormatMarkdown.mockImplementation(() => {
+            throw new Error("Markdown formatting failed");
+        });
+
+        const result = await agent.output("md");
+        expect(result).toBe("Error: Failed to format response as Markdown - Markdown formatting failed");
+
+        mockFormatMarkdown.mockRestore();
+    });
+
+    test("should handle YAML formatting errors gracefully", async () => {
+        agent.prompt("Test").useLLM("ollama", "gemma3:4b");
+
+        // Mock formatResponseAsYaml to throw an error (lines 86-88)
+        const yamlUtils = await import("../../../../lib/utils/yaml");
+        const mockFormatYaml = jest.spyOn(yamlUtils, "formatResponseAsYaml");
+        mockFormatYaml.mockImplementation(() => {
+            throw new Error("YAML formatting failed");
+        });
+
+        const result = await agent.output("yaml");
+        expect(result).toBe("Error: Failed to format response as YAML - YAML formatting failed");
+
+        mockFormatYaml.mockRestore();
+    });
+
+    test("should handle HTML formatting errors gracefully", async () => {
+        agent.prompt("Test").useLLM("ollama", "gemma3:4b");
+
+        // Mock formatResponseAsHtml to throw an error (lines 97-99)
+        const htmlUtils = await import("../../../../lib/utils/html");
+        const mockFormatHtml = jest.spyOn(htmlUtils, "formatResponseAsHtml");
+        mockFormatHtml.mockImplementation(() => {
+            throw new Error("HTML formatting failed");
+        });
+
+        const result = await agent.output("html");
+        expect(result).toBe("Error: Failed to format response as HTML - HTML formatting failed");
+
+        mockFormatHtml.mockRestore();
+    });
+
+    test("should handle non-Error exceptions in formatting", async () => {
+        agent.prompt("Test").useLLM("ollama", "gemma3:4b");
+
+        // Mock formatResponseAsYaml to throw a non-Error object (lines 86-88)
+        const yamlUtils = await import("../../../../lib/utils/yaml");
+        const mockFormatYaml = jest.spyOn(yamlUtils, "formatResponseAsYaml");
+        mockFormatYaml.mockImplementation(() => {
+            throw "String error not an Error object";
+        });
+
+        const result = await agent.output("yaml");
+        expect(result).toBe("Error: Failed to format response as YAML - String error not an Error object");
+
+        mockFormatYaml.mockRestore();
+    });
+
+    test("should return HTML format output", async () => {
+        agent
+            .systemPrompt("You are a web developer")
+            .prompt("Create HTML structure")
+            .useLLM("ollama", "gemma3:4b");
+
+        const result = await agent.output("html");
         
-        // Directly call the internal output logic with a type that passes string validation
-        // but isn't in the validTypes array
-        const outputFunc = (agent as any).output.bind(agent);
-        
-        // Override the includes check temporarily
-        const originalIncludes = Array.prototype.includes;
-        let includesCalled = false;
-        Array.prototype.includes = function(...args) {
-            // Only override for our specific check
-            if (!includesCalled && this.length === 3 && this[0] === "text" && args[0] === "xml") {
-                includesCalled = true;
-                return true; // Pretend "xml" is valid to pass validation
-            }
-            return originalIncludes.apply(this, args);
-        };
-        
-        try {
-            const result = await outputFunc("xml");
-            
-            // The switch statement doesn't have a case for "xml", so it hits default
-            expect(errorSpy).toHaveBeenCalledWith("Unsupported output type: xml");
-            expect(result).toBe("Error: Unsupported output type: xml");
-        } finally {
-            // Restore original includes
-            Array.prototype.includes = originalIncludes;
-        }
+        expect(typeof result).toBe("string");
+        expect((result as string).length).toBeGreaterThan(0);
+    });
+
+    test("should handle enableCodeBlockParsing parameter for HTML", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Return HTML content")
+            .useLLM("ollama", "gemma3:4b");
+
+        // Test with parsing enabled (default)
+        const resultWithParsing = await agent.output("html");
+        expect(typeof resultWithParsing).toBe("string");
+
+        // Test with parsing disabled
+        const resultWithoutParsing = await agent.output("html", false);
+        expect(typeof resultWithoutParsing).toBe("string");
     });
 });

@@ -1,6 +1,10 @@
 import type { AgentForceAgent } from "../../../agent";
 import type { OutputType } from "../../../types";
 import { execute } from "./execute";
+import { formatResponseAsYaml } from "../../../utils/yaml";
+import { formatResponseAsJson } from "../../../utils/json";
+import { formatResponseAsMarkdown } from "../../../utils/markdown";
+import { formatResponseAsHtml } from "../../../utils/html";
 
 /**
  * Executes the agent and outputs the response in the specified format (execution method)
@@ -9,18 +13,19 @@ import { execute } from "./execute";
  * For simple access to just the assistant's response content, use getResponse() instead.
  * 
  * @param this - The AgentForceAgent instance (bound context)
- * @param outputType - The output format type ('text', 'json', 'md')
+ * @param outputType - The output format type ('text', 'json', 'md', 'yaml')
+ * @param enableCodeBlockParsing - Optional boolean to enable/disable code block parsing (default: true). Set to false to return whole response.
  * @returns {Promise<string|object>} Returns the formatted output - NOT the agent instance (execution method)
  */
-export async function output(this: AgentForceAgent, outputType: OutputType): Promise<string | object> {
+export async function output(this: AgentForceAgent, outputType: OutputType, enableCodeBlockParsing?: boolean): Promise<string | object> {
     // Validate input
     if (!outputType || typeof outputType !== "string") {
         throw new Error("Output type must be a string");
     }
     
-    const validTypes: OutputType[] = ["text", "json", "md"];
+    const validTypes: OutputType[] = ["text", "json", "md", "yaml", "html"];
     if (!validTypes.includes(outputType as OutputType)) {
-        throw new Error("Output type must be one of: text, json, md");
+        throw new Error("Output type must be one of: text, json, md, yaml, html");
     }
 
     // Execute the provider call first to get the response
@@ -51,22 +56,48 @@ export async function output(this: AgentForceAgent, outputType: OutputType): Pro
             return textOutput;
             
         case "json":
-            const jsonOutput = {
-                agent: agentName,
-                provider: provider,
-                model: model,
-                systemPrompt: systemPrompt,
-                userPrompt: userPrompt,
-                response: assistantResponse,
-                chatHistory: chatHistory,
-                timestamp: new Date().toISOString(),
-                status: "success",
-            };
-            return jsonOutput;
+            try {
+                const enableParsing = enableCodeBlockParsing !== false; // Default to true
+                const jsonOutput = formatResponseAsJson(assistantResponse, enableParsing);
+                return jsonOutput;
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error(`Failed to format response as JSON: ${errorMessage}`);
+                return `Error: Failed to format response as JSON - ${errorMessage}`;
+            }
             
         case "md":
-            const mdOutput = `${assistantResponse}\n\n*Generated at: ${new Date().toISOString()}*`;
-            return mdOutput;
+            try {
+                const enableParsing = enableCodeBlockParsing !== false; // Default to true
+                const markdownOutput = formatResponseAsMarkdown(assistantResponse, enableParsing);
+                return markdownOutput;
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error(`Failed to format response as Markdown: ${errorMessage}`);
+                return `Error: Failed to format response as Markdown - ${errorMessage}`;
+            }
+            
+        case "yaml":
+            try {
+                const enableParsing = enableCodeBlockParsing !== false; // Default to true
+                const yamlOutput = formatResponseAsYaml(assistantResponse, enableParsing);
+                return yamlOutput;
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error(`Failed to format response as YAML: ${errorMessage}`);
+                return `Error: Failed to format response as YAML - ${errorMessage}`;
+            }
+            
+        case "html":
+            try {
+                const enableParsing = enableCodeBlockParsing !== false; // Default to true
+                const htmlOutput = formatResponseAsHtml(assistantResponse, {}, enableParsing);
+                return htmlOutput;
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error(`Failed to format response as HTML: ${errorMessage}`);
+                return `Error: Failed to format response as HTML - ${errorMessage}`;
+            }
             
         default:
             logger.error(`Unsupported output type: ${outputType}`);

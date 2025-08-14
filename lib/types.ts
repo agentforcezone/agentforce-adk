@@ -46,7 +46,7 @@ export type ServerConfig = {
 /**
  * Type definition for output formats
  */
-export type OutputType = "text" | "json" | "md";
+export type OutputType = "text" | "json" | "md" | "yaml" | "html";
 
 /**
  * Type definition for supported AI providers
@@ -70,7 +70,8 @@ export type ToolType =
     | "os_exec"
     | "api_fetch"
     | "web_fetch"
-    | "fs_get_file_tree";
+    | "fs_get_file_tree"
+    | "filter_content";
 
 /**
  * Configuration for model parameters

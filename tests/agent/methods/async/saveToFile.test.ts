@@ -257,11 +257,41 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
         expect(result).toBe("Error: Unsupported file extension: .pdf");
     });
 
-    test("should return error message for unsupported extension - .html", async () => {
+    test("should save HTML file successfully", async () => {
         agent.prompt("Test").useLLM("ollama", "gemma3:4b");
 
         const result = await agent.saveToFile("test.html");
-        expect(result).toBe("Error: Unsupported file extension: .html");
+        expect(result).toMatch(/.*test\.html$/);
+    });
+
+    test("should save YAML file with .yaml extension", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Generate data")
+            .useLLM("ollama", "gemma3:4b");
+
+        const result = await agent.saveToFile("data.yaml");
+        expect(result).toContain("data.yaml");
+    });
+
+    test("should save YAML file with .yml extension", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Generate config")
+            .useLLM("ollama", "gemma3:4b");
+
+        const result = await agent.saveToFile("config.yml");
+        expect(result).toContain("config.yml");
+    });
+
+    test("should save HTM file successfully", async () => {
+        agent
+            .systemPrompt("You are helpful")
+            .prompt("Generate HTML")
+            .useLLM("ollama", "gemma3:4b");
+
+        const result = await agent.saveToFile("page.htm");
+        expect(result).toContain("page.htm");
     });
 
     test("should return error message for unsupported extension - .xml", async () => {
@@ -338,6 +368,56 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
 
         const result = await agent.saveToFile("test.txt");
         expect(result).toBe("Error: Failed to write file: Unknown error");
+    });
+
+    test("should generate YAML content correctly with all required fields", async () => {
+        const { writeFile } = require("fs/promises");
+        
+        // Capture the content written to file
+        let writtenContent: string = "";
+        writeFile.mockImplementation(async (_path: string, content: string) => {
+            writtenContent = content;
+        });
+        
+        agent
+            .systemPrompt("You are a helpful assistant")
+            .prompt("Generate a response")
+            .useLLM("ollama", "test-model");
+
+        await agent.saveToFile("output.yaml");
+
+        // Verify YAML content structure (lines 95-105)
+        expect(writeFile).toHaveBeenCalled();
+        expect(writtenContent).toContain("agent:");
+        expect(writtenContent).toContain("provider:");
+        expect(writtenContent).toContain("model:");
+        expect(writtenContent).toContain("systemPrompt:");
+        expect(writtenContent).toContain("userPrompt:");
+        expect(writtenContent).toContain("response:");
+        expect(writtenContent).toContain("timestamp:");
+    });
+
+    test("should generate YAML content for .yml extension", async () => {
+        const { writeFile } = require("fs/promises");
+        
+        // Capture the content written to file
+        let writtenContent: string = "";
+        writeFile.mockImplementation(async (_path: string, content: string) => {
+            writtenContent = content;
+        });
+        
+        agent
+            .systemPrompt("Test system")
+            .prompt("Test prompt")
+            .useLLM("openrouter", "test-model");
+
+        await agent.saveToFile("config.yml");
+
+        // Verify YAML content is generated for .yml extension (lines 37-38 and 95-105)
+        expect(writeFile).toHaveBeenCalled();
+        expect(writtenContent).toContain("agent: TestAgent");
+        expect(writtenContent).toContain("provider: openrouter");
+        expect(writtenContent).toContain("model: test-model");
     });
 
 

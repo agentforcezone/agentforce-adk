@@ -246,7 +246,7 @@ export class AgentForceAgent {
     
     // Execution/Non-chainable methods (return output, not this)
     serve: (host?: string, port?: number) => Promise<void> = serve.bind(this);
-    output: (outputType: OutputType) => Promise<string | object> = output.bind(this);
+    output: (outputType: OutputType, enableCodeBlockParsing?: boolean) => Promise<string | object> = output.bind(this);
     getResponse: () => Promise<string> = getResponse.bind(this);
     saveToFile: (fileName: string) => Promise<string> = saveToFile.bind(this);
 

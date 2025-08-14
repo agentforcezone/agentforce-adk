@@ -34,7 +34,10 @@ export function parseGitignore(rootPath: string): string[] {
                         excludes.push(trimmed.replace("**/", "").replace("*", ""));
                     } else if (trimmed.includes("/")) {
                         // Handle paths with slashes
-                        excludes.push(trimmed.split("/")[0]);
+                        const firstPart = trimmed.split("/")[0];
+                        if (firstPart) {
+                            excludes.push(firstPart);
+                        }
                     } else if (!trimmed.includes("*")) {
                         // Include directory names, hidden directories, and specific files
                         // Only exclude patterns that are clearly generic file extensions (like *.tgz, *.lcov)
