@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, jest } from "@jest/globals";
+import { describe, expect, test, beforeEach, afterEach, jest } from "@jest/globals";
 
 // Import the function to test
 import { createFormPostHandler } from "../../../lib/server/handler/formPostHandler";
@@ -29,7 +29,13 @@ describe("Form POST Handler Tests", () => {
         mockAgent = {
             getName: jest.fn().mockReturnValue("TestAgent"),
             prompt: jest.fn().mockReturnThis(),
-            getResponse: jest.fn()
+            getResponse: jest.fn(),
+            getLogger: jest.fn().mockReturnValue({
+                info: jest.fn(),
+                error: jest.fn(),
+                warn: jest.fn(),
+                debug: jest.fn()
+            })
         } as any;
         
         // Set up the getResponse mock after creation

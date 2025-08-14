@@ -277,6 +277,16 @@ describe("AgentForceServer serve Method Tests", () => {
             // Should register default "/health" route when no conflict
             expect(mockHonoGet).toHaveBeenCalledWith("/health", expect.any(Function));
         });
+
+        test("should handle custom logger with logger middleware", async () => {
+            const mockLogger = mockServerInstance.getLogger!() as any;
+            jest.spyOn(mockLogger, "info").mockImplementation(() => {});
+
+            await serve.call(mockServerInstance as any);
+
+            // The custom logger function should be passed to the Hono logger middleware
+            expect(mockHonoUse).toHaveBeenCalledWith(expect.any(Function));
+        });
     });
 
     describe("Route agents registration", () => {
@@ -306,6 +316,12 @@ describe("AgentForceServer serve Method Tests", () => {
                     path: "/api/generate",
                     agent: mockAgent,
                     schema: undefined
+                },
+                {
+                    method: "POST",
+                    path: "/api/chat",
+                    agent: mockAgent,
+                    schema: undefined
                 }
             ]);
 
@@ -313,6 +329,35 @@ describe("AgentForceServer serve Method Tests", () => {
 
             expect(mockHonoPost).toHaveBeenCalledWith("/v1/chat/completions", expect.any(Function));
             expect(mockHonoPost).toHaveBeenCalledWith("/api/generate", expect.any(Function));
+            expect(mockHonoPost).toHaveBeenCalledWith("/api/chat", expect.any(Function));
+        });
+
+        test("should register all HTTP methods for route agents", async () => {
+            // Mock createRouteHandler functions
+            const { createAgentRouteHandler } = require("../../../../lib/server/methods/addRouteAgent");
+            createAgentRouteHandler.mockReturnValue(jest.fn());
+
+            const mockAgent = { getName: jest.fn().mockReturnValue("TestAgent") };
+            const methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
+            
+            (mockServerInstance as any).getRouteAgents = jest.fn().mockReturnValue(
+                methods.map(method => ({
+                    method,
+                    path: `/${method.toLowerCase()}`,
+                    agent: mockAgent,
+                    schema: undefined
+                }))
+            );
+
+            await serve.call(mockServerInstance as any);
+
+            expect(mockHonoGet).toHaveBeenCalledWith("/get", expect.any(Function));
+            expect(mockHonoPost).toHaveBeenCalledWith("/post", expect.any(Function));
+            expect(mockHonoPut).toHaveBeenCalledWith("/put", expect.any(Function));
+            expect(mockHonoDelete).toHaveBeenCalledWith("/delete", expect.any(Function));
+            expect(mockHonoPatch).toHaveBeenCalledWith("/patch", expect.any(Function));
+            expect(mockHonoAll).toHaveBeenCalledWith("/head", expect.any(Function));
+            expect(mockHonoOptions).toHaveBeenCalledWith("/options", expect.any(Function));
         });
 
         test("should handle unsupported HTTP methods", async () => {
@@ -352,6 +397,45 @@ describe("AgentForceServer serve Method Tests", () => {
             await serve.call(mockServerInstance as any);
 
             expect(mockHonoAll).toHaveBeenCalledWith("/test", expect.any(Function));
+        });
+
+        test("should handle HEAD request method properly in route agent handler", async () => {
+            const { createAgentRouteHandler } = require("../../../../lib/server/methods/addRouteAgent");
+            const mockHandler = jest.fn();
+            createAgentRouteHandler.mockReturnValue(mockHandler);
+
+            const mockAgent = { getName: jest.fn().mockReturnValue("TestAgent") };
+            
+            (mockServerInstance as any).getRouteAgents = jest.fn().mockReturnValue([{
+                method: "HEAD",
+                path: "/head-test", 
+                agent: mockAgent,
+                schema: undefined
+            }]);
+
+            let headHandler: any;
+            mockHonoAll.mockImplementation((...args: any[]) => {
+                const [path, handler] = args;
+                if (path === "/head-test") {
+                    headHandler = handler;
+                }
+            });
+
+            await serve.call(mockServerInstance as any);
+
+            // Test HEAD request handling (lines 145-148)
+            const mockContext = {
+                req: { method: "HEAD" },
+                notFound: jest.fn().mockReturnValue("not found")
+            };
+
+            const result = headHandler(mockContext);
+            expect(mockHandler).toHaveBeenCalledWith(mockContext);
+
+            // Test non-HEAD request fallback
+            mockContext.req.method = "POST";
+            const notFoundResult = headHandler(mockContext);
+            expect(mockContext.notFound).toHaveBeenCalled();
         });
     });
 
@@ -416,6 +500,66 @@ describe("AgentForceServer serve Method Tests", () => {
             // Should not add duplicate /health route
             const healthCalls = mockHonoGet.mock.calls.filter(call => call[0] === "/health");
             expect(healthCalls.length).toBe(1); // Only the static route, not the default
+        });
+
+        test("should handle unsupported HTTP methods for static routes", async () => {
+            const { createStaticRouteHandler } = require("../../../../lib/server/methods/addRoute");
+            createStaticRouteHandler.mockReturnValue(jest.fn());
+            
+            const mockLogger = mockServerInstance.getLogger!() as any;
+            jest.spyOn(mockLogger, "warn").mockImplementation(() => {});
+            
+            (mockServerInstance as any).getStaticRoutes = jest.fn().mockReturnValue([{
+                method: "UNSUPPORTED",
+                path: "/unsupported",
+                responseData: { error: "unsupported method" }
+            }]);
+
+            await serve.call(mockServerInstance as any);
+
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: "UNSUPPORTED",
+                    action: "unsupported_method",
+                }),
+                expect.stringContaining("Unsupported HTTP method")
+            );
+        });
+
+        test("should handle HEAD request method properly in static route handler", async () => {
+            const { createStaticRouteHandler } = require("../../../../lib/server/methods/addRoute");
+            const mockHandler = jest.fn();
+            createStaticRouteHandler.mockReturnValue(mockHandler);
+            
+            (mockServerInstance as any).getStaticRoutes = jest.fn().mockReturnValue([{
+                method: "HEAD",
+                path: "/static-head",
+                responseData: { data: "head response" }
+            }]);
+
+            let headHandler: any;
+            mockHonoAll.mockImplementation((...args: any[]) => {
+                const [path, handler] = args;
+                if (path === "/static-head") {
+                    headHandler = handler;
+                }
+            });
+
+            await serve.call(mockServerInstance as any);
+
+            // Test HEAD request handling for static routes (lines 206-209)
+            const mockContext = {
+                req: { method: "HEAD" },
+                notFound: jest.fn().mockReturnValue("not found")
+            };
+
+            const result = headHandler(mockContext);
+            expect(mockHandler).toHaveBeenCalledWith(mockContext);
+
+            // Test non-HEAD request fallback
+            mockContext.req.method = "GET";
+            const notFoundResult = headHandler(mockContext);
+            expect(mockContext.notFound).toHaveBeenCalled();
         });
     });
 
