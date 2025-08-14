@@ -2,6 +2,21 @@
 
 All notable changes to the AgentForce ADK project will be documented in this file.
 
+## [0.10.0] - 2025-08-14
+
+### Added
+- Content filter tool and improved file save formats
+- HTML, JSON, Markdown, and YAML output utilities
+- Configurable asset path for agent skills
+
+### Fixed
+- Expanded agent and server route handler tests
+
+### Changed
+- Updated Examples for the Integration Agent
+- Updated all tests to the Jest Test Runner
+- Changed TestRunner from bun:test to jest
+
 ## [0.9.0] - 2025-08-09
 
 ### Added
