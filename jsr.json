@@ -18,7 +18,6 @@
             "_/**/*",
             "**/*.test.ts",
             "**/*.test.js",
-            "*.md",
             "!README.md",
             "tsconfig.json",
             "bun.lock*",

@@ -40,6 +40,7 @@ export class AgentForceAgent {
     private template: string = "";
     private tools: string[] = [];
     private skills: string[] = [];
+    private assetPath: string = ".";
     private taskList: {description: string, result: string | null}[] = [];
     private chatHistory: {role: string, content: string}[] = [];
     private logger: AgentForceLogger;
@@ -56,6 +57,10 @@ export class AgentForceAgent {
         this.name = config.name;
         this.tools = config.tools || [];
         this.skills = config.skills || [];
+        
+        // AssetPath priority: config.assetPath > AGENT_ASSETS_PATH env var > default "."
+        this.assetPath = config.assetPath || process.env.AGENT_ASSETS_PATH || ".";
+        
         // Accept injected logger or use default
         this.logger = config.logger || defaultLogger;
     }
@@ -79,6 +84,13 @@ export class AgentForceAgent {
      */
     protected getSkills(): string[] {
         return this.skills;
+    }
+
+    /**
+     * Get the asset path of the agent.
+     */
+    protected getAssetPath(): string {
+        return this.assetPath;
     }
 
     /**

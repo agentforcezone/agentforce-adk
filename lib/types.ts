@@ -20,12 +20,14 @@ export interface AgentForceLogger {
  * @property {string} type - Type of the agent (e.g., 'developer', 'product-owner')
  * @property {ToolType[]} [tools] - List of tools the agent can use (only predefined tool types allowed)
  * @property {string[]} [skills] - List of skill files to load for the agent
+ * @property {string} [assetPath] - Base path for agent assets (skills, templates, etc.), supports both relative and absolute paths, defaults to current working directory
  * @property {AgentForceLogger} [logger] - Logger instance with logging methods
  */
 export type AgentConfig = {
     name: string;
     tools?: ToolType[];
     skills?: string[];
+    assetPath?: string;
     logger?: AgentForceLogger;
 };
 

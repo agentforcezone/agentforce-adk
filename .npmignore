@@ -5,6 +5,7 @@ bun.lock
 
 # Build output (we include source TypeScript files)
 dist/
+examples/
 
 # Test files
 tests/
@@ -23,7 +24,6 @@ docker-compose.yml
 podman-compose.yml
 k8s-deployment.yaml
 kind-config.yaml
-*.md
 !README.md
 
 # Development scripts and configs
