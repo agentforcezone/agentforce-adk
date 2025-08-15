@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 // Add stealth plugin to avoid detection
 puppeteer.use(StealthPlugin());

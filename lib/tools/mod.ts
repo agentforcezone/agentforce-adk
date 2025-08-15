@@ -3,7 +3,7 @@
  * Provides tool definitions and implementations for agent use
  */
 
-export * from "../../types";
+export * from "../types";
 export * from "./registry";
 export { fs_list_dir } from "./fs_list_dir";
 export { fs_read_file } from "./fs_read_file";
@@ -18,3 +18,4 @@ export { os_exec } from "./os_exec";
 export { api_fetch } from "./api_fetch";
 export { web_fetch } from "./web_fetch";
 export { fs_get_file_tree } from "./fs_get_file_tree";
+export { browser_use } from "./browser_use";

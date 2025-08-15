@@ -1,6 +1,6 @@
 import { writeFileSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * File system write tool - writes content to a file

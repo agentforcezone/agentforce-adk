@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * File system list directory tool

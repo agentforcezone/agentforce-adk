@@ -1,6 +1,6 @@
 import { renameSync, existsSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * File system move/rename tool

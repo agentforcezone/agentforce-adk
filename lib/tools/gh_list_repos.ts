@@ -1,5 +1,5 @@
-import type { ToolImplementation } from "../../types";
-import { executeGitHubCLI } from "../../utils/exec";
+import type { ToolImplementation } from "../types";
+import { executeGitHubCLI } from "../utils/exec";
 
 /**
  * GitHub list repositories tool

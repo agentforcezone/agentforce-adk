@@ -87,7 +87,8 @@ export type ToolType =
     | "api_fetch"
     | "web_fetch"
     | "fs_get_file_tree"
-    | "filter_content";
+    | "filter_content"
+    | "browser_use";
 
 /**
  * Configuration for model parameters

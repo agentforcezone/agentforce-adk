@@ -1,4 +1,4 @@
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 import { spawn } from "child_process";
 import { resolve } from "path";
 

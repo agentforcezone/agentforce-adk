@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from "fs";
 import { join, relative } from "path";
-import type { ToolImplementation } from "../../types";
-import { parseGitignore, shouldExclude } from "../../utils/gitignore_parser";
+import type { ToolImplementation } from "../types";
+import { parseGitignore, shouldExclude } from "../utils/gitignore_parser";
 
 interface TreeNode {
     name: string;

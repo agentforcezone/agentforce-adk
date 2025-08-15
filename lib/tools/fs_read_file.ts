@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * File system read file tool

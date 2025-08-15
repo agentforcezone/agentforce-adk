@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "fs";
 import { join, isAbsolute, basename } from "path";
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * File system get file tree tool

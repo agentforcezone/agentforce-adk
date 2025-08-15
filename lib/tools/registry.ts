@@ -1,4 +1,4 @@
-import type { ToolImplementation, ToolRegistry } from "../../types";
+import type { ToolImplementation, ToolRegistry } from "../types";
 import { fs_list_dir } from "./fs_list_dir";
 import { fs_read_file } from "./fs_read_file";
 import { fs_write_file } from "./fs_write_file";
@@ -13,6 +13,7 @@ import { api_fetch } from "./api_fetch";
 import { web_fetch } from "./web_fetch";
 import { fs_get_file_tree } from "./fs_get_file_tree";
 import { filter_content } from "./filter_content";
+import { browser_use } from "./browser_use";
 
 /**
  * Central registry for all available tools
@@ -33,6 +34,7 @@ export const toolRegistry: ToolRegistry = {
     web_fetch: web_fetch,
     fs_get_file_tree: fs_get_file_tree,
     filter_content: filter_content,
+    browser_use: browser_use,
 };
 
 /**

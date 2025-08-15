@@ -1,4 +1,4 @@
-import type { ToolImplementation } from "../../types";
+import type { ToolImplementation } from "../types";
 
 /**
  * Maximum response size in bytes (5MB default)

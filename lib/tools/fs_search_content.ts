@@ -1,7 +1,7 @@
 import { readdirSync, statSync, readFileSync } from "fs";
 import { join, resolve, relative, extname } from "path";
-import type { ToolImplementation } from "../../types";
-import { parseGitignore } from "../../utils/gitignore_parser";
+import type { ToolImplementation } from "../types";
+import { parseGitignore } from "../utils/gitignore_parser";
 
 /**
  * File content search tool - searches for patterns within file contents

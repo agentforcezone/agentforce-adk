@@ -1,8 +1,8 @@
-import type { ToolImplementation } from "../../types";
-import { formatResponseAsJson } from "../../utils/json";
-import { formatResponseAsMarkdown } from "../../utils/markdown";
-import { formatResponseAsYaml } from "../../utils/yaml";
-import { formatResponseAsHtml, type HtmlFilterConfig } from "../../utils/html";
+import type { ToolImplementation } from "../types";
+import { formatResponseAsJson } from "../utils/json";
+import { formatResponseAsMarkdown } from "../utils/markdown";
+import { formatResponseAsYaml } from "../utils/yaml";
+import { formatResponseAsHtml, type HtmlFilterConfig } from "../utils/html";
 
 /**
  * Content filter tool
