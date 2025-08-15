@@ -19,13 +19,33 @@ import { defaultLogger } from "./logger";
 
 export type { WorkflowConfig };
 
+/**
+ * Represents the output from an agent execution within a workflow
+ * @interface AgentOutput
+ * @property {Date} timestamp - When the output was generated
+ * @property {any} output - The actual output data from the agent
+ */
 export interface AgentOutput {
     timestamp: Date;
     output: any;
 }
 
+/**
+ * Types of execution steps available in workflows
+ * @typedef {string} ExecutionStepType
+ */
 export type ExecutionStepType = "prompt" | "sequence" | "parallel" | "iterate";
 
+/**
+ * Represents a single step in workflow execution plan
+ * @interface ExecutionStep
+ * @property {ExecutionStepType} type - The type of execution step
+ * @property {string} description - Human-readable description of the step
+ * @property {string} [executionAgentName] - Optional name of the agent executing this step
+ * @property {any} payload - Data payload for the execution step
+ * @property {AgentForceAgent} [onSuccess] - Optional agent to run on successful completion
+ * @property {AgentForceAgent} [onFail] - Optional agent to run on failure
+ */
 export interface ExecutionStep {
     type: ExecutionStepType;
     description: string;

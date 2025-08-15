@@ -4,7 +4,12 @@ import { executeTool } from "../agent/functions/tools";
 import type { AgentForceLogger, ModelConfig } from "../types";
 import { truncate } from "../utils/truncate";
 
-// Type for Ollama tool use interface
+/**
+ * Interface for Ollama tool use functionality
+ * @interface OllamaToolUseInterface
+ * @property {function} generateWithTools - Generate response with tool support using a prompt
+ * @property {function} chatWithTools - Chat with tool support using message history
+ */
 export interface OllamaToolUseInterface {
     generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;
     chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger): Promise<string>;

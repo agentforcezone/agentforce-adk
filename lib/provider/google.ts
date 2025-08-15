@@ -1,7 +1,14 @@
 import { GoogleGenAI, Content } from "@google/genai";
 import type { ModelConfig } from "../types";
 
-// Type for Google provider interface
+/**
+ * Interface for Google provider functionality
+ * @interface GoogleProviderInterface
+ * @property {function} generate - Generate response from prompt
+ * @property {function} chat - Chat using message history
+ * @property {function} getModel - Get current model name
+ * @property {function} setModel - Set model name
+ */
 export interface GoogleProviderInterface {
     generate(prompt: string, system?: string): Promise<string>;
     chat(messages: Array<{ role: string; content: string }>): Promise<string>;

@@ -4,7 +4,16 @@ import type { Tool } from "../types";
 import { OpenRouterToolUse } from "./openrouter-tooluse";
 import type { AgentForceLogger, ModelConfig } from "../types";
 
-// Type for OpenRouter provider interface
+/**
+ * Interface for OpenRouter provider functionality
+ * @interface OpenRouterProviderInterface
+ * @property {function} generate - Generate response from prompt without tools
+ * @property {function} generateWithTools - Generate response with tool support
+ * @property {function} chatWithTools - Chat with tool support using message history
+ * @property {function} chat - Chat without tool support using message history
+ * @property {function} getModel - Get current model name
+ * @property {function} setModel - Set model name
+ */
 export interface OpenRouterProviderInterface {
     generate(prompt: string, system?: string): Promise<string>;
     generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;

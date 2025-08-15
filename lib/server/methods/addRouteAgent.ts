@@ -3,7 +3,10 @@ import type { AgentForceAgent } from "../../agent";
 import type { Context } from "hono";
 
 /**
- * Schema configuration for route agent input and output
+ * Schema configuration for route agent input and output validation
+ * @interface RouteAgentSchema
+ * @property {string[]} [input] - Expected input field names for validation
+ * @property {string[]} [output] - Output field names to include in response
  */
 export interface RouteAgentSchema {
     input?: string[];
@@ -11,7 +14,12 @@ export interface RouteAgentSchema {
 }
 
 /**
- * Route agent configuration for HTTP endpoints
+ * Configuration for HTTP route handled by an agent
+ * @interface RouteAgent
+ * @property {string} method - HTTP method (GET, POST, PUT, DELETE, etc.)
+ * @property {string} path - URL path for the route
+ * @property {AgentForceAgent} agent - Agent instance to handle requests
+ * @property {RouteAgentSchema} [schema] - Optional validation schema
  */
 export interface RouteAgent {
     method: string;

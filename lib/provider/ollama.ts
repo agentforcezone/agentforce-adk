@@ -3,7 +3,14 @@ import type { Tool } from "../types";
 import { OllamaToolUse } from "./ollama-tooluse";
 import type { AgentForceLogger, ModelConfig } from "../types";
 
-// Type for Ollama provider interface
+/**
+ * Interface for Ollama provider functionality
+ * @interface OllamaProviderInterface
+ * @property {function} generate - Generate response from prompt without tools
+ * @property {function} generateWithTools - Generate response with tool support
+ * @property {function} chatWithTools - Chat with tool support using message history
+ * @property {function} getModel - Get current model name
+ */
 export interface OllamaProviderInterface {
     generate(prompt: string, system?: string): Promise<string>;
     generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;

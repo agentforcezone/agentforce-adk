@@ -3,6 +3,16 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
+/**
+ * Configuration options for command execution
+ * @interface ExecOptions
+ * @property {string} [cwd] - Working directory for command execution
+ * @property {number} [timeout] - Timeout in milliseconds
+ * @property {Record<string, string>} [env] - Environment variables
+ * @property {string | boolean} [shell] - Shell to use for execution
+ * @property {BufferEncoding} [encoding] - Text encoding for output
+ * @property {number} [maxBuffer] - Maximum buffer size for output
+ */
 export interface ExecOptions {
     cwd?: string;
     timeout?: number;
@@ -12,6 +22,16 @@ export interface ExecOptions {
     maxBuffer?: number;
 }
 
+/**
+ * Result of command execution
+ * @interface ExecResult
+ * @property {boolean} success - Whether command executed successfully
+ * @property {string} stdout - Standard output from command
+ * @property {string} stderr - Standard error from command
+ * @property {number | null} exitCode - Exit code of the command
+ * @property {string} command - The executed command
+ * @property {string} [error] - Error message if execution failed
+ */
 export interface ExecResult {
     success: boolean;
     stdout: string;
