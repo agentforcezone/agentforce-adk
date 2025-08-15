@@ -98,9 +98,5 @@ export async function output(this: AgentForceAgent, outputType: OutputType, enab
                 logger.error(`Failed to format response as HTML: ${errorMessage}`);
                 return `Error: Failed to format response as HTML - ${errorMessage}`;
             }
-            
-        default:
-            logger.error(`Unsupported output type: ${outputType}`);
-            return `Error: Unsupported output type: ${outputType}`;
     }
 }
