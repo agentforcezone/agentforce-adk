@@ -155,7 +155,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 if (toolCalls && toolCalls.length > 0) {
                     if (logger) {
                         logger.debug("Model requested tool calls", {
-                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(tc.function.arguments, 200) })),
+                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(JSON.stringify(tc.function.arguments), 200) })),
                         });
                     }
 
@@ -164,7 +164,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                     // Execute each tool call
                     for (const toolCall of toolCalls) {
                         if (logger) {
-                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(toolCall.function.arguments, 200) });
+                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(JSON.stringify(toolCall.function.arguments), 200) });
                         }
                         try {
                             const result = await executeTool(
@@ -323,7 +323,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                 if (toolCalls && toolCalls.length > 0) {
                     if (logger) {
                         logger.debug("Model requested tool calls", {
-                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(tc.function.arguments, 200) })),
+                            toolCalls: toolCalls.map(tc => ({ tool: tc.function.name, args: truncate(JSON.stringify(tc.function.arguments), 200) })),
                         });
                     }
 
@@ -331,7 +331,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                     // Execute each tool call
                     for (const toolCall of toolCalls) {
                         if (logger) {
-                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(toolCall.function.arguments, 200) });
+                            logger.debug("Executing tool", { tool: toolCall.function.name, args: truncate(JSON.stringify(toolCall.function.arguments), 200) });
                         }
                         try {
                             const result = await executeTool(
