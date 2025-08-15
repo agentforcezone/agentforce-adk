@@ -30,6 +30,44 @@ import { defaultLogger } from "./logger";
  * This class provides the core functionality for creating and managing AI agents,
  * including configuration of name, type, AI provider, and model.
  *
+ * @example Basic agent creation and execution
+ * ```ts
+ * const agent = new AgentForceAgent({ name: "Assistant" })
+ *   .systemPrompt("You are a helpful AI assistant")
+ *   .useLLM("ollama", "llama2")
+ *   .prompt("What is TypeScript?");
+ * 
+ * const response = await agent.run();
+ * console.log(response);
+ * ```
+ * 
+ * @example Agent with tools and skills
+ * ```ts
+ * const agent = new AgentForceAgent({
+ *   name: "DataAnalyst",
+ *   tools: ["web_fetch", "fs_read_file"],
+ *   skills: ["data-analysis.md"]
+ * })
+ *   .systemPrompt("You are a data analyst")
+ *   .useLLM("openrouter", "anthropic/claude-3-haiku")
+ *   .task("Fetch latest data from the API")
+ *   .task("Analyze the trends")
+ *   .task("Save results to file");
+ * 
+ * const results = await agent.run();
+ * ```
+ * 
+ * @example Method chaining for complex workflows
+ * ```ts
+ * const response = await new AgentForceAgent({ name: "Writer" })
+ *   .debug()
+ *   .systemPrompt("You are a creative writer")
+ *   .withTemplate("story-template.hbs", { genre: "sci-fi" })
+ *   .useLLM("google", "gemini-1.5-flash")
+ *   .prompt("Write a short story about AI")
+ *   .run();
+ * ```
+ *
  * @class AgentForceAgent
  */
 export class AgentForceAgent {
@@ -51,7 +89,23 @@ export class AgentForceAgent {
 
     /**
      * Constructs the AgentForceAgent class.
+     * 
      * @param config - Configuration object for the agent
+     * @param config.name - The name of the agent
+     * @param config.tools - Optional array of tool types the agent can use
+     * @param config.skills - Optional array of skill file paths to load
+     * @param config.assetPath - Optional base path for assets (defaults to current directory)
+     * @param config.logger - Optional custom logger instance
+     * 
+     * @example
+     * ```ts
+     * const agent = new AgentForceAgent({
+     *   name: "DataAnalyst",
+     *   tools: ["web_fetch", "fs_read_file"],
+     *   skills: ["data-analysis.md"],
+     *   assetPath: "./assets"
+     * });
+     * ```
      */
     constructor(config: AgentConfig) {
         this.name = config.name;
@@ -67,13 +121,17 @@ export class AgentForceAgent {
 
     /**
      * Get the name of the agent.
+     * 
+     * @returns {string} The agent's name
      */
     protected getName(): string {
         return this.name;
     }
 
     /**
-     * Get the tools of the agent.
+     * Get the tools configured for the agent.
+     * 
+     * @returns {string[]} Array of tool names the agent can use
      */
     protected getTools(): string[] {
         return this.tools;

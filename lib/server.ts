@@ -21,6 +21,45 @@ export type { ServerConfig, RouteAgentSchema };
  * This class provides the core functionality for creating and managing servers,
  * including configuration of name and logging.
  *
+ * @example Basic server with agent routes
+ * ```ts
+ * import { AgentForceServer, AgentForceAgent } from "@agentforce/adk";
+ * 
+ * const chatAgent = new AgentForceAgent({ name: "ChatBot" })
+ *   .systemPrompt("You are a helpful chatbot")
+ *   .useLLM("ollama", "llama2");
+ * 
+ * const server = new AgentForceServer({ name: "MyServer" })
+ *   .addRouteAgent("POST", "/chat", chatAgent)
+ *   .addRoute("GET", "/health", { status: "ok" })
+ *   .serve("localhost", 3000);
+ * ```
+ * 
+ * @example Server with OpenAI-compatible API
+ * ```ts
+ * const server = new AgentForceServer({ name: "AIServer" })
+ *   .useOpenAICompatibleRouting([
+ *     { path: "/v1/chat/completions", agent: chatAgent }
+ *   ])
+ *   .serve();
+ * ```
+ * 
+ * @example Server with form handling and workflows
+ * ```ts
+ * const processAgent = new AgentForceAgent({ 
+ *   name: "Processor",
+ *   tools: ["fs_write_file", "web_fetch"]
+ * });
+ * 
+ * const workflow = new AgentForceWorkflow({ name: "ProcessFlow" })
+ *   .sequence([processAgent]);
+ * 
+ * const server = new AgentForceServer({ name: "FormServer" })
+ *   .addFormTrigger("POST", "/submit", processAgent)
+ *   .addWorkflowTrigger("POST", "/process", workflow)
+ *   .serve();
+ * ```
+ *
  * @class AgentForceServer
  */
 export class AgentForceServer {
