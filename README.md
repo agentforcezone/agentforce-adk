@@ -168,6 +168,8 @@ console.log(response);
 - **Test-Friendly**: Comprehensive test coverage and designed for testability
 - **Server Mode**: Built-in server functionality for agent deployment with automatic runtime detection
 - **OpenAI Compatibility**: Full OpenAI chat completions API compatibility for seamless integration
+- **Browser Automation**: Advanced browser automation capabilities for complex web interactions
+- **Enhanced Documentation**: Comprehensive JSDoc examples and type documentation for better developer experience
 
 <br/>
 
@@ -209,6 +211,7 @@ The AgentForce ADK includes the following built-in tools:
 - **`web_fetch`** - Web scraping with JavaScript rendering using Puppeteer
 - **`api_fetch`** - HTTP requests with security and resource limits
 - **`filter_content`** - Filter and process content
+- **`browser_use`** - Advanced browser automation for complex web interactions
 
 #### Git and GitHub Tools
 - **`gh_list_repos`** - List GitHub repositories
@@ -226,15 +229,27 @@ Tools can be used by agents during execution to perform various tasks. Here's a 
 ```typescript
 import { AgentForceAgent } from "@agentforce/adk";
 
-const agent = new AgentForceAgent({ 
+// File management agent
+const fileAgent = new AgentForceAgent({ 
   name: "FileAgent",
   tools: ["fs_read_file", "fs_write_file"] 
 })
-  .useLLM("ollama", "gemma3:4b")
+  .useLLM("ollama", "gpt-oss:20b")
   .systemPrompt("You are a file management assistant.")
   .prompt("Read the README.md file and create a summary");
 
-const response = await agent.run();
+const response = await fileAgent.run();
+
+// Browser automation agent
+const browserAgent = new AgentForceAgent({
+  name: "WebAutomationAgent",
+  tools: ["browser_use", "fs_write_file"]
+})
+  .useLLM("openrouter", "openai/gpt-5-mini")
+  .systemPrompt("You are a web automation specialist.")
+  .prompt("Navigate to example.com and extract the main heading");
+
+const webResponse = await browserAgent.run();
 ```
 
 ## API Reference
@@ -272,6 +287,9 @@ For detailed API documentation, visit the [AgentForce ADK API Reference](https:/
 - [x] Enhanced server and workflow functions
 - [x] Improved documentation and examples
 - [x] JSR support for Bun and Deno
+- [x] Browser automation tool with browser_use functionality
+- [x] Comprehensive JSDoc examples and type documentation
+- [x] Improved tool organization and directory structure
 
 ## Coming soon - until 1.0.0
 

@@ -2,6 +2,20 @@
 
 All notable changes to the AgentForce ADK project will be documented in this file.
 
+## [0.11.0] - 2025-08-15
+
+### Added
+- Browser automation tool with browser_use functionality
+- Comprehensive JSDoc examples and type documentation
+- JSDoc comments to interfaces for improved clarity
+
+### Fixed
+- Ollama Tool Use functionality
+
+### Changed
+- Moved tools to new directory structure for better organization
+- Expanded and refactored HTML utility and output tests
+
 ## [0.10.0] - 2025-08-14
 
 ### Added
