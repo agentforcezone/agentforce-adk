@@ -2,6 +2,11 @@
 
 All notable changes to the AgentForce ADK project will be documented in this file.
 
+## [0.12.0] - 2025-08-17
+
+### Added
+- Add MCP client integration and MCP server support for Agents
+
 ## [0.11.0] - 2025-08-15
 
 ### Added
