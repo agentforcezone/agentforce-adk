@@ -7,6 +7,7 @@ export * from "./methods/systemPrompt";
 export * from "./methods/prompt";
 export * from "./methods/withTemplate";
 export * from "./methods/task";
+export * from "./methods/addMCP";
 
 // Async methods
 export * from "./methods/async/run";

@@ -11,8 +11,8 @@ import { truncate } from "../utils/truncate";
  * @property {function} chatWithTools - Chat with tool support using message history
  */
 export interface OllamaToolUseInterface {
-    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;
-    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger): Promise<string>;
+    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string>;
+    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger, agent?: any): Promise<string>;
 }
 
 // Re-export types for convenience
@@ -69,9 +69,10 @@ export class OllamaToolUse implements OllamaToolUseInterface {
      * @param tools - Array of tool definitions
      * @param system - Optional system prompt
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
-    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string> {
+    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string> {
         try {
             if (logger) {
                 logger.debug("Initial LLM call with tools", {
@@ -175,6 +176,8 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                             const result = await executeTool(
                                 toolCall.function.name,
                                 toolCall.function.arguments,
+                                agent,
+                                logger,
                             );
                             if (logger) {
                                 logger.debug("Tool executed successfully", { tool: toolCall.function.name, args: toolCall.function.arguments });
@@ -248,12 +251,14 @@ export class OllamaToolUse implements OllamaToolUseInterface {
      * @param messages - Array of messages for the conversation
      * @param tools - Array of tool definitions
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
     async chatWithTools(
         messages: Array<{ role: string; content: string }>,
         tools: Tool[],
         logger?: AgentForceLogger,
+        agent?: any,
     ): Promise<string> {
         try {
             if (logger) {
@@ -342,6 +347,8 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                             const result = await executeTool(
                                 toolCall.function.name,
                                 toolCall.function.arguments,
+                                agent,
+                                logger,
                             );
                             if (logger) {
                                 logger.debug("Tool executed successfully", { tool: toolCall.function.name, args: toolCall.function.arguments });

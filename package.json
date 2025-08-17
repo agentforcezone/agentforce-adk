@@ -1,6 +1,6 @@
 {
   "name": "@agentforce/adk",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "AgentForce Agent Development Kit - A powerful framework for building AI agents and servers",
   "main": "./lib/mod.ts",
   "module": "./lib/mod.ts",
@@ -59,8 +59,9 @@
     "typescript": "5.9.2"
   },
   "scripts": {
-    "agent:integration": "bun run ./examples/agents/integration.ts",
+    "agent:integration": "bun run ./examples/agents/Integration-agent.ts",
     "agent:file": "bun run ./examples/agents/file.ts",
+    "agent:mcp": "bun run ./examples/agents/mcp-agent.ts",
     "server:basic": "bun run ./examples/server/basic-server.ts",
     "test": "jest",
     "test:cov": "jest --coverage",
@@ -71,6 +72,7 @@
   },
   "dependencies": {
     "@google/genai": "1.14.0",
+    "@modelcontextprotocol/sdk": "^1.17.3",
     "cheerio": "1.1.2",
     "handlebars": "4.7.8",
     "hono": "4.9.1",

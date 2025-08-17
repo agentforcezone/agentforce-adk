@@ -3,11 +3,11 @@ import { AgentForceAgent } from "../../../../lib/agent";
 import type { AgentConfig } from "../../../../lib/types";
 
 // Import the mocked modules so we can check calls
-import { writeFile } from "fs/promises";
+import { writeFileSync } from "fs";
 import { join, extname } from "path";
 
 // Ensure the mocks are typed correctly
-const mockedWriteFile = writeFile as jest.MockedFunction<typeof writeFile>;
+const mockedWriteFileSync = writeFileSync as jest.MockedFunction<typeof writeFileSync>;
 const mockedJoin = join as jest.MockedFunction<typeof join>;
 const mockedExtname = extname as jest.MockedFunction<typeof extname>;
 
@@ -29,7 +29,7 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
         process.stderr.write = jest.fn(() => true) as any;
         
         // Ensure the mocks return proper values
-        mockedWriteFile.mockResolvedValue();
+        mockedWriteFileSync.mockReturnValue(undefined);
         mockedJoin.mockImplementation((...paths: string[]) => paths.join("/"));
         mockedExtname.mockImplementation((path: string) => {
             if (typeof path !== 'string') return '';
@@ -308,8 +308,8 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
         expect(result).toBe("Error: Unsupported file extension: ");
     });
 
-    test("should execute successfully and call writeFile", async () => {
-        const { writeFile } = require("fs/promises");
+    test("should execute successfully and call writeFileSync", async () => {
+        const { writeFileSync } = require("fs");
         
         agent
             .systemPrompt("Test system")
@@ -318,7 +318,7 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
 
         const result = await agent.saveToFile("test.txt");
 
-        expect(writeFile).toHaveBeenCalled();
+        expect(writeFileSync).toHaveBeenCalled();
         expect(result).toContain("test.txt");
     });
 
@@ -339,12 +339,14 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
         }
     });
 
-    // Test to cover line 92 - file write error handling
-    test("should return error message when writeFile fails", async () => {
-        const { writeFile } = require("fs/promises");
+    // Test to cover file write error handling
+    test("should return error message when writeFileSync fails", async () => {
+        const { writeFileSync } = require("fs");
         
-        // Mock writeFile to throw an error
-        writeFile.mockRejectedValueOnce(new Error("Permission denied"));
+        // Mock writeFileSync to throw an error
+        writeFileSync.mockImplementationOnce(() => {
+            throw new Error("Permission denied");
+        });
         
         agent
             .systemPrompt("Test system")
@@ -355,11 +357,13 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
         expect(result).toBe("Error: Failed to write file: Permission denied");
     });
 
-    test("should handle non-Error exceptions in writeFile", async () => {
-        const { writeFile } = require("fs/promises");
+    test("should handle non-Error exceptions in writeFileSync", async () => {
+        const { writeFileSync } = require("fs");
         
-        // Mock writeFile to throw a non-Error
-        writeFile.mockRejectedValueOnce("String error");
+        // Mock writeFileSync to throw a non-Error
+        writeFileSync.mockImplementationOnce(() => {
+            throw "String error";
+        });
         
         agent
             .systemPrompt("Test system")
@@ -371,11 +375,11 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
     });
 
     test("should generate YAML content correctly with all required fields", async () => {
-        const { writeFile } = require("fs/promises");
+        const { writeFileSync } = require("fs");
         
         // Capture the content written to file
         let writtenContent: string = "";
-        writeFile.mockImplementation(async (_path: string, content: string) => {
+        writeFileSync.mockImplementation((_path: string, content: string) => {
             writtenContent = content;
         });
         
@@ -386,8 +390,8 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
 
         await agent.saveToFile("output.yaml");
 
-        // Verify YAML content structure (lines 95-105)
-        expect(writeFile).toHaveBeenCalled();
+        // Verify YAML content structure
+        expect(writeFileSync).toHaveBeenCalled();
         expect(writtenContent).toContain("agent:");
         expect(writtenContent).toContain("provider:");
         expect(writtenContent).toContain("model:");
@@ -398,11 +402,11 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
     });
 
     test("should generate YAML content for .yml extension", async () => {
-        const { writeFile } = require("fs/promises");
+        const { writeFileSync } = require("fs");
         
         // Capture the content written to file
         let writtenContent: string = "";
-        writeFile.mockImplementation(async (_path: string, content: string) => {
+        writeFileSync.mockImplementation((_path: string, content: string) => {
             writtenContent = content;
         });
         
@@ -413,8 +417,8 @@ describe("AgentForceAgent saveToFile Method Tests - Fixed", () => {
 
         await agent.saveToFile("config.yml");
 
-        // Verify YAML content is generated for .yml extension (lines 37-38 and 95-105)
-        expect(writeFile).toHaveBeenCalled();
+        // Verify YAML content is generated for .yml extension
+        expect(writeFileSync).toHaveBeenCalled();
         expect(writtenContent).toContain("agent: TestAgent");
         expect(writtenContent).toContain("provider: openrouter");
         expect(writtenContent).toContain("model: test-model");

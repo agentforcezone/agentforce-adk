@@ -13,8 +13,8 @@ import type { AgentForceLogger, ModelConfig } from "../types";
  */
 export interface OllamaProviderInterface {
     generate(prompt: string, system?: string): Promise<string>;
-    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;
-    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger): Promise<string>;
+    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string>;
+    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger, agent?: any): Promise<string>;
     getModel(): string;
 }
 
@@ -115,10 +115,11 @@ export class OllamaProvider implements OllamaProviderInterface {
      * @param tools - Array of tool definitions
      * @param system - Optional system prompt
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
-    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string> {
-        return this.toolUse.generateWithTools(prompt, tools, system, logger);
+    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string> {
+        return this.toolUse.generateWithTools(prompt, tools, system, logger, agent);
     }
 
     /**
@@ -126,13 +127,15 @@ export class OllamaProvider implements OllamaProviderInterface {
      * @param messages - Array of messages for the conversation
      * @param tools - Array of tool definitions
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
     async chatWithTools(
         messages: Array<{ role: string; content: string }>,
         tools: Tool[],
         logger?: AgentForceLogger,
+        agent?: any,
     ): Promise<string> {
-        return this.toolUse.chatWithTools(messages, tools, logger);
+        return this.toolUse.chatWithTools(messages, tools, logger, agent);
     }
 }

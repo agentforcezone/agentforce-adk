@@ -11,6 +11,7 @@ import {
     getResponse,
     withTemplate,
     task,
+    addMCP,
 } from "./agent/mod";
 
 import type { 
@@ -19,6 +20,7 @@ import type {
     OutputType,
     AgentForceLogger,
     ModelConfig,
+    MCPServerConfig,
 } from "./types";
 
 export type { AgentConfig };
@@ -78,6 +80,8 @@ export class AgentForceAgent {
     private template: string = "";
     private tools: string[] = [];
     private skills: string[] = [];
+    private mcps: string[] = [];
+    private mcpConfig?: string;
     private assetPath: string = ".";
     private taskList: {description: string, result: string | null}[] = [];
     private chatHistory: {role: string, content: string}[] = [];
@@ -111,6 +115,8 @@ export class AgentForceAgent {
         this.name = config.name;
         this.tools = config.tools || [];
         this.skills = config.skills || [];
+        this.mcps = config.mcps || [];
+        this.mcpConfig = config.mcpConfig;
         
         // AssetPath priority: config.assetPath > AGENT_ASSETS_PATH env var > default "."
         this.assetPath = config.assetPath || process.env.AGENT_ASSETS_PATH || ".";
@@ -142,6 +148,32 @@ export class AgentForceAgent {
      */
     protected getSkills(): string[] {
         return this.skills;
+    }
+
+    /**
+     * Get the MCP servers configured for the agent.
+     * 
+     * @returns {string[]} Array of MCP server names the agent can connect to
+     */
+    protected getMCPs(): string[] {
+        return this.mcps;
+    }
+
+    /**
+     * Set the MCP servers for the agent.
+     * @param mcps - Array of MCP server names to set
+     */
+    protected setMCPs(mcps: string[]): void {
+        this.mcps = mcps;
+    }
+
+    /**
+     * Get the MCP config file path for the agent.
+     * 
+     * @returns {string | undefined} Path to the agent-specific MCP config file
+     */
+    protected getMcpConfig(): string | undefined {
+        return this.mcpConfig;
     }
 
     /**
@@ -300,6 +332,7 @@ export class AgentForceAgent {
     prompt: (userPrompt: string) => AgentForceAgent = prompt.bind(this);
     withTemplate: (templatePath: string, templateData?: Record<string, unknown>) => AgentForceAgent = withTemplate.bind(this);
     task: (taskDescription: string) => AgentForceAgent = task.bind(this);
+    addMCP: (serverNameOrConfig: string | MCPServerConfig) => AgentForceAgent = addMCP.bind(this);
     run: () => Promise<AgentForceAgent> = run.bind(this);
     
     // Execution/Non-chainable methods (return output, not this)

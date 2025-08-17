@@ -18,6 +18,7 @@
     <a href="#examples">Examples</a> •
     <a href="#api-reference">API Reference</a> •
     <a href="#tool-use">Tool Use</a> •
+    <a href="#mcp-integration">MCP Integration</a> •
     <a href="#license">License</a>
   </p>
   <p> or goto </p>
@@ -252,6 +253,93 @@ const browserAgent = new AgentForceAgent({
 const webResponse = await browserAgent.run();
 ```
 
+<br/>
+
+## MCP Integration
+
+AgentForce ADK supports **Model Context Protocol (MCP)** servers, enabling agents to connect to external tools and services that implement the MCP standard. This provides powerful extensibility beyond the built-in tools.
+
+### What is MCP?
+
+MCP (Model Context Protocol) is a standardized protocol for connecting language models to external tools, resources, and data sources. It allows agents to interact with a growing ecosystem of MCP-compatible servers and services.
+
+### Configuration
+
+#### Global MCP Configuration
+
+Create a `mcp.config.json` file in your project root:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "env": {}
+    },
+    "github": {
+      "command": "npx", 
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+#### Environment Variables
+
+Set `MCP_CONFIG` environment variable to use a custom config file path:
+
+```bash
+MCP_CONFIG=custom-mcp.config.json
+```
+
+### Using MCP with Agents
+
+#### Basic MCP Usage
+
+```typescript
+import { AgentForceAgent } from "@agentforce/adk";
+
+const agent = new AgentForceAgent({
+  name: "MCPAgent",
+  mcps: ["filesystem", "github"] // MCP servers to connect to
+})
+  .useLLM("openrouter", "z-ai/glm-4.5v")
+  .systemPrompt("You are an assistant with file system and GitHub access.")
+  .prompt("List files in /tmp and show my GitHub repositories");
+
+const response = await agent.run();
+```
+
+#### Agent-Specific MCP Configuration
+
+```typescript
+const gitAgent = new AgentForceAgent({
+  name: "GitAgent", 
+  mcps: ["github"],
+  mcpConfig: "git-specific-mcp.config.json" // Custom config for this agent
+})
+  .useLLM("openrouter", "z-ai/glm-4.5v")
+  .prompt("Create a new GitHub repository for my project");
+
+const response = await gitAgent.run();
+```
+
+### Features
+
+- **Automatic Tool Integration** - MCP tools are automatically available to agents
+- **Environment Variable Support** - Use `${VAR_NAME}` syntax in configurations
+- **Agent-Specific Configs** - Each agent can have its own MCP configuration
+- **Resource and Prompt Loading** - Access MCP resources and prompts
+- **Error Handling** - Graceful handling of connection and execution errors
+
+For detailed MCP implementation information, see the [MCP Implementation Guide](docs/MCP_IMPLEMENTATION.md).
+
+<br/>
+
 ## API Reference
 
 For detailed API documentation, visit the [AgentForce ADK API Reference](https://docs.agentforce.zone/adk/).
@@ -290,6 +378,7 @@ For detailed API documentation, visit the [AgentForce ADK API Reference](https:/
 - [x] Browser automation tool with browser_use functionality
 - [x] Comprehensive JSDoc examples and type documentation
 - [x] Improved tool organization and directory structure
+- [x] Enhanced MCP Client integration with automatic tool loading
 
 ## Coming soon - until 1.0.0
 

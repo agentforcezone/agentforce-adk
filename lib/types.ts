@@ -36,6 +36,8 @@ export interface AgentForceLogger {
  * @property {string} type - Type of the agent (e.g., 'developer', 'product-owner')
  * @property {ToolType[]} [tools] - List of tools the agent can use (see {@link ToolType} for available options)
  * @property {string[]} [skills] - List of skill files to load for the agent
+ * @property {string[]} [mcps] - List of MCP (Model Context Protocol) server names to connect to
+ * @property {string} [mcpConfig] - Path to agent-specific MCP configuration file (overrides global mcp.config.json)
  * @property {string} [assetPath] - Base path for agent assets (skills, templates, etc.), supports both relative and absolute paths, defaults to current working directory
  * @property {AgentForceLogger} [logger] - Logger instance with logging methods (see {@link AgentForceLogger})
  */
@@ -43,6 +45,8 @@ export type AgentConfig = {
     name: string;
     tools?: ToolType[];
     skills?: string[];
+    mcps?: string[];
+    mcpConfig?: string;
     assetPath?: string;
     logger?: AgentForceLogger;
 };
@@ -183,4 +187,102 @@ export interface ToolImplementation {
 
 export interface ToolRegistry {
     [key: string]: ToolImplementation;
+}
+
+/**
+ * MCP (Model Context Protocol) related types
+ */
+
+/**
+ * Configuration for connecting to an MCP server
+ * @interface MCPServerConfig
+ * @property {string} name - Name identifier for the MCP server
+ * @property {string} command - Command to execute the MCP server (e.g., "npx", "python")
+ * @property {string[]} args - Arguments to pass to the command
+ * @property {Record<string, string>} [env] - Environment variables for the server process
+ * @property {string} [workingDirectory] - Working directory for the server process
+ * @property {number} [timeout] - Connection timeout in milliseconds (default: 30000)
+ */
+export interface MCPServerConfig {
+    name: string;
+    command: string;
+    args: string[];
+    env?: Record<string, string>;
+    workingDirectory?: string;
+    timeout?: number;
+}
+
+/**
+ * MCP tool definition from server
+ * @interface MCPTool
+ * @property {string} name - Tool name
+ * @property {string} description - Tool description
+ * @property {object} inputSchema - JSON schema for tool input parameters
+ */
+export interface MCPTool {
+    name: string;
+    description: string;
+    inputSchema: {
+        type: "object";
+        properties: Record<string, any>;
+        required?: string[];
+    };
+}
+
+/**
+ * MCP resource definition from server
+ * @interface MCPResource
+ * @property {string} uri - Resource URI
+ * @property {string} name - Resource name
+ * @property {string} [description] - Resource description
+ * @property {string} [mimeType] - Resource MIME type
+ */
+export interface MCPResource {
+    uri: string;
+    name: string;
+    description?: string;
+    mimeType?: string;
+}
+
+/**
+ * MCP prompt definition from server
+ * @interface MCPPrompt
+ * @property {string} name - Prompt name
+ * @property {string} description - Prompt description
+ * @property {object} [arguments] - Prompt arguments schema
+ */
+export interface MCPPrompt {
+    name: string;
+    description: string;
+    arguments?: {
+        type: "object";
+        properties: Record<string, any>;
+        required?: string[];
+    };
+}
+
+/**
+ * MCP client implementation interface
+ * @interface MCPClient
+ */
+export interface MCPClient {
+    name: string;
+    config: MCPServerConfig;
+    isConnected: boolean;
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    listTools(): Promise<MCPTool[]>;
+    callTool(name: string, arguments_: Record<string, any>): Promise<any>;
+    listResources(): Promise<MCPResource[]>;
+    readResource(uri: string): Promise<{ contents: Array<{ type: string; text?: string; data?: string }> }>;
+    listPrompts(): Promise<MCPPrompt[]>;
+    getPrompt(name: string, arguments_?: Record<string, any>): Promise<{ description?: string; messages: Array<{ role: string; content: { type: string; text: string } }> }>;
+}
+
+/**
+ * Registry for MCP clients
+ * @interface MCPRegistry
+ */
+export interface MCPRegistry {
+    [key: string]: MCPClient;
 }

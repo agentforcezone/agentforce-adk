@@ -4,6 +4,7 @@ import { OllamaProvider } from "../../../provider/ollama";
 import { OpenRouterProvider } from "../../../provider/openrouter";
 import { loadSkills } from "../../functions/skills";
 import { loadTools } from "../../functions/tools";
+import { loadMCPs, getMCPTools, disconnectMCPs } from "../../functions/mcp";
 import { truncate } from "../../../utils/truncate";
 
 /**
@@ -30,6 +31,18 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     // Load tools if configured
     const tools = this.getTools();
     const loadedTools = (tools && tools.length > 0) ? (loadTools(this) || []) : [];
+
+    // Load and connect MCP servers if configured
+    const mcps = this.getMCPs();
+    if (mcps && mcps.length > 0) {
+        await loadMCPs(this);
+    }
+
+    // Get MCP tools to add to the tool list
+    const mcpTools = await getMCPTools(this);
+
+    // Combine regular tools with MCP tools
+    const allTools = [...loadedTools, ...mcpTools];
 
     // Construct the full system prompt in order: systemPrompt + skills + template
     let fullSystemPrompt = systemPrompt;
@@ -88,7 +101,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
                 modelConfig,
                 fullSystemPrompt,
                 task.description,
-                loadedTools,
+                allTools,
                 logger,
             );
             
@@ -104,6 +117,15 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         
         // Clear the task list after processing
         this.clearTaskList();
+        
+        // Cleanup MCP connections after task processing
+        if (mcps && mcps.length > 0) {
+            try {
+                await disconnectMCPs(this);
+            } catch (cleanupError) {
+                logger.error("MCP cleanup error:", cleanupError);
+            }
+        }
         
         // Return the final result (last task's output) or empty string if no results
         return results.length > 0 ? results[results.length - 1]! : "";
@@ -126,7 +148,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
             modelConfig,
             fullSystemPrompt,
             userPrompt,
-            loadedTools,
+            allTools,
             logger,
         );
 
@@ -141,6 +163,15 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         this.pushToChatHistory("assistant", errorMessage);
         logger.error("Execution error:", errorMessage);
         throw error; // Re-throw to let caller handle the error
+    } finally {
+        // Always cleanup MCP connections to prevent hanging
+        if (mcps && mcps.length > 0) {
+            try {
+                await disconnectMCPs(this);
+            } catch (cleanupError) {
+                logger.error("MCP cleanup error:", cleanupError);
+            }
+        }
     }
 }
 
@@ -186,7 +217,7 @@ async function executeProviderCallWithChatHistory(
                     chatHistoryLength: chatHistory.length,
                     totalMessages: messages.length,
                 });
-                return await ollamaProvider.chatWithTools(messages, loadedTools, logger);
+                return await ollamaProvider.chatWithTools(messages, loadedTools, logger, agent);
             } else {
                 logger.debug("Using Ollama with chat history", { 
                     chatHistoryLength: chatHistory.length,
@@ -205,7 +236,7 @@ async function executeProviderCallWithChatHistory(
                     chatHistoryLength: chatHistory.length,
                     totalMessages: messages.length,
                 });
-                return await openRouterProvider.chatWithTools(messages, loadedTools, logger);
+                return await openRouterProvider.chatWithTools(messages, loadedTools, logger, agent);
             } else {
                 logger.debug("Using OpenRouter with chat history", { 
                     chatHistoryLength: chatHistory.length,
@@ -257,7 +288,7 @@ async function executeProviderCall(
             // Generate response using Ollama with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using Ollama with tools", { toolCount: loadedTools.length });
-                return await ollamaProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger);
+                return await ollamaProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger, _agent);
             } else {
                 return await ollamaProvider.generate(userPrompt, systemPrompt);
             }
@@ -268,7 +299,7 @@ async function executeProviderCall(
             // Generate response using OpenRouter with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using OpenRouter with tools", { toolCount: loadedTools.length });
-                return await openRouterProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger);
+                return await openRouterProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger, _agent);
             } else {
                 return await openRouterProvider.generate(userPrompt, systemPrompt);
             }

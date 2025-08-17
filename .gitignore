@@ -39,3 +39,6 @@ _examples/**
 # AI
 .claude
 CLAUDE.md
+
+# Agentforce
+.agentforce

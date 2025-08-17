@@ -14,8 +14,8 @@ import { truncate } from "../utils/truncate";
  * @property {function} chatWithTools - Chat with tool support using message history
  */
 export interface OpenRouterToolUseInterface {
-    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string>;
-    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger): Promise<string>;
+    generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string>;
+    chatWithTools(messages: Array<{ role: string; content: string }>, tools: Tool[], logger?: AgentForceLogger, agent?: any): Promise<string>;
 }
 
 // Re-export types for convenience
@@ -119,45 +119,96 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
 
         const sanitized = { ...result };
 
-        // Auto-save screenshot data and replace with file path info
-        if (sanitized.screenshot && typeof sanitized.screenshot === "string") {
+        // Helper function to detect base64 image data
+        const isBase64Image = (str: string): boolean => {
+            if (typeof str !== "string" || str.length < 100) return false;
+            // Check for base64 image patterns
+            return /^[A-Za-z0-9+/]{100,}={0,2}$/.test(str) || 
+                   /^data:image\/[^;]+;base64,/.test(str);
+        };
+
+        // Helper function to save binary data to file
+        const saveBinaryToFile = (data: string, prefix: string = "binary"): string => {
             try {
-                // Generate a temporary filename
                 const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
                 const urlPart = sanitized.url ? 
-                    sanitized.url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30) : 
-                    "webpage";
-                const filename = `screenshot_${urlPart}_${timestamp}.png`;
+                    sanitized.url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 20) : 
+                    "unknown";
                 
-                // Ensure directory exists
+                // Determine file extension from data
+                let extension = "bin";
+                if (data.startsWith("data:image/png") || isBase64Image(data)) {
+                    extension = "png";
+                } else if (data.startsWith("data:image/jpeg") || data.startsWith("data:image/jpg")) {
+                    extension = "jpg";
+                } else if (data.startsWith("data:image/gif")) {
+                    extension = "gif";
+                }
+                
+                const filename = `${prefix}_${urlPart}_${timestamp}.${extension}`;
                 const absolutePath = resolve(process.cwd(), filename);
                 const dirPath = dirname(absolutePath);
                 mkdirSync(dirPath, { recursive: true });
                 
-                // Save original length before overwriting
-                const originalLength = sanitized.screenshot.length;
+                // Clean base64 data (remove data URL prefix if present)
+                let cleanData = data;
+                if (data.startsWith("data:")) {
+                    cleanData = data.split(",")[1] || data;
+                }
                 
-                // Write base64 data to file
-                writeFileSync(absolutePath, sanitized.screenshot, "base64");
+                const originalLength = cleanData.length;
+                writeFileSync(absolutePath, cleanData, "base64");
                 
-                // Replace screenshot data with file path info
-                sanitized.screenshot = `[SCREENSHOT_SAVED_TO: ${filename}]`;
-                sanitized.screenshotSaved = true;
-                sanitized.screenshotPath = filename;
-                sanitized.screenshotSize = `${Math.round(originalLength * 0.75)} bytes`;
-                
+                return `[BINARY_SAVED_TO: ${filename}, SIZE: ${Math.round(originalLength * 0.75)} bytes]`;
             } catch (error: any) {
-                sanitized.screenshot = `[SCREENSHOT_SAVE_FAILED: ${error.message}]`;
+                return `[BINARY_SAVE_FAILED: ${error.message}]`;
+            }
+        };
+
+        // Auto-save screenshot data and replace with file path info
+        if (sanitized.screenshot && typeof sanitized.screenshot === "string") {
+            if (isBase64Image(sanitized.screenshot)) {
+                sanitized.screenshot = saveBinaryToFile(sanitized.screenshot, "screenshot");
+                sanitized.screenshotSaved = true;
             }
         }
 
-        // Remove other potentially large binary data
+        // Handle other common binary data fields
+        const binaryFields = ["image", "photo", "picture", "screenshotData", "imageData"];
+        for (const field of binaryFields) {
+            if (sanitized[field] && typeof sanitized[field] === "string" && isBase64Image(sanitized[field])) {
+                sanitized[field] = saveBinaryToFile(sanitized[field], field);
+                sanitized[`${field}Saved`] = true;
+            }
+        }
+
+        // Recursively check nested objects for binary data
+        for (const [key, value] of Object.entries(sanitized)) {
+            if (typeof value === "object" && value !== null) {
+                sanitized[key] = this.sanitizeToolResultForContext(value);
+            }
+        }
+
+        // Truncate other potentially large text data
         if (sanitized.html && typeof sanitized.html === "string" && sanitized.html.length > 10000) {
             sanitized.html = sanitized.html.substring(0, 2000) + "...[truncated]";
         }
 
-        if (sanitized.content && typeof sanitized.content === "string" && sanitized.content.length > 5000) {
-            sanitized.content = sanitized.content.substring(0, 2000) + "...[truncated]";
+        if (sanitized.content && typeof sanitized.content === "string" && sanitized.content.length > 10000) {
+            sanitized.content = sanitized.content.substring(0, 3000) + "...[truncated]";
+        }
+
+        // Handle very large strings that might be binary data
+        for (const [key, value] of Object.entries(sanitized)) {
+            if (typeof value === "string" && value.length > 5000) {
+                if (isBase64Image(value)) {
+                    sanitized[key] = saveBinaryToFile(value, key);
+                    sanitized[`${key}Saved`] = true;
+                } else if (value.length > 15000) {
+                    // Truncate very large non-binary strings
+                    sanitized[key] = value.substring(0, 3000) + "...[truncated]";
+                }
+            }
         }
 
         return sanitized;
@@ -169,9 +220,10 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
      * @param tools - Array of tool definitions
      * @param system - Optional system prompt
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
-    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger): Promise<string> {
+    async generateWithTools(prompt: string, tools: Tool[], system?: string, logger?: AgentForceLogger, agent?: any): Promise<string> {
         try {
             if (logger) {
                 logger.debug("Initial OpenRouter LLM call with tools", {
@@ -225,6 +277,19 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                     });
                 }
 
+                // Handle error finish reasons
+                const finishReason = completion.choices[0]?.finish_reason;
+                if (finishReason === "error") {
+                    const errorMsg = `OpenRouter API returned error finish reason. Content: ${response.content || "No content"}`;
+                    if (logger) {
+                        logger.error(errorMsg, {
+                            model: this.model,
+                            fullResponse: completion,
+                        });
+                    }
+                    return `Error: ${errorMsg}`;
+                }
+
                 // Check if model wants to use tools
                 if (response.tool_calls && response.tool_calls.length > 0) {
                     if (logger) {
@@ -259,6 +324,8 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                             const result = await executeTool(
                                 toolCall.function.name,
                                 args as unknown as Record<string, any>,
+                                agent,
+                                logger,
                             );
                             
                             if (logger) {
@@ -367,12 +434,14 @@ ${lastToolResults.join("\n\n")}`;
      * @param messages - Array of messages for the conversation
      * @param tools - Array of tool definitions
      * @param logger - Optional logger for debugging
+     * @param agent - Optional agent instance for MCP tool execution
      * @returns Promise with the model's response after tool execution
      */
     async chatWithTools(
         messages: Array<{ role: string; content: string }>,
         tools: Tool[],
         logger?: AgentForceLogger,
+        agent?: any,
     ): Promise<string> {
         try {
             if (logger) {
@@ -465,6 +534,8 @@ ${lastToolResults.join("\n\n")}`;
                             const result = await executeTool(
                                 toolCall.function.name,
                                 args as unknown as Record<string, any>,
+                                agent,
+                                logger,
                             );
                             
                             if (logger) {

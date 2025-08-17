@@ -1,6 +1,7 @@
 import type { AgentForceAgent } from "../../agent";
 import type { Tool } from "../../types";
 import { getTool, hasTool } from "../../tools/registry";
+import { executeMCPTool } from "./mcp";
 
 /**
  * Internal function to load tools defined in agent config
@@ -36,13 +37,37 @@ export function loadTools(agent: AgentForceAgent): Tool[] {
 
 /**
  * Execute a tool call with the provided arguments
+ * This function handles both regular AgentForce tools and MCP tools
  * @internal
  */
 export async function executeTool(
     toolName: string, 
     args: Record<string, any>,
+    agent?: AgentForceAgent,
     logger?: any,
 ): Promise<any> {
+    // Check if this is an MCP tool (prefixed with "mcp_")
+    if (toolName.startsWith("mcp_")) {
+        if (!agent) {
+            const errorMessage = "Agent instance required for MCP tool execution";
+            if (logger) {
+                logger.error(errorMessage);
+            }
+            return { error: errorMessage };
+        }
+        
+        try {
+            return await executeMCPTool(agent, toolName, args);
+        } catch (error: any) {
+            const errorMessage = `MCP tool execution failed for ${toolName}: ${error.message}`;
+            if (logger) {
+                logger.error(errorMessage);
+            }
+            return { error: errorMessage };
+        }
+    }
+    
+    // Handle regular AgentForce tools
     const tool = getTool(toolName);
     
     if (!tool) {

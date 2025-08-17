@@ -58,14 +58,14 @@ class BrowserDetector {
                 browsers.push(
                     { name: "Brave (macOS)", command: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser", found: false },
                     { name: "Chrome (macOS)", command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", found: false },
-                    { name: "Chromium (macOS)", command: "/Applications/Chromium.app/Contents/MacOS/Chromium", found: false }
+                    { name: "Chromium (macOS)", command: "/Applications/Chromium.app/Contents/MacOS/Chromium", found: false },
                 );
                 break;
             case "win32": // Windows
                 browsers.push(
                     { name: "Brave (Windows)", command: "brave", found: false },
                     { name: "Chrome (Windows)", command: "chrome", found: false },
-                    { name: "Chromium (Windows)", command: "chromium", found: false }
+                    { name: "Chromium (Windows)", command: "chromium", found: false },
                 );
                 break;
             default: // Linux and others
@@ -73,7 +73,7 @@ class BrowserDetector {
                     { name: "Brave", command: "brave", found: false },
                     { name: "Chrome", command: "google-chrome", found: false },
                     { name: "Chromium", command: "chromium", found: false },
-                    { name: "Chromium Browser", command: "chromium-browser", found: false }
+                    { name: "Chromium Browser", command: "chromium-browser", found: false },
                 );
         }
 
@@ -113,27 +113,27 @@ class BrowserDetector {
     static async startBrowser(browserCommand: string, port: number): Promise<boolean> {
         return new Promise((resolve) => {
             const tempDir = `/tmp/browser-adk-${Date.now()}`;
-            console.log(`🚀 Starting browser: ${browserCommand.split('/').pop()} on port ${port}`);
+            console.log(`🚀 Starting browser: ${browserCommand.split("/").pop()} on port ${port}`);
             
             const args = [
                 `--remote-debugging-port=${port}`,
                 `--user-data-dir=${tempDir}`,
-                `--no-first-run`,
-                `--no-default-browser-check`,
-                `--disable-default-apps`,
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--disable-default-apps",
                 //`--disable-extensions`,
                 //`--disable-plugins`,
-                `--disable-translate`,
-                `--disable-background-timer-throttling`,
-                `--disable-renderer-backgrounding`,
-                `--disable-backgrounding-occluded-windows`,
-                `--disable-component-extensions-with-background-pages`,
-                `--new-window`
+                "--disable-translate",
+                "--disable-background-timer-throttling",
+                "--disable-renderer-backgrounding",
+                "--disable-backgrounding-occluded-windows",
+                "--disable-component-extensions-with-background-pages",
+                "--new-window",
             ];
             
             const browser = spawn(browserCommand, args, {
                 stdio: "pipe",
-                detached: true
+                detached: true,
             });
 
             browser.unref();
@@ -203,7 +203,7 @@ class BrowserManager {
                     return { browser: this.browser, page: this.currentPage };
                 } catch (connectionError) {
                     // Connection is stale, reset and reconnect
-                    console.log(`🔄 Existing connection stale, reconnecting...`);
+                    console.log("🔄 Existing connection stale, reconnecting...");
                     this.browser = null;
                     this.currentPage = null;
                     this.sessionActive = false;
@@ -241,7 +241,7 @@ class BrowserManager {
                 // Detect available browsers
                 const availableBrowsers = await BrowserDetector.detectBrowsers();
                 if (availableBrowsers.length === 0) {
-                    throw new Error(`No supported browsers found. Please install Chrome, Brave, or Chromium and try again.`);
+                    throw new Error("No supported browsers found. Please install Chrome, Brave, or Chromium and try again.");
                 }
 
                 // Start the first available browser
@@ -295,7 +295,7 @@ class BrowserManager {
             this.browser = null;
             this.currentPage = null;
             this.sessionActive = false;
-            console.log(`🔌 Disconnected from browser (browser still running)`);
+            console.log("🔌 Disconnected from browser (browser still running)");
         }
     }
 
@@ -306,9 +306,9 @@ class BrowserManager {
         if (this.browser) {
             try {
                 await this.browser.close();
-                console.log(`🛑 Browser process terminated`);
+                console.log("🛑 Browser process terminated");
             } catch (error) {
-                console.log(`⚠️  Browser close warning: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                console.log(`⚠️  Browser close warning: ${error instanceof Error ? error.message : "Unknown error"}`);
             }
             this.browser = null;
             this.currentPage = null;
@@ -330,7 +330,7 @@ class BrowserManager {
         return {
             active: this.sessionActive,
             port: this.connectionPort,
-            lastActivity: this.lastActivity
+            lastActivity: this.lastActivity,
         };
     }
 }

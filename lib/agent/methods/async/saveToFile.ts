@@ -1,7 +1,7 @@
 import type { AgentForceAgent } from "../../../agent";
 import type { OutputType } from "../../../types";
 import { execute } from "./execute";
-import { writeFile } from "fs/promises";
+import { writeFileSync } from "fs";
 import { join, extname } from "path";
 import { stringifyYaml } from "../../../utils/yaml";
 import { formatResponseAsHtml } from "../../../utils/html";
@@ -46,12 +46,13 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
             return `Error: Unsupported file extension: ${fileExtension}`;
     }
 
-    // Execute the provider call first to get the response
+    // Execute the provider call to get the response
+    let assistantResponse: string;
     try {
-        await execute.call(this);
-    } catch {
-        // Error handling is already done in execute function
-        // Continue with file generation using the error message from chat history
+        assistantResponse = await execute.call(this);
+    } catch (error) {
+        // If execution fails, use error message as response
+        assistantResponse = error instanceof Error ? error.message : "Unknown error occurred";
     }
     
     // Get agent information using protected methods
@@ -60,11 +61,6 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
     const userPrompt = this.getUserPrompt();
     const provider = this.getProvider();
     const model = this.getModel();
-    const chatHistory = this.getChatHistory();
-    
-    // Get the latest assistant response from chat history
-    const latestAssistantMessage = chatHistory.findLast(msg => msg.role === "assistant");
-    const assistantResponse = latestAssistantMessage ? latestAssistantMessage.content : "No response available";
     
     // Generate content based on the output type using actual chat history
     let content: string;
@@ -115,11 +111,18 @@ export async function saveToFile(this: AgentForceAgent, fileName: string): Promi
             content = `Error: Unsupported output type: ${outputType}`;
     }
     
-    // Write content to file
+    // Write content to file synchronously since this is the last operation
     try {
         const fullPath = join(process.cwd(), fileName);
-        await writeFile(fullPath, content, "utf8");
+        
+        // Use synchronous write to ensure file is completely written before returning
+        writeFileSync(fullPath, content, "utf8");
+        
+        const logger = this.getLogger();
+        logger.debug("File written successfully");
+        
         return fullPath;
+
     } catch (error) {
         const logger = this.getLogger();
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
