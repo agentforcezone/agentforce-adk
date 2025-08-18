@@ -51,8 +51,10 @@ export function loadMCPConfig(configPath?: string): void {
                     
                     processedConfigs[name] = {
                         name,
+                        type: typedConfig.type || "local",
                         command: typedConfig.command,
                         args: typedConfig.args || [],
+                        url: typedConfig.url,
                         env: resolvedEnv,
                         workingDirectory: typedConfig.workingDirectory,
                         timeout: typedConfig.timeout || 10000,

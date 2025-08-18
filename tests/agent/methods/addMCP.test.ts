@@ -123,7 +123,7 @@ describe("AgentForceAgent addMCP Method Tests", () => {
             );
             expect(mockLogger.debug).toHaveBeenCalledWith(
                 { serverName: "custom-server" },
-                "Custom MCP config will be used during execution"
+                "Custom MCP config stored for execution"
             );
         });
 

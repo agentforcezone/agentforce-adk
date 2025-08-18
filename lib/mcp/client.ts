@@ -71,21 +71,25 @@ export class MCPNodeClient implements MCPClient {
      * Connect using HTTP/SSE transport for remote servers
      */
     private async connectHttp(): Promise<void> {
-        if (!this.config.env?.MCP_SERVER_URL) {
-            throw new Error(`HTTP transport requires MCP_SERVER_URL in env config for ${this.name}`);
+        // Get server URL from config.url or config.env.MCP_SERVER_URL
+        const serverUrl = this.config.url || this.config.env?.MCP_SERVER_URL;
+        
+        if (!serverUrl) {
+            throw new Error(`HTTP transport requires url property or MCP_SERVER_URL in env config for ${this.name}`);
         }
 
-        const serverUrl = this.config.env.MCP_SERVER_URL;
-        const transportType = this.config.env.MCP_TRANSPORT_TYPE || "sse";
+        // Get transport type from config.type or config.env.MCP_TRANSPORT_TYPE, default to sse
+        const transportType = this.config.type === "http" ? "http-stream" : 
+                             this.config.env?.MCP_TRANSPORT_TYPE || "sse";
 
-        if (transportType === "http-stream") {
+        if (transportType === "http-stream" || transportType === "http") {
             // Use StreamableHTTPClientTransport for HTTP streaming
             this.transport = new this.StreamableHTTPClientTransportImpl(
                 new URL(serverUrl),
                 {
                     requestInit: {
                         headers: {
-                            Authorization: this.config.env.AUTHORIZATION || "",
+                            Authorization: this.config.env?.AUTHORIZATION || "",
                             ...this.getCustomHeaders(),
                         },
                     },
@@ -94,7 +98,7 @@ export class MCPNodeClient implements MCPClient {
         } else {
             // Use SSE transport (default)
             this.transport = new this.SSEClientTransportImpl(
-                new URL(serverUrl),
+                new URL(serverUrl)
             );
         }
 
@@ -105,6 +109,10 @@ export class MCPNodeClient implements MCPClient {
      * Connect using stdio transport for local command-based servers
      */
     private async connectStdio(): Promise<void> {
+        if (!this.config.command) {
+            throw new Error(`Local transport requires command property for ${this.name}`);
+        }
+        
         // Create stdio transport - it will handle process spawning internally
         const env: Record<string, string> = {};
         
@@ -126,7 +134,7 @@ export class MCPNodeClient implements MCPClient {
 
         this.transport = new this.StdioClientTransportImpl({
             command: this.config.command,
-            args: this.config.args,
+            args: this.config.args || [],
             env,
         });
 
@@ -145,7 +153,7 @@ export class MCPNodeClient implements MCPClient {
      * Check if this config uses HTTP transport
      */
     private isHttpTransport(): boolean {
-        return !!this.config.env?.MCP_SERVER_URL;
+        return this.config.type === "sse" || this.config.type === "http" || !!this.config.url || !!this.config.env?.MCP_SERVER_URL;
     }
 
     /**

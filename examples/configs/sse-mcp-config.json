@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentforce-adk-docs": {
+      "type": "sse",
+      "url": "https://gitmcp.io/agentforcezone/agentforce-adk",
+      "timeout": 30000
+    }
+  }
+}

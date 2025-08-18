@@ -55,6 +55,7 @@ describe("MCP Functions", () => {
         mockAgent = {
             ["getMcpConfig"]: jest.fn(),
             ["getMCPs"]: jest.fn(),
+            ["getCustomMcpConfigs"]: jest.fn(() => new Map()),
             ["getLogger"]: jest.fn(() => mockLogger),
             ["getSystemPrompt"]: jest.fn(),
             ["setSystemPrompt"]: jest.fn()

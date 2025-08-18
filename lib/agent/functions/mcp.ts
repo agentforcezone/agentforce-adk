@@ -41,8 +41,17 @@ export async function loadMCPs(agent: AgentForceAgent): Promise<void> {
             let client = getMCPClient(mcpName);
             
             if (!client) {
-                // Create new client from pre-configured servers
-                client = await createMCPClient(mcpName);
+                // Check if we have a custom config for this server
+                const customConfigs = agent["getCustomMcpConfigs"]();
+                const customConfig = customConfigs.get(mcpName);
+                
+                if (customConfig) {
+                    // Create new client with custom configuration
+                    client = await createMCPClient(mcpName, customConfig);
+                } else {
+                    // Create new client from pre-configured servers
+                    client = await createMCPClient(mcpName);
+                }
             }
             
             // Connect if not already connected

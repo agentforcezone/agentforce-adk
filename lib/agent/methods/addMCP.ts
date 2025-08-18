@@ -65,13 +65,10 @@ export function addMCP(this: AgentForceAgent, serverNameOrConfig: string | MCPSe
             logger.debug({ serverName }, "MCP server already configured, skipping");
         }
         
-        // If custom config is provided, we can create the client immediately
-        // Otherwise, it will be created during execution using pre-configured settings
+        // If custom config is provided, store it for later use during execution
         if (config) {
-            // Store custom config for later use during execution
-            // Note: This is a simple approach - in a full implementation, you might want to
-            // store custom configs in a separate registry or agent property
-            logger.debug({ serverName }, "Custom MCP config will be used during execution");
+            this.addCustomMcpConfig(serverName, config);
+            logger.debug({ serverName }, "Custom MCP config stored for execution");
         }
         
     } catch (error) {

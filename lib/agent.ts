@@ -82,6 +82,7 @@ export class AgentForceAgent {
     private skills: string[] = [];
     private mcps: string[] = [];
     private mcpConfig?: string;
+    private customMcpConfigs: Map<string, MCPServerConfig> = new Map();
     private assetPath: string = ".";
     private taskList: {description: string, result: string | null}[] = [];
     private chatHistory: {role: string, content: string}[] = [];
@@ -174,6 +175,25 @@ export class AgentForceAgent {
      */
     protected getMcpConfig(): string | undefined {
         return this.mcpConfig;
+    }
+
+    /**
+     * Get custom MCP server configurations for the agent.
+     * 
+     * @returns {Map<string, MCPServerConfig>} Map of server names to their configurations
+     */
+    protected getCustomMcpConfigs(): Map<string, MCPServerConfig> {
+        return this.customMcpConfigs;
+    }
+
+    /**
+     * Add a custom MCP server configuration.
+     * 
+     * @param name - Server name
+     * @param config - Server configuration
+     */
+    protected addCustomMcpConfig(name: string, config: MCPServerConfig): void {
+        this.customMcpConfigs.set(name, config);
     }
 
     /**

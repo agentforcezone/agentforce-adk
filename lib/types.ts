@@ -197,16 +197,20 @@ export interface ToolRegistry {
  * Configuration for connecting to an MCP server
  * @interface MCPServerConfig
  * @property {string} name - Name identifier for the MCP server
- * @property {string} command - Command to execute the MCP server (e.g., "npx", "python")
- * @property {string[]} args - Arguments to pass to the command
- * @property {Record<string, string>} [env] - Environment variables for the server process
- * @property {string} [workingDirectory] - Working directory for the server process
+ * @property {"local" | "sse" | "http"} [type] - Type of MCP server connection (default: "local")
+ * @property {string} [command] - Command to execute the MCP server (required for local servers)
+ * @property {string[]} [args] - Arguments to pass to the command (for local servers)
+ * @property {string} [url] - URL for remote MCP servers (required for sse/http servers)
+ * @property {Record<string, string>} [env] - Environment variables for the server process or headers for remote servers
+ * @property {string} [workingDirectory] - Working directory for the server process (local servers only)
  * @property {number} [timeout] - Connection timeout in milliseconds (default: 30000)
  */
 export interface MCPServerConfig {
     name: string;
-    command: string;
-    args: string[];
+    type?: "local" | "sse" | "http";
+    command?: string;
+    args?: string[];
+    url?: string;
     env?: Record<string, string>;
     workingDirectory?: string;
     timeout?: number;
