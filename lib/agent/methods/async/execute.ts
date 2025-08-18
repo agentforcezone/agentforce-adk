@@ -6,6 +6,7 @@ import { loadSkills } from "../../functions/skills";
 import { loadTools } from "../../functions/tools";
 import { loadMCPs, getMCPTools, disconnectMCPs } from "../../functions/mcp";
 import { truncate } from "../../../utils/truncate";
+import { generateExecutionId } from "../../../logger";
 
 /**
  * Executes the agent's provider call to generate response
@@ -14,6 +15,21 @@ import { truncate } from "../../../utils/truncate";
  */
 export async function execute(this: AgentForceAgent): Promise<string> {
     const logger = this.getLogger();
+    
+    // Generate and set execution ID for this execution
+    const executionId = generateExecutionId();
+    
+    // Set execution ID on logger if it supports it (for file logging)
+    if ("setExecutionId" in logger && typeof (logger as any).setExecutionId === "function") {
+        (logger as any).setExecutionId(executionId);
+    }
+    
+    // Log execution start with execution ID
+    logger.info("Execution started", { 
+        executionId,
+        agent: this.getName(),
+        timestamp: new Date().toISOString()
+    });
     
     // Get agent configuration
     const provider = this.getProvider();
@@ -127,8 +143,17 @@ export async function execute(this: AgentForceAgent): Promise<string> {
             }
         }
         
+        // Log execution completion
+        const finalResult = results.length > 0 ? results[results.length - 1]! : "";
+        logger.info("Execution completed", {
+            executionId,
+            agent: this.getName(),
+            timestamp: new Date().toISOString(),
+            taskCount: results.length
+        });
+        
         // Return the final result (last task's output) or empty string if no results
-        return results.length > 0 ? results[results.length - 1]! : "";
+        return finalResult;
     }
     
     // Store the user prompt in chat history if not already stored
@@ -155,13 +180,28 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         // Store the assistant response in chat history
         this.pushToChatHistory("assistant", response);
         
+        // Log execution completion
+        logger.info("Execution completed", {
+            executionId,
+            agent: this.getName(),
+            timestamp: new Date().toISOString()
+        });
+        
         return response;
 
     } catch (error) {
         // Store error in chat history as well
         const errorMessage = `Error: ${error}`;
         this.pushToChatHistory("assistant", errorMessage);
-        logger.error("Execution error:", errorMessage);
+        
+        // Log execution error with execution ID
+        logger.error("Execution failed", {
+            executionId,
+            agent: this.getName(),
+            error: String(error),
+            timestamp: new Date().toISOString()
+        });
+        
         throw error; // Re-throw to let caller handle the error
     } finally {
         // Always cleanup MCP connections to prevent hanging

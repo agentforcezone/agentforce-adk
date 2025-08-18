@@ -19,6 +19,22 @@
  */
 
 /**
+ * Log format types for different output destinations
+ */
+export type StdoutLogFormat = "structured" | "console";
+export type FileLogFormat = "structured";
+
+/**
+ * Structured log entry format (used for both stdout and file logging)
+ */
+export interface StructuredLogEntry {
+    timestamp: string;
+    level: string;
+    msg?: string;
+    [key: string]: any;
+}
+
+/**
  * Interface for a logger that can be used by the Agent.
  * It supports log, warn, error, and debug levels.
  */
@@ -39,7 +55,8 @@ export interface AgentForceLogger {
  * @property {string[]} [mcps] - List of MCP (Model Context Protocol) server names to connect to
  * @property {string} [mcpConfig] - Path to agent-specific MCP configuration file (overrides global mcp.config.json)
  * @property {string} [assetPath] - Base path for agent assets (skills, templates, etc.), supports both relative and absolute paths, defaults to current working directory
- * @property {AgentForceLogger} [logger] - Logger instance with logging methods (see {@link AgentForceLogger})
+ * @property {AgentForceLogger | ("default" | "file")[]} [logger] - Logger instance or array of logging modes: "default" (console), "file" (transaction file logging). Defaults to ["default"] if not set
+ * @property {string} [logPath] - Optional custom path for log files (defaults to LOG_PATH env var or current working directory)
  */
 export type AgentConfig = {
     name: string;
@@ -48,7 +65,8 @@ export type AgentConfig = {
     mcps?: string[];
     mcpConfig?: string;
     assetPath?: string;
-    logger?: AgentForceLogger;
+    logger?: AgentForceLogger | ("default" | "file")[];
+    logPath?: string;
 };
 
 

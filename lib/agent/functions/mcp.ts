@@ -1,5 +1,6 @@
 import type { AgentForceAgent } from "../../agent";
 import { createMCPClient, getMCPClient, disconnectAllMCPClients, loadMCPConfig } from "../../mcp/registry";
+import { truncate } from "../../utils/truncate";
 
 /**
  * Loads agent-specific MCP configuration from the file path specified in agent config.
@@ -146,11 +147,19 @@ export async function executeMCPTool(agent: AgentForceAgent, toolName: string, a
             throw new Error(`MCP client not connected: ${serverName}`);
         }
         
-        logger.debug({ serverName, mcpToolName, args }, "Executing MCP tool");
+        logger.debug("Executing MCP tool", { 
+            serverName, 
+            mcpToolName, 
+            args 
+        });
         
         const result = await client.callTool(mcpToolName, args);
         
-        logger.debug({ serverName, mcpToolName }, "MCP tool executed successfully");
+        logger.debug("MCP tool executed successfully", { 
+            serverName, 
+            mcpToolName,
+            result: truncate(JSON.stringify(result), 200)
+        });
         
         return result;
         

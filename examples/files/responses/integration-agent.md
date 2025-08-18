@@ -1,44 +1,57 @@
-**User Story – Project Initialization for Game Development Marketplace Website**
+**User Story – Project Initialization for the Game Development Marketplace Website**
 
-| **Item** | **Description** |
-|----------|-----------------|
-| **Title** | Project Initialization – Game Development Marketplace Website |
-| **As a** | Product Owner (or project lead) |
-| **I want** | To complete a formal project initialization for the Game Development Marketplace website |
-| **So that** | The development team has a clear, documented starting point, a consistent technical foundation, and an initial backlog that can be immediately worked on. |
+---
+
+**As a** Project Manager / Technical Lead,  
+**I want** to initialize the Game Development Marketplace website project with a clean, well‑structured repository, baseline infrastructure, and essential documentation,  
+**so that** the entire team can start development on a solid foundation, maintain consistency, and avoid technical debt from the outset.
 
 ---
 
 ### Acceptance Criteria
 
-| # | Criterion | Test / Verification |
-|---|-----------|---------------------|
-| 1 | **Git Repository** | A public GitHub repository is created (`game-dev-marketplace`) containing the initial commit(s). |
-| 2 | **Folder Structure** | Repository contains a standard structure (`src/`, `tests/`, `docs/`, `config/`, `scripts/`). |
-| 3 | **README** | README.md includes: <br>- Project description <br>- Quick start (setup, run, test) <br>- Project conventions (coding style, branching model) <br>- Contact & contribution guidelines. |
-| 4 | **CI/CD Pipeline** | GitHub Actions (or equivalent) is configured to run: <br>- Linting (`eslint`, `prettier`) <br>- Unit tests (`jest` or `pytest`) <br>- Build verification. |
-| 5 | **Initial Landing Page** | A minimal HTML/CSS/JS landing page is in `src/` showing: <br>- Project logo <br>- Brief tagline <br>- “Coming Soon” placeholder. |
-| 6 | **Database Skeleton** | A PostgreSQL (or chosen DB) schema is defined in `config/db_schema.sql` with tables: `users`, `games`, `listings`. |
-| 7 | **Issue Tracker Setup** | GitHub Issues board initialized with categories: “Backlog”, “In Progress”, “Done”. |
-| 8 | **Initial Backlog** | At least 5 Epics/User Stories are created in Jira (or equivalent) covering core marketplace features (e.g., user registration, game listing, search, review system, admin dashboard). |
-| 9 | **Kick‑off Documentation** | A `Kickoff.md` file summarizing: <br>- Project vision <br>- Success criteria <br>- Roles & responsibilities <br>- Timeline & milestones. |
-| 10 | **Version Control Best Practices** | Branching strategy documented (e.g., GitFlow or trunk-based) and default branch protected. |
+| # | Criterion | How to Verify |
+|---|-----------|---------------|
+| 1 | A public Git repository is created on the company’s Git platform (GitHub/GitLab/Bitbucket) with the repo name `game-dev-marketplace`. | Repo URL is accessible; owner permissions are correctly set. |
+| 2 | The repository contains a standard folder structure: `src/`, `tests/`, `docs/`, `scripts/`, `config/`, `assets/`. | Directory tree matches the specification. |
+| 3 | A `README.md` is added that includes: project overview, setup instructions, contribution guidelines, and a high‑level architecture diagram. | README renders correctly on the platform and contains all required sections. |
+| 4 | A `CONTRIBUTING.md` file exists, outlining coding standards, commit conventions, and code review process. | File present and references the coding style guide. |
+| 5 | A CI pipeline (GitHub Actions / GitLab CI) is configured to run linting and unit tests on every push to `main` and on pull requests. | CI runs automatically and passes on sample commit. |
+| 6 | A `LICENSE` file (MIT / Apache 2.0) is added. | License text is present and correctly formatted. |
+| 7 | The initial project skeleton includes: a basic Express/Node.js or Django/Flask app (depending on stack decisions), or a minimal Next.js/React app if front‑end driven, with a single “Hello World” endpoint/page. | Running `npm start` / `python manage.py runserver` shows “Hello World” output. |
+| 8 | A `.gitignore` file is created covering typical node or python files, OS files, and build artifacts. | The file contains standard entries (`node_modules/`, `__pycache__/`, `.env`, etc.). |
+| 9 | A `.env.example` is added with placeholders for all required environment variables. | File includes keys like `DATABASE_URL`, `SECRET_KEY`, `API_KEY`, etc. |
+|10 | The architecture diagram in `docs/architecture.md` or as an image in `docs/` explains: <br>• Backend services (API, auth, DB) <br>• Front‑end architecture <br>• Deployment pipeline <br>• Key third‑party integrations | Diagram is clear, up‑to‑date, and referenced in the README. |
+|11 | An initial version tag `v0.1.0` is created in Git. | Tag exists and points at the commit containing the skeleton. |
+|12 | All files are committed with a clear, descriptive commit message: “Initial project scaffold – basic repo, CI, docs.” | Commit tree shows the message and the correct changes. |
 
 ---
 
-### Estimation
+### Suggested Tasks (Kanban/Task List)
 
-| **Metric** | **Value** |
-|------------|-----------|
-| Story Points | 8 (medium complexity, requires coordination across repo setup, documentation, and CI) |
-| Effort | ~2 days of combined effort (repo & CI setup + documentation) |
+1. **Create Repository** – Set up the repo on Git platform, add contributors, set visibility.
+2. **Define Folder Structure** – `mkdir -p src/tests/docs/scripts/config/assets`.
+3. **Add Boilerplate Code** – Initialize Node/Express or Django/Flask skeleton; add `index.js` or `app.py`.
+4. **Write README** – Include project description, stack, setup steps, and architecture diagram reference.
+5. **Add CONTRIBUTING guide** – Describe coding standards, commit patterns, PR process.
+6. **Add LICENSE** – Choose open‑source license, add file.
+7. **Add `.gitignore`** – Use standard template for chosen language/framework.
+8. **Add `.env.example`** – List required env vars with sample values.
+9. **Setup CI** – Add GitHub Actions workflow (`node-ci.yml` / `python-ci.yml`) with lint/test steps.
+10. **Create Architecture Diagram** – Use draw.io or Lucidchart; export to PNG/MD.
+11. **Tag Release** – `git tag v0.1.0` and push tags.
+12. **Commit & Push** – Push all changes, create initial PR if needed.
 
 ---
 
-### Notes & Dependencies
+### Deliverables
 
-- The repository URL and CI configuration must be accessible to all stakeholders before the first sprint planning session.  
-- The database schema may be revised during the first sprint; versioning will be handled via migrations.  
-- All setup should follow the company’s Open Source License policy (MIT/Apache‑2.0 as applicable).  
+- Public Git repository (`game-dev-marketplace`) with the initial commit.
+- README, CONTRIBUTING, LICENSE, `.gitignore`, `.env.example` in place.
+- CI pipeline running on every push/PR.
+- Architecture diagram in `docs/` or embedded in README.
+- Tag `v0.1.0` created and pushed.
 
 ---
+
+**Outcome:** The team now has a clean, documented, and CI‑enabled foundation to start building the Game Development Marketplace site, ensuring consistency, traceability, and rapid onboarding for new contributors.

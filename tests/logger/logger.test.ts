@@ -47,9 +47,11 @@ describe("Default Logger Comprehensive Tests", () => {
         
         expect(stdoutWriteSpy).toHaveBeenCalledTimes(1);
         const call = stdoutWriteSpy.mock.calls[0][0];
-        expect(call).toMatch(/DEBUG.*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+        expect(call).toMatch(/\{"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"/);
+        expect(call).toContain('"level":"debug"');
         expect(call).toContain('"msg":"Debug message"');
         expect(call).toContain('"data":"test"');
+        expect(call).toMatch(/.*\n$/);
     });
 
     // LINES 67-70 COVERAGE: info method execution with timestamp  
@@ -62,7 +64,9 @@ describe("Default Logger Comprehensive Tests", () => {
         
         expect(stdoutWriteSpy).toHaveBeenCalledTimes(1);
         const call = stdoutWriteSpy.mock.calls[0][0];
-        expect(call).toMatch(/INFO.*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+        expect(call).toMatch(/\{"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"/);
+        expect(call).toContain('"level":"info"');
+        expect(call).toMatch(/.*\n$/);
         expect(call).toContain('"msg":"Info message"');
         expect(call).toContain('"status":"success"');
     });
@@ -77,7 +81,9 @@ describe("Default Logger Comprehensive Tests", () => {
         
         expect(stderrWriteSpy).toHaveBeenCalledTimes(1);
         const call = stderrWriteSpy.mock.calls[0][0];
-        expect(call).toMatch(/WARN.*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+        expect(call).toMatch(/\{"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"/);
+        expect(call).toContain('"level":"warn"');
+        expect(call).toMatch(/.*\n$/);
         expect(call).toContain('"msg":"Warning message"');
         expect(call).toContain('"code":400');
     });
@@ -92,7 +98,9 @@ describe("Default Logger Comprehensive Tests", () => {
         
         expect(stderrWriteSpy).toHaveBeenCalledTimes(1);
         const call = stderrWriteSpy.mock.calls[0][0];
-        expect(call).toMatch(/ERROR.*\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
+        expect(call).toMatch(/\{"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"/);
+        expect(call).toContain('"level":"error"');
+        expect(call).toMatch(/.*\n$/);
         expect(call).toContain('"msg":"Error message"');
         expect(call).toContain('"error":"critical"');
     });
@@ -152,7 +160,7 @@ describe("Default Logger Comprehensive Tests", () => {
         testLogger.debug("Timestamp test");
         
         const debugCall = stdoutWriteSpy.mock.calls[0][0];
-        const timestampMatch = debugCall.match(/\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\]/);
+        const timestampMatch = debugCall.match(/"timestamp":"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"/);
         expect(timestampMatch).toBeTruthy();
         
         // Verify it's a valid date
@@ -217,7 +225,10 @@ describe("Default Logger Comprehensive Tests", () => {
         
         expect(stdoutWriteSpy).toHaveBeenCalledTimes(1);
         const call = stdoutWriteSpy.mock.calls[0][0];
-        expect(call).toContain('{"data":"only object"}');
+        expect(call).toContain('"data":"only object"');
+        expect(call).toContain('"level":"info"');
+        expect(call).toContain('"timestamp":');
+        expect(call).toMatch(/.*/);
         expect(call).not.toContain('"msg":');
     });
 

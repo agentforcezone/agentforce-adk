@@ -122,8 +122,40 @@ export class AgentForceAgent {
         // AssetPath priority: config.assetPath > AGENT_ASSETS_PATH env var > default "."
         this.assetPath = config.assetPath || process.env.AGENT_ASSETS_PATH || ".";
         
-        // Accept injected logger or use default
-        this.logger = config.logger || defaultLogger;
+        // Handle logger configuration
+        if (config.logger) {
+            if (Array.isArray(config.logger)) {
+                // New array-based configuration for logging modes
+                const loggers: AgentForceLogger[] = [];
+                
+                if (config.logger.includes("default")) {
+                    loggers.push(defaultLogger);
+                }
+                
+                if (config.logger.includes("file")) {
+                    const { createFileLogger } = require("./logger");
+                    const fileLogger = createFileLogger(config.name, config.logPath);
+                    loggers.push(fileLogger);
+                }
+                
+                // Use composite logger if multiple modes, otherwise use single logger
+                if (loggers.length > 1) {
+                    const { createCompositeLogger } = require("./logger");
+                    this.logger = createCompositeLogger(loggers);
+                } else if (loggers.length === 1) {
+                    this.logger = loggers[0]!;
+                } else {
+                    // No valid logger modes specified, use default
+                    this.logger = defaultLogger;
+                }
+            } else {
+                // Existing custom logger (backward compatibility)
+                this.logger = config.logger;
+            }
+        } else {
+            // Default behavior - console logging only
+            this.logger = defaultLogger;
+        }
     }
 
     /**

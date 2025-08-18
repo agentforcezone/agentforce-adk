@@ -9,6 +9,7 @@ import {
     loadMCPPrompts,
     disconnectMCPs
 } from "../../../lib/agent/functions/mcp";
+import { truncate } from "../../../lib/utils/truncate";
 
 // Mock the MCP registry
 jest.mock("../../../lib/mcp/registry", () => ({
@@ -335,22 +336,27 @@ describe("MCP Functions", () => {
 
             mockMCPClient.isConnected = true;
             mockMCPRegistry.getMCPClient.mockReturnValue(mockMCPClient);
-            mockMCPClient.callTool.mockResolvedValue(expectedResult);
+            // Setup the callTool mock to return a promise
+            mockMCPClient.callTool.mockImplementation(() => Promise.resolve(expectedResult));
 
             // Act
             const result = await executeMCPTool(mockAgent, toolName, args);
 
             // Assert
-            expect(result).toBe(expectedResult);
+            expect(result).toEqual(expectedResult);
             expect(mockMCPRegistry.getMCPClient).toHaveBeenCalledWith("test-server");
             expect(mockMCPClient.callTool).toHaveBeenCalledWith("read_file", args);
             expect(mockLogger.debug).toHaveBeenCalledWith(
-                { serverName: "test-server", mcpToolName: "read_file", args },
-                "Executing MCP tool"
+                "Executing MCP tool",
+                { serverName: "test-server", mcpToolName: "read_file", args }
             );
             expect(mockLogger.debug).toHaveBeenCalledWith(
-                { serverName: "test-server", mcpToolName: "read_file" },
-                "MCP tool executed successfully"
+                "MCP tool executed successfully",
+                { 
+                    serverName: "test-server", 
+                    mcpToolName: "read_file",
+                    result: truncate(JSON.stringify(expectedResult), 200)
+                }
             );
         });
 

@@ -180,7 +180,11 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                                 logger,
                             );
                             if (logger) {
-                                logger.debug("Tool executed successfully", { tool: toolCall.function.name, args: toolCall.function.arguments });
+                                logger.debug("Tool executed successfully", { 
+                                    tool: toolCall.function.name, 
+                                    args: toolCall.function.arguments,
+                                    result: truncate(JSON.stringify(result), 200)
+                                });
                             }
                             // Include args in the tool result content returned to the LLM
                             toolResults.push(
@@ -351,7 +355,11 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                                 logger,
                             );
                             if (logger) {
-                                logger.debug("Tool executed successfully", { tool: toolCall.function.name, args: toolCall.function.arguments });
+                                logger.debug("Tool executed successfully", { 
+                                    tool: toolCall.function.name, 
+                                    args: toolCall.function.arguments,
+                                    result: truncate(JSON.stringify(result), 200)
+                                });
                             }
                             toolResults.push(
                                 `Tool ${toolCall.function.name} args: ${JSON.stringify(toolCall.function.arguments)}\nResult: ${JSON.stringify(result, null, 2)}`,
