@@ -389,7 +389,8 @@ For detailed API documentation, visit the [AgentForce ADK API Reference](https:/
 - [ ] Enhanced debugging tools
 - [ ] Support for more AI providers
 - [ ] Advanced model management (versioning, rollback)
-- [ ] Improved documentation and examples
+- [ ] BMAD-METHOD integration
+- [ ] CodingAgent functionality (claude-cli, gemini-cli and qwen3-coder-cli integration)
 - [ ] MCP Server Integration and plugins
 - [ ] AgentForceZone CLI for easy project setup
 - [ ] AgentForceZone Marketplace for sharing agents and workflows

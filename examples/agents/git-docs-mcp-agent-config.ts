@@ -5,7 +5,7 @@ import type { ModelConfig } from "../../lib/types";
 const config: AgentConfig = {
   name: "GitAgentforceMCPAgent",
   mcps: ["agentforce-adk-docs"], // Reference the server name from docs-mcp-config.json
-  mcpConfig: "examples/configs/sse-mcp-config.json" // Path to the MCP config file
+  mcpConfig: "examples/files/config/sse-mcp-config.json" // Path to the MCP config file
 };
 
 const modelConfig: ModelConfig = {
