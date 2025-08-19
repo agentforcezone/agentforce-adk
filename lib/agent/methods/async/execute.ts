@@ -28,7 +28,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
     logger.info("Execution started", { 
         executionId,
         agent: this.getName(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
     
     // Get agent configuration
@@ -149,7 +149,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
             executionId,
             agent: this.getName(),
             timestamp: new Date().toISOString(),
-            taskCount: results.length
+            taskCount: results.length,
         });
         
         // Return the final result (last task's output) or empty string if no results
@@ -184,7 +184,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         logger.info("Execution completed", {
             executionId,
             agent: this.getName(),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
         
         return response;
@@ -199,7 +199,7 @@ export async function execute(this: AgentForceAgent): Promise<string> {
             executionId,
             agent: this.getName(),
             error: String(error),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
         
         throw error; // Re-throw to let caller handle the error

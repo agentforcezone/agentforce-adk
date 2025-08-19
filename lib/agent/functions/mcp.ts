@@ -150,7 +150,7 @@ export async function executeMCPTool(agent: AgentForceAgent, toolName: string, a
         logger.debug("Executing MCP tool", { 
             serverName, 
             mcpToolName, 
-            args 
+            args, 
         });
         
         const result = await client.callTool(mcpToolName, args);
@@ -158,7 +158,7 @@ export async function executeMCPTool(agent: AgentForceAgent, toolName: string, a
         logger.debug("MCP tool executed successfully", { 
             serverName, 
             mcpToolName,
-            result: truncate(JSON.stringify(result), 200)
+            result: truncate(JSON.stringify(result), 200),
         });
         
         return result;

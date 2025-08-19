@@ -1,29 +1,27 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { MCPClient, MCPServerConfig, MCPTool, MCPResource, MCPPrompt } from "../types";
-import { Client as DefaultClient } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport as DefaultStdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { SSEClientTransport as DefaultSSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import { StreamableHTTPClientTransport as DefaultStreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 /**
- * Node.js implementation of MCP client using the official Anthropic SDK
+ * Simplified MCP client implementation based on Anthropic's example
+ * This is much easier to test and maintain than the complex old client
  */
-export class MCPNodeClient implements MCPClient {
+export class McpClient implements MCPClient {
     public readonly name: string;
     public readonly config: MCPServerConfig;
+    private mcp: Client;
+    private transport: StdioClientTransport | SSEClientTransport | StreamableHTTPClientTransport | null = null;
     private isConnectedState: boolean = false;
-    private client?: any;
-    private transport?: any;
 
-    // Allow injecting dependencies for easier testing
-    constructor(
-        config: MCPServerConfig,
-        private ClientImpl: typeof DefaultClient = DefaultClient,
-        private StdioClientTransportImpl: typeof DefaultStdioClientTransport = DefaultStdioClientTransport,
-        private SSEClientTransportImpl: typeof DefaultSSEClientTransport = DefaultSSEClientTransport,
-        private StreamableHTTPClientTransportImpl: typeof DefaultStreamableHTTPClientTransport = DefaultStreamableHTTPClientTransport,
-    ) {
+    constructor(config: MCPServerConfig) {
         this.name = config.name;
         this.config = config;
+        this.mcp = new Client({ 
+            name: "agentforce-adk-client", 
+            version: "0.11.0", 
+        });
     }
 
     get isConnected(): boolean {
@@ -31,31 +29,15 @@ export class MCPNodeClient implements MCPClient {
     }
 
     /**
-     * Connect to the MCP server using the official Anthropic SDK
+     * Connect to the MCP server
      */
     async connect(): Promise<void> {
         try {
-            // Note: No logger available here during connection, using console.log
             console.log(`[MCP] Connecting to ${this.name} server...`);
-            
-            // Initialize the MCP client
-            this.client = new this.ClientImpl({
-                name: "agentforce-adk",
-                version: "0.11.0",
-            }, {
-                capabilities: {
-                    tools: {},
-                    resources: {},
-                    prompts: {},
-                },
-            });
 
-            // Determine transport type based on config
             if (this.isHttpTransport()) {
-                // HTTP/SSE transport for remote servers
                 await this.connectHttp();
             } else {
-                // Stdio transport for local command-based servers
                 await this.connectStdio();
             }
 
@@ -71,20 +53,17 @@ export class MCPNodeClient implements MCPClient {
      * Connect using HTTP/SSE transport for remote servers
      */
     private async connectHttp(): Promise<void> {
-        // Get server URL from config.url or config.env.MCP_SERVER_URL
         const serverUrl = this.config.url || this.config.env?.MCP_SERVER_URL;
         
         if (!serverUrl) {
             throw new Error(`HTTP transport requires url property or MCP_SERVER_URL in env config for ${this.name}`);
         }
 
-        // Get transport type from config.type or config.env.MCP_TRANSPORT_TYPE, default to sse
         const transportType = this.config.type === "http" ? "http-stream" : 
                              this.config.env?.MCP_TRANSPORT_TYPE || "sse";
 
         if (transportType === "http-stream" || transportType === "http") {
-            // Use StreamableHTTPClientTransport for HTTP streaming
-            this.transport = new this.StreamableHTTPClientTransportImpl(
+            this.transport = new StreamableHTTPClientTransport(
                 new URL(serverUrl),
                 {
                     requestInit: {
@@ -96,13 +75,10 @@ export class MCPNodeClient implements MCPClient {
                 },
             );
         } else {
-            // Use SSE transport (default)
-            this.transport = new this.SSEClientTransportImpl(
-                new URL(serverUrl)
-            );
+            this.transport = new SSEClientTransport(new URL(serverUrl));
         }
 
-        await this.client!.connect(this.transport);
+        await this.mcp.connect(this.transport);
     }
 
     /**
@@ -112,8 +88,8 @@ export class MCPNodeClient implements MCPClient {
         if (!this.config.command) {
             throw new Error(`Local transport requires command property for ${this.name}`);
         }
-        
-        // Create stdio transport - it will handle process spawning internally
+
+        // Build environment variables
         const env: Record<string, string> = {};
         
         // Add process environment variables
@@ -132,28 +108,37 @@ export class MCPNodeClient implements MCPClient {
             }
         }
 
-        this.transport = new this.StdioClientTransportImpl({
-            command: this.config.command,
-            args: this.config.args || [],
+        // Determine script type and command
+        let command = this.config.command;
+        let args = this.config.args || [];
+
+        // If command looks like a script file, prepend appropriate runtime
+        if (command.endsWith(".py")) {
+            const pythonCmd = process.platform === "win32" ? "python" : "python3";
+            args = [command, ...args];
+            command = pythonCmd;
+        } else if (command.endsWith(".js")) {
+            args = [command, ...args];
+            command = process.execPath; // Use current Node.js executable
+        }
+
+        this.transport = new StdioClientTransport({
+            command,
+            args,
             env,
         });
 
-        // Connect with timeout
-        const timeout = this.config.timeout || 10000;
-        const connectPromise = this.client!.connect(this.transport);
-        const timeoutPromise = new Promise((_, reject) => {
-            const timer = setTimeout(() => reject(new Error("Connection timeout")), timeout);
-            timer.unref(); // Don't keep the event loop alive
-        });
-
-        await Promise.race([connectPromise, timeoutPromise]);
+        await this.mcp.connect(this.transport);
     }
 
     /**
      * Check if this config uses HTTP transport
      */
     private isHttpTransport(): boolean {
-        return this.config.type === "sse" || this.config.type === "http" || !!this.config.url || !!this.config.env?.MCP_SERVER_URL;
+        return this.config.type === "sse" || 
+               this.config.type === "http" || 
+               !!this.config.url || 
+               !!this.config.env?.MCP_SERVER_URL;
     }
 
     /**
@@ -162,7 +147,6 @@ export class MCPNodeClient implements MCPClient {
     private getCustomHeaders(): Record<string, string> {
         const headers: Record<string, string> = {};
         
-        // Extract custom headers from env (prefixed with MCP_HEADER_)
         if (this.config.env) {
             for (const [key, value] of Object.entries(this.config.env)) {
                 if (key.startsWith("MCP_HEADER_") && value) {
@@ -180,78 +164,19 @@ export class MCPNodeClient implements MCPClient {
      */
     async disconnect(logger?: any): Promise<void> {
         try {
-            if (this.client) {
+            if (this.mcp && this.isConnectedState) {
                 if (logger) {
-                    logger.debug(`[MCP] Closing client connection for ${this.name}`);
-                }
-                await this.client.close();
-                this.client = undefined;
-            }
-
-            if (this.transport) {
-                if (logger) {
-                    logger.debug(`[MCP] Closing transport for ${this.name}`);
+                    logger.debug(`[MCP] Closing connection for ${this.name}`);
+                } else {
+                    console.log(`[MCP] Closing connection for ${this.name}`);
                 }
                 
-                // Add timeout to transport close to prevent hanging
-                const closePromise = this.transport.close?.();
-                if (closePromise) {
-                    const timeoutPromise = new Promise((_, reject) => {
-                        const timer = setTimeout(() => reject(new Error("Transport close timeout")), 3000);
-                        timer.unref(); // Don't keep the event loop alive
-                    });
-                    
-                    try {
-                        await Promise.race([closePromise, timeoutPromise]);
-                        if (logger) {
-                            logger.debug(`[MCP] Transport closed successfully for ${this.name}`);
-                        }
-                    } catch (error) {
-                        // Log timeout but don't throw - we still want to mark as disconnected
-                        if (logger) {
-                            logger.debug(`[MCP] Transport close timeout for ${this.name}: ${error}`);
-                        } else {
-                            console.warn(`[MCP] Transport close timeout for ${this.name}: ${error}`);
-                        }
-                        
-                        // Force close the transport if it has a process
-                        if (this.transport && typeof this.transport.close === "function") {
-                            try {
-                                // Try to access the underlying process and kill it
-                                const process = (this.transport as any).process || (this.transport as any)._process;
-                                if (process && typeof process.kill === "function") {
-                                    if (logger) {
-                                        logger.debug(`[MCP] Force killing transport process for ${this.name}`);
-                                    } else {
-                                        console.warn(`[MCP] Force killing transport process for ${this.name}`);
-                                    }
-                                    process.kill("SIGTERM");
-                                    // Give it a moment then force kill, but don't keep the event loop alive
-                                    const killTimer = setTimeout(() => {
-                                        if (!process.killed) {
-                                            process.kill("SIGKILL");
-                                            if (logger) {
-                                                logger.debug(`[MCP] Force killed transport process with SIGKILL for ${this.name}`);
-                                            }
-                                        }
-                                    }, 1000);
-                                    killTimer.unref(); // Don't keep the event loop alive
-                                }
-                            } catch (killError) {
-                                if (logger) {
-                                    logger.debug(`[MCP] Failed to force kill process for ${this.name}: ${killError}`);
-                                } else {
-                                    console.warn(`[MCP] Failed to force kill process for ${this.name}: ${killError}`);
-                                }
-                            }
-                        }
-                    }
-                }
-                this.transport = undefined;
+                await this.mcp.close();
             }
 
-            
+            this.transport = null;
             this.isConnectedState = false;
+            
             if (logger) {
                 logger.debug(`[MCP] Disconnected from ${this.name} server`);
             } else {
@@ -271,12 +196,12 @@ export class MCPNodeClient implements MCPClient {
      * List available tools from the MCP server
      */
     async listTools(): Promise<MCPTool[]> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
         try {
-            const response = await this.client.listTools();
+            const response = await this.mcp.listTools();
             
             return response.tools.map((tool: any) => ({
                 name: tool.name,
@@ -297,7 +222,7 @@ export class MCPNodeClient implements MCPClient {
      * Call a tool on the MCP server
      */
     async callTool(name: string, arguments_: Record<string, any>): Promise<any> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
@@ -305,7 +230,7 @@ export class MCPNodeClient implements MCPClient {
             console.log(`[MCP] Calling tool ${name} on server ${this.name}`);
             console.log("[MCP] Arguments:", arguments_);
             
-            const response = await this.client.callTool({
+            const response = await this.mcp.callTool({
                 name,
                 arguments: arguments_,
             });
@@ -321,12 +246,12 @@ export class MCPNodeClient implements MCPClient {
      * List available resources from the MCP server
      */
     async listResources(): Promise<MCPResource[]> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
         try {
-            const response = await this.client.listResources();
+            const response = await this.mcp.listResources();
             
             return response.resources.map((resource: any) => ({
                 uri: resource.uri,
@@ -344,14 +269,14 @@ export class MCPNodeClient implements MCPClient {
      * Read a resource from the MCP server
      */
     async readResource(uri: string): Promise<{ contents: Array<{ type: string; text?: string; data?: string }> }> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
         try {
             console.log(`[MCP] Reading resource ${uri} from server ${this.name}`);
             
-            const response = await this.client.readResource({ uri });
+            const response = await this.mcp.readResource({ uri });
 
             return {
                 contents: response.contents.map((content: any) => ({
@@ -370,12 +295,12 @@ export class MCPNodeClient implements MCPClient {
      * List available prompts from the MCP server
      */
     async listPrompts(): Promise<MCPPrompt[]> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
         try {
-            const response = await this.client.listPrompts();
+            const response = await this.mcp.listPrompts();
             
             return response.prompts.map((prompt: any) => ({
                 name: prompt.name,
@@ -402,7 +327,7 @@ export class MCPNodeClient implements MCPClient {
      * Get a prompt from the MCP server
      */
     async getPrompt(name: string, arguments_?: Record<string, any>): Promise<{ description?: string; messages: Array<{ role: string; content: { type: string; text: string } }> }> {
-        if (!this.isConnectedState || !this.client) {
+        if (!this.isConnectedState) {
             throw new Error(`MCP client ${this.name} is not connected`);
         }
 
@@ -412,7 +337,7 @@ export class MCPNodeClient implements MCPClient {
                 console.log("[MCP] Arguments:", arguments_);
             }
             
-            const response = await this.client.getPrompt({
+            const response = await this.mcp.getPrompt({
                 name,
                 arguments: arguments_,
             });

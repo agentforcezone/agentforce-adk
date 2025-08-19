@@ -183,7 +183,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                                 logger.debug("Tool executed successfully", { 
                                     tool: toolCall.function.name, 
                                     args: toolCall.function.arguments,
-                                    result: truncate(JSON.stringify(result), 200)
+                                    result: truncate(JSON.stringify(result), 200),
                                 });
                             }
                             // Include args in the tool result content returned to the LLM
@@ -358,7 +358,7 @@ export class OllamaToolUse implements OllamaToolUseInterface {
                                 logger.debug("Tool executed successfully", { 
                                     tool: toolCall.function.name, 
                                     args: toolCall.function.arguments,
-                                    result: truncate(JSON.stringify(result), 200)
+                                    result: truncate(JSON.stringify(result), 200),
                                 });
                             }
                             toolResults.push(

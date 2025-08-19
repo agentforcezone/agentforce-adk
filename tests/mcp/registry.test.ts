@@ -11,7 +11,7 @@ const mockLogger = {
     debug: jest.fn(),
     warn: jest.fn()
 };
-const mockMCPNodeClient = jest.fn();
+const mockMcpClient = jest.fn();
 
 // Mock modules before importing the registry
 jest.doMock("fs", () => ({
@@ -30,8 +30,8 @@ jest.doMock("../../lib/logger", () => ({
     defaultLogger: mockLogger
 }));
 
-jest.doMock("../../lib/mcp/client", () => ({
-    MCPNodeClient: mockMCPNodeClient
+jest.doMock("../../lib/mcp/mcpClient", () => ({
+    McpClient: mockMcpClient
 }));
 
 // Now import the registry module
@@ -78,7 +78,7 @@ describe("MCP Registry", () => {
 
         // Reset all mocks
         jest.clearAllMocks();
-        mockMCPNodeClient.mockReturnValue(mockClient);
+        mockMcpClient.mockReturnValue(mockClient);
 
         // Setup default mock values
         mockedExistsSync.mockReturnValue(true);
@@ -351,7 +351,7 @@ describe("MCP Registry", () => {
 
             const client = await createMCPClient("custom-server", customConfig);
 
-            expect(mockMCPNodeClient).toHaveBeenCalledWith(customConfig);
+            expect(mockMcpClient).toHaveBeenCalledWith(customConfig);
             expect(client).toBe(mockClient);
             expect(mcpRegistry["custom-server"]).toBe(mockClient);
         });
@@ -372,7 +372,7 @@ describe("MCP Registry", () => {
 
             const client = await createMCPClient("pre-configured");
 
-            expect(mockMCPNodeClient).toHaveBeenCalledWith(
+            expect(mockMcpClient).toHaveBeenCalledWith(
                 expect.objectContaining({
                     name: "pre-configured",
                     command: "node",

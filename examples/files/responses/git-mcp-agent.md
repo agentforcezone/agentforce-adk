@@ -1,8 +1,15 @@
-Here's the list of repositories from the agentforcezone GitHub organization:
+Here are the repositories from the agentforcezone organization on GitHub:
 
-1. **agentforce-adk** - The Agent Development Kit, an agentic TypeScript library
-2. **agentforce** - The AgentForce Toolkit 
-3. **homebrew-tap** - Homebrew integration for AgentForce Tools
-4. **agentforce-adk-awesome** - Awesome examples for the AgentForce ADK
+1. **agentforce-adk** - The Agent Development Kit - A agentic typescript library
+   - URL: https://github.com/agentforcezone/agentforce-adk
 
-All four repositories are public and actively maintained by the agentforcezone organization.
+2. **agentforce** - The AgentForce Toolkit
+   - URL: https://github.com/agentforcezone/agentforce
+
+3. **homebrew-tap** - The Homebrew integration for AgentForce Tools
+   - URL: https://github.com/agentforcezone/homebrew-tap
+
+4. **agentforce-adk-awesome** - Awesome AgentForce ADK Examples - try the agentic typescript library
+   - URL: https://github.com/agentforcezone/agentforce-adk-awesome
+
+These are all the public repositories currently available in the agentforcezone organization.

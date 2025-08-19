@@ -1,5 +1,5 @@
 import type { MCPClient, MCPRegistry, MCPServerConfig } from "../types";
-import { MCPNodeClient } from "./client";
+import { McpClient } from "./mcpClient";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 import { defaultLogger } from "../logger";
@@ -120,7 +120,7 @@ export async function createMCPClient(name: string, config?: MCPServerConfig): P
         throw new Error(`No configuration found for MCP server: ${name}`);
     }
 
-    const client = new MCPNodeClient(serverConfig);
+    const client = new McpClient(serverConfig);
     registerMCPClient(name, client);
     
     return client;
@@ -204,7 +204,7 @@ export async function disconnectAllMCPClients(logger?: any): Promise<void> {
     
     try {
         await Promise.race([disconnectPromise, timeoutPromise]);
-        loggerToUse.debug(`[MCP] All MCP clients disconnected successfully`);
+        loggerToUse.debug("[MCP] All MCP clients disconnected successfully");
     } catch (error) {
         // Log timeout but continue - we want to mark clients as disconnected
         loggerToUse.debug(`[MCP] Global disconnect timeout: ${error}`);
@@ -219,12 +219,12 @@ export async function disconnectAllMCPClients(logger?: any): Promise<void> {
                 try {
                     const process = transport.process || transport._process;
                     if (process && typeof process.kill === "function") {
-                        loggerToUse.debug(`[MCP] Force killing hanging process for client`);
+                        loggerToUse.debug("[MCP] Force killing hanging process for client");
                         process.kill("SIGTERM");
                         const killTimer = setTimeout(() => {
                             if (!process.killed) {
                                 process.kill("SIGKILL");
-                                loggerToUse.debug(`[MCP] Force killed hanging process with SIGKILL`);
+                                loggerToUse.debug("[MCP] Force killed hanging process with SIGKILL");
                             }
                         }, 1000);
                         killTimer.unref(); // Don't keep the event loop alive

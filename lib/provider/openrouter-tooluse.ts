@@ -280,7 +280,7 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                 // Handle error finish reasons - OpenRouter may return custom finish reasons
                 const finishReason = completion.choices[0]?.finish_reason;
                 // Check for unexpected finish reasons that might indicate an error
-                if (finishReason && !['stop', 'length', 'tool_calls', 'content_filter', 'function_call'].includes(finishReason)) {
+                if (finishReason && !["stop", "length", "tool_calls", "content_filter", "function_call"].includes(finishReason)) {
                     const errorMsg = `OpenRouter API returned unexpected finish reason: ${finishReason}. Content: ${response.content || "No content"}`;
                     if (logger) {
                         logger.error(errorMsg, {
@@ -298,8 +298,8 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                         logger.debug("Model requested tool calls", {
                             toolCalls: response.tool_calls.map(tc => ({ 
                                 id: tc.id,
-                                tool: (tc as any).function?.name || 'unknown', 
-                                args: truncate((tc as any).function?.arguments || '{}', 200), 
+                                tool: (tc as any).function?.name || "unknown", 
+                                args: truncate((tc as any).function?.arguments || "{}", 200), 
                             })),
                         });
                     }
@@ -311,20 +311,20 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                         if (logger) {
                             logger.debug("Executing tool", { 
                                 toolId: toolCall.id,
-                                tool: (toolCall as any).function?.name || 'unknown', 
-                                args: truncate((toolCall as any).function?.arguments || '{}', 200), 
+                                tool: (toolCall as any).function?.name || "unknown", 
+                                args: truncate((toolCall as any).function?.arguments || "{}", 200), 
                             });
                         }
 
                         try {
                             // Parse arguments if they're a string
-                            let args = (toolCall as any).function?.arguments || '{}';
+                            let args = (toolCall as any).function?.arguments || "{}";
                             if (typeof args === "string") {
                                 args = JSON.parse(args);
                             }
 
                             const result = await executeTool(
-                                (toolCall as any).function?.name || 'unknown',
+                                (toolCall as any).function?.name || "unknown",
                                 args as unknown as Record<string, any>,
                                 agent,
                                 logger,
@@ -333,13 +333,13 @@ export class OpenRouterToolUse implements OpenRouterToolUseInterface {
                             if (logger) {
                                 logger.debug("Tool executed successfully", { 
                                     toolId: toolCall.id,
-                                    tool: (toolCall as any).function?.name || 'unknown',
-                                    result: truncate(JSON.stringify(result), 200)
+                                    tool: (toolCall as any).function?.name || "unknown",
+                                    result: truncate(JSON.stringify(result), 200),
                                 });
                             }
 
                             toolResults.push(
-                                `Tool ${(toolCall as any).function?.name || 'unknown'} (${toolCall.id}) args: ${JSON.stringify(args)}
+                                `Tool ${(toolCall as any).function?.name || "unknown"} (${toolCall.id}) args: ${JSON.stringify(args)}
 Result: ${JSON.stringify(result, null, 2)}`,
                             );
 
@@ -355,14 +355,14 @@ Result: ${JSON.stringify(result, null, 2)}`,
                             if (logger) {
                                 logger.error("Tool execution failed", { 
                                     toolId: toolCall.id,
-                                    tool: (toolCall as any).function?.name || 'unknown', 
-                                    args: (toolCall as any).function?.arguments || '{}', 
+                                    tool: (toolCall as any).function?.name || "unknown", 
+                                    args: (toolCall as any).function?.arguments || "{}", 
                                     error: error.message, 
                                 });
                             }
 
                             toolResults.push(
-                                `Tool ${(toolCall as any).function?.name || 'unknown'} (${toolCall.id}) args: ${(toolCall as any).function?.arguments || '{}'}
+                                `Tool ${(toolCall as any).function?.name || "unknown"} (${toolCall.id}) args: ${(toolCall as any).function?.arguments || "{}"}
 Error: ${error.message}`,
                             );
 
@@ -506,8 +506,8 @@ ${lastToolResults.join("\n\n")}`;
                         logger.debug("Model requested tool calls", {
                             toolCalls: response.tool_calls.map(tc => ({ 
                                 id: tc.id,
-                                tool: (tc as any).function?.name || 'unknown', 
-                                args: truncate((tc as any).function?.arguments || '{}', 200), 
+                                tool: (tc as any).function?.name || "unknown", 
+                                args: truncate((tc as any).function?.arguments || "{}", 200), 
                             })),
                         });
                     }
@@ -522,20 +522,20 @@ ${lastToolResults.join("\n\n")}`;
                         if (logger) {
                             logger.debug("Executing tool", { 
                                 toolId: toolCall.id,
-                                tool: (toolCall as any).function?.name || 'unknown', 
-                                args: truncate((toolCall as any).function?.arguments || '{}', 200), 
+                                tool: (toolCall as any).function?.name || "unknown", 
+                                args: truncate((toolCall as any).function?.arguments || "{}", 200), 
                             });
                         }
 
                         try {
                             // Parse arguments if they're a string
-                            let args = (toolCall as any).function?.arguments || '{}';
+                            let args = (toolCall as any).function?.arguments || "{}";
                             if (typeof args === "string") {
                                 args = JSON.parse(args);
                             }
 
                             const result = await executeTool(
-                                (toolCall as any).function?.name || 'unknown',
+                                (toolCall as any).function?.name || "unknown",
                                 args as unknown as Record<string, any>,
                                 agent,
                                 logger,
@@ -544,13 +544,13 @@ ${lastToolResults.join("\n\n")}`;
                             if (logger) {
                                 logger.debug("Tool executed successfully", { 
                                     toolId: toolCall.id,
-                                    tool: (toolCall as any).function?.name || 'unknown',
-                                    result: truncate(JSON.stringify(result), 200)
+                                    tool: (toolCall as any).function?.name || "unknown",
+                                    result: truncate(JSON.stringify(result), 200),
                                 });
                             }
 
                             toolResults.push(
-                                `Tool ${(toolCall as any).function?.name || 'unknown'} (${toolCall.id}) args: ${JSON.stringify(args)}
+                                `Tool ${(toolCall as any).function?.name || "unknown"} (${toolCall.id}) args: ${JSON.stringify(args)}
 Result: ${JSON.stringify(result, null, 2)}`,
                             );
 
@@ -566,14 +566,14 @@ Result: ${JSON.stringify(result, null, 2)}`,
                             if (logger) {
                                 logger.error("Tool execution failed", { 
                                     toolId: toolCall.id,
-                                    tool: (toolCall as any).function?.name || 'unknown', 
-                                    args: (toolCall as any).function?.arguments || '{}', 
+                                    tool: (toolCall as any).function?.name || "unknown", 
+                                    args: (toolCall as any).function?.arguments || "{}", 
                                     error: error.message, 
                                 });
                             }
 
                             toolResults.push(
-                                `Tool ${(toolCall as any).function?.name || 'unknown'} (${toolCall.id}) args: ${(toolCall as any).function?.arguments || '{}'}
+                                `Tool ${(toolCall as any).function?.name || "unknown"} (${toolCall.id}) args: ${(toolCall as any).function?.arguments || "{}"}
 Error: ${error.message}`,
                             );
 

@@ -5,5 +5,5 @@
  * for connecting to MCP servers and accessing their capabilities.
  */
 
-export * from "./client";
+export * from "./mcpClient";
 export * from "./registry";
