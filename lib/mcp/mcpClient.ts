@@ -3,6 +3,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { MCPClient, MCPServerConfig, MCPTool, MCPResource, MCPPrompt } from "../types";
+import { Logger } from "../logger";
 
 /**
  * Simplified MCP client implementation based on Anthropic's example
@@ -14,13 +15,24 @@ export class McpClient implements MCPClient {
     private mcp: Client;
     private transport: StdioClientTransport | SSEClientTransport | StreamableHTTPClientTransport | null = null;
     private isConnectedState: boolean = false;
+    private logger: Logger;
 
     constructor(config: MCPServerConfig) {
         this.name = config.name;
         this.config = config;
+        // Configure logger (can be overridden by LOGGER_TYPE environment variable)
+        this.logger = new Logger(`MCP Client ${this.name}`);
+        
         this.mcp = new Client({ 
             name: "agentforce-adk-client", 
             version: "0.11.0", 
+            // Use a simple logger for the MCP SDK - it expects a different interface
+            logger: {
+                debug: (message: string) => this.logger.debug(`${message}`),
+                info: (message: string) => this.logger.info(`${message}`),
+                warn: (message: string) => this.logger.warn(`${message}`),
+                error: (message: string) => this.logger.error(`${message}`),
+            },
         });
     }
 
@@ -28,12 +40,16 @@ export class McpClient implements MCPClient {
         return this.isConnectedState;
     }
 
+    getLogger(): Logger {
+        return this.logger;
+    }
+
     /**
      * Connect to the MCP server
      */
     async connect(): Promise<void> {
         try {
-            console.log(`[MCP] Connecting to ${this.name} server...`);
+            this.logger.info(`Connecting to ${this.name} server...`);
 
             if (this.isHttpTransport()) {
                 await this.connectHttp();
@@ -42,7 +58,7 @@ export class McpClient implements MCPClient {
             }
 
             this.isConnectedState = true;
-            console.log(`[MCP] Connected to ${this.name} server`);
+            this.logger.info(`Connected to ${this.name} server`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to connect to MCP server ${this.name}: ${errorMessage}`);
@@ -162,33 +178,20 @@ export class McpClient implements MCPClient {
     /**
      * Disconnect from the MCP server
      */
-    async disconnect(logger?: any): Promise<void> {
+    async disconnect(): Promise<void> {
         try {
             if (this.mcp && this.isConnectedState) {
-                if (logger) {
-                    logger.debug(`[MCP] Closing connection for ${this.name}`);
-                } else {
-                    console.log(`[MCP] Closing connection for ${this.name}`);
-                }
-                
+                this.logger.info(`Closing connection for ${this.name}`);
                 await this.mcp.close();
             }
 
             this.transport = null;
             this.isConnectedState = false;
             
-            if (logger) {
-                logger.debug(`[MCP] Disconnected from ${this.name} server`);
-            } else {
-                console.log(`[MCP] Disconnected from ${this.name} server`);
-            }
+            this.logger.info(`Disconnected from ${this.name} server`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            if (logger) {
-                logger.error(`[MCP] Error disconnecting from ${this.name}: ${errorMessage}`);
-            } else {
-                console.error(`[MCP] Error disconnecting from ${this.name}: ${errorMessage}`);
-            }
+            this.logger.error(`Error disconnecting from ${this.name}: ${errorMessage}`);
         }
     }
 
@@ -227,8 +230,8 @@ export class McpClient implements MCPClient {
         }
 
         try {
-            console.log(`[MCP] Calling tool ${name} on server ${this.name}`);
-            console.log("[MCP] Arguments:", arguments_);
+            this.logger.info(`Calling tool ${name} on server ${this.name}`);
+            this.logger.info("Arguments:", arguments_);
             
             const response = await this.mcp.callTool({
                 name,
@@ -274,7 +277,7 @@ export class McpClient implements MCPClient {
         }
 
         try {
-            console.log(`[MCP] Reading resource ${uri} from server ${this.name}`);
+            this.logger.info(`Reading resource ${uri} from server ${this.name}`);
             
             const response = await this.mcp.readResource({ uri });
 
@@ -332,9 +335,9 @@ export class McpClient implements MCPClient {
         }
 
         try {
-            console.log(`[MCP] Getting prompt ${name} from server ${this.name}`);
+            this.logger.info(`Getting prompt ${name} from server ${this.name}`);
             if (arguments_) {
-                console.log("[MCP] Arguments:", arguments_);
+                this.logger.info("Arguments:", arguments_);
             }
             
             const response = await this.mcp.getPrompt({

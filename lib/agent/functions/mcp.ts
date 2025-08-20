@@ -286,7 +286,8 @@ export async function disconnectMCPs(agent?: AgentForceAgent): Promise<void> {
             logger.debug("Disconnecting all MCP servers");
         }
         
-        await disconnectAllMCPClients(logger);
+        // Cast logger to the expected Logger type since AgentForceLogger is compatible
+        await disconnectAllMCPClients(logger as any);
         
         if (logger) {
             logger.info("All MCP servers disconnected");

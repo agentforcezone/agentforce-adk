@@ -49,14 +49,13 @@ export interface AgentForceLogger {
  * Configuration object for creating an {@link AgentForceAgent}
  * @typedef {Object} AgentConfig
  * @property {string} name - Name of the agent
- * @property {string} type - Type of the agent (e.g., 'developer', 'product-owner')
  * @property {ToolType[]} [tools] - List of tools the agent can use (see {@link ToolType} for available options)
  * @property {string[]} [skills] - List of skill files to load for the agent
  * @property {string[]} [mcps] - List of MCP (Model Context Protocol) server names to connect to
  * @property {string} [mcpConfig] - Path to agent-specific MCP configuration file (overrides global mcp.config.json)
  * @property {string} [assetPath] - Base path for agent assets (skills, templates, etc.), supports both relative and absolute paths, defaults to current working directory
- * @property {AgentForceLogger | ("default" | "file")[]} [logger] - Logger instance or array of logging modes: "default" (console), "file" (transaction file logging). Defaults to ["default"] if not set
- * @property {string} [logPath] - Optional custom path for log files (defaults to LOG_PATH env var or current working directory)
+ * @property {AgentForceLogger | ("stdout" | "file")[]} [logger] - Logger instance or array of logging modes: "stdout" (console), "file" (transaction file logging). Can be overridden by LOGGER_TYPE environment variable. Defaults to ["stdout"] if not set
+ * @property {string} [logPath] - Optional custom path for log files (defaults to LOG_PATH env var or ./logs)
  */
 export type AgentConfig = {
     name: string;
@@ -65,7 +64,7 @@ export type AgentConfig = {
     mcps?: string[];
     mcpConfig?: string;
     assetPath?: string;
-    logger?: AgentForceLogger | ("default" | "file")[];
+    logger?: AgentForceLogger | ("stdout" | "file")[];
     logPath?: string;
 };
 

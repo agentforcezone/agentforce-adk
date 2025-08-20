@@ -25,7 +25,7 @@ import type {
 
 export type { AgentConfig };
 
-import { defaultLogger } from "./logger";
+import { defaultLogger, Logger } from "./logger";
 
 /**
  * Represents an AI agent within the AgentForce framework.
@@ -100,9 +100,10 @@ export class AgentForceAgent {
      * @param config.tools - Optional array of tool types the agent can use
      * @param config.skills - Optional array of skill file paths to load
      * @param config.assetPath - Optional base path for assets (defaults to current directory)
-     * @param config.logger - Optional custom logger instance
+     * @param config.logger - Optional logger configuration: custom logger instance or array of types ["stdout", "file"]. Can be overridden by LOGGER_TYPE environment variable
+     * @param config.logPath - Optional custom path for log files (defaults to ./logs)
      * 
-     * @example
+     * @example Basic agent
      * ```ts
      * const agent = new AgentForceAgent({
      *   name: "DataAnalyst",
@@ -110,6 +111,21 @@ export class AgentForceAgent {
      *   skills: ["data-analysis.md"],
      *   assetPath: "./assets"
      * });
+     * ```
+     * 
+     * @example Agent with file logging
+     * ```ts
+     * const agent = new AgentForceAgent({
+     *   name: "FileLogger",
+     *   logger: ["stdout", "file"],  // Both console and file logging
+     *   logPath: "./logs"
+     * });
+     * ```
+     * 
+     * @example Environment override
+     * ```bash
+     * # Set LOGGER_TYPE=file to override all logger configurations
+     * export LOGGER_TYPE=file
      * ```
      */
     constructor(config: AgentConfig) {
@@ -125,36 +141,25 @@ export class AgentForceAgent {
         // Handle logger configuration
         if (config.logger) {
             if (Array.isArray(config.logger)) {
-                // New array-based configuration for logging modes
-                const loggers: AgentForceLogger[] = [];
+                // New array-based configuration using new Logger class
+                // The new Logger class will automatically check LOGGER_TYPE environment variable
+                const logger = new Logger(config.name, config.logPath);
                 
-                if (config.logger.includes("default")) {
-                    loggers.push(defaultLogger);
-                }
+                // Convert old "default" to "stdout" for backward compatibility
+                const loggerTypes = config.logger.map((type: string) => 
+                    type === "default" ? "stdout" as const : type as ("stdout" | "file")
+                ).filter((type): type is ("stdout" | "file") => 
+                    type === "stdout" || type === "file"
+                );
                 
-                if (config.logger.includes("file")) {
-                    const { createFileLogger } = require("./logger");
-                    const fileLogger = createFileLogger(config.name, config.logPath);
-                    loggers.push(fileLogger);
-                }
-                
-                // Use composite logger if multiple modes, otherwise use single logger
-                if (loggers.length > 1) {
-                    const { createCompositeLogger } = require("./logger");
-                    this.logger = createCompositeLogger(loggers);
-                } else if (loggers.length === 1) {
-                    this.logger = loggers[0]!;
-                } else {
-                    // No valid logger modes specified, use default
-                    this.logger = defaultLogger;
-                }
+                this.logger = logger.loggerType(loggerTypes.length > 0 ? loggerTypes : ["stdout"]);
             } else {
                 // Existing custom logger (backward compatibility)
                 this.logger = config.logger;
             }
         } else {
-            // Default behavior - console logging only
-            this.logger = defaultLogger;
+            // Default behavior - use new Logger with environment variable support
+            this.logger = new Logger(config.name, config.logPath);
         }
     }
 

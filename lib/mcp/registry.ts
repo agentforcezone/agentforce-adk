@@ -2,7 +2,10 @@ import type { MCPClient, MCPRegistry, MCPServerConfig } from "../types";
 import { McpClient } from "./mcpClient";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
-import { defaultLogger } from "../logger";
+import { Logger } from "../logger";
+
+// Create logger for MCP registry operations (can be overridden by LOGGER_TYPE environment variable)
+const registryLogger = new Logger("mcp-registry");
 
 /**
  * Central registry for MCP clients
@@ -63,17 +66,17 @@ export function loadMCPConfig(configPath?: string): void {
                 
                 // Set the loaded configurations
                 mcpServerConfigs = processedConfigs;
-                defaultLogger.info(`[MCP] Loaded ${Object.keys(processedConfigs).length} server configs from ${finalConfigPath}`);
+                registryLogger.info(`Loaded ${Object.keys(processedConfigs).length} server configs from ${finalConfigPath}`);
             } else {
-                defaultLogger.error(`[MCP] Invalid config format in ${finalConfigPath}`);
+                registryLogger.debug(`Invalid config format in ${finalConfigPath}`);
                 mcpServerConfigs = {};
             }
         } else {
-            defaultLogger.error(`[MCP] Config file not found at ${finalConfigPath}`);
+            registryLogger.debug(`Config file not found at ${finalConfigPath} (this is expected if MCP is not used)`);
             mcpServerConfigs = {};
         }
     } catch (error) {
-        defaultLogger.error(`[MCP] Error loading config from ${finalConfigPath}:`, error);
+        registryLogger.error(`Error loading config from ${finalConfigPath}:`, error);
         mcpServerConfigs = {};
     }
 }
@@ -86,8 +89,15 @@ export function getMCPServerConfigs(): Record<string, MCPServerConfig> {
     return mcpServerConfigs;
 }
 
-// Auto-load config on module initialization
-loadMCPConfig();
+/**
+ * Initialize MCP configuration if not already loaded
+ * This is called lazily when MCP functionality is first accessed
+ */
+function initializeMCPConfig(): void {
+    if (Object.keys(mcpServerConfigs).length === 0) {
+        loadMCPConfig();
+    }
+}
 
 /**
  * Get an MCP client by name
@@ -114,6 +124,9 @@ export function registerMCPClient(name: string, client: MCPClient): void {
  * @returns The created MCP client
  */
 export async function createMCPClient(name: string, config?: MCPServerConfig): Promise<MCPClient> {
+    // Initialize MCP config if not already loaded
+    initializeMCPConfig();
+    
     const serverConfig = config || getMCPServerConfigs()[name];
     
     if (!serverConfig) {
@@ -148,14 +161,14 @@ export function hasMCPClient(name: string): boolean {
  * @param name - The name of the MCP server
  * @param logger - Optional logger for debug messages
  */
-export async function removeMCPClient(name: string, logger?: any): Promise<void> {
+export async function removeMCPClient(name: string, logger?: Logger): Promise<void> {
     const client = mcpRegistry[name];
     if (client && client.isConnected) {
         await client.disconnect();
     }
     delete mcpRegistry[name];
     if (logger) {
-        logger.debug(`[MCP] Removed client ${name} from registry`);
+        logger.debug(`Removed client ${name} from registry`);
     }
 }
 
@@ -183,11 +196,11 @@ export function getAllMCPClients(): Map<string, MCPClient> {
 /**
  * Disconnect all registered MCP clients
  */
-export async function disconnectAllMCPClients(logger?: any): Promise<void> {
+export async function disconnectAllMCPClients(logger?: Logger): Promise<void> {
     const clients = Object.values(mcpRegistry);
-    const loggerToUse = logger || defaultLogger;
+    const loggerToUse = logger || registryLogger;
     
-    loggerToUse.debug(`[MCP] Starting disconnect of ${clients.length} MCP clients`);
+    loggerToUse.debug(`Starting disconnect of ${clients.length} MCP clients`);
     
     // Add global timeout for all disconnections to prevent hanging
     const disconnectPromise = Promise.all(clients.map(client => {
@@ -204,10 +217,10 @@ export async function disconnectAllMCPClients(logger?: any): Promise<void> {
     
     try {
         await Promise.race([disconnectPromise, timeoutPromise]);
-        loggerToUse.debug("[MCP] All MCP clients disconnected successfully");
+        loggerToUse.debug("All MCP clients disconnected successfully");
     } catch (error) {
         // Log timeout but continue - we want to mark clients as disconnected
-        loggerToUse.debug(`[MCP] Global disconnect timeout: ${error}`);
+        loggerToUse.debug(`Global disconnect timeout: ${error}`);
         
         // Force mark all clients as disconnected and try to kill any hanging processes
         for (const client of clients) {
@@ -219,19 +232,19 @@ export async function disconnectAllMCPClients(logger?: any): Promise<void> {
                 try {
                     const process = transport.process || transport._process;
                     if (process && typeof process.kill === "function") {
-                        loggerToUse.debug("[MCP] Force killing hanging process for client");
+                        loggerToUse.debug("Force killing hanging process for client");
                         process.kill("SIGTERM");
                         const killTimer = setTimeout(() => {
                             if (!process.killed) {
                                 process.kill("SIGKILL");
-                                loggerToUse.debug("[MCP] Force killed hanging process with SIGKILL");
+                                loggerToUse.debug("Force killed hanging process with SIGKILL");
                             }
                         }, 1000);
                         killTimer.unref(); // Don't keep the event loop alive
                     }
                 } catch (killError) {
                     // Ignore kill errors
-                    loggerToUse.debug(`[MCP] Kill error ignored: ${killError}`);
+                    loggerToUse.debug(`Kill error ignored: ${killError}`);
                 }
                 (client as any).transport = undefined;
             }
@@ -243,5 +256,5 @@ export async function disconnectAllMCPClients(logger?: any): Promise<void> {
     for (const name of Object.keys(mcpRegistry)) {
         delete mcpRegistry[name];
     }
-    loggerToUse.debug(`[MCP] Cleared ${registrySize} clients from registry`);
+    loggerToUse.debug(`Cleared ${registrySize} clients from registry`);
 }

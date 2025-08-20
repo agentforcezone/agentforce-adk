@@ -15,11 +15,11 @@ export class FileLogger implements AgentForceLogger {
     /**
      * Creates a new FileLogger instance
      * @param agentName - Name of the agent (used in log file naming)
-     * @param logPath - Optional custom log path (defaults to LOG_PATH env var or current directory)
+     * @param logPath - Optional custom log path (defaults to LOG_PATH env var or ./logs)
      */
     constructor(agentName: string, logPath?: string) {
         this.agentName = agentName;
-        this.logPath = logPath || process.env.LOG_PATH || process.cwd();
+        this.logPath = logPath || process.env.LOG_PATH || join(process.cwd(), "logs");
     }
     
     /**

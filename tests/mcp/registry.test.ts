@@ -27,7 +27,8 @@ jest.doMock("path", () => ({
 }));
 
 jest.doMock("../../lib/logger", () => ({
-    defaultLogger: mockLogger
+    defaultLogger: mockLogger,
+    Logger: jest.fn().mockImplementation(() => mockLogger)
 }));
 
 jest.doMock("../../lib/mcp/mcpClient", () => ({
@@ -113,7 +114,7 @@ describe("MCP Registry", () => {
             expect(mockedExistsSync).toHaveBeenCalledWith(configPath);
             expect(mockedReadFileSync).toHaveBeenCalledWith(configPath, "utf-8");
             expect(mockLogger.info).toHaveBeenCalledWith(
-                "[MCP] Loaded 1 server configs from /custom/config.json"
+                "Loaded 1 server configs from /custom/config.json"
             );
 
             const configs = getMCPServerConfigs();
@@ -227,8 +228,8 @@ describe("MCP Registry", () => {
 
             loadMCPConfig("/missing/config.json");
 
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                "[MCP] Config file not found at /missing/config.json"
+            expect(mockLogger.debug).toHaveBeenCalledWith(
+                "Config file not found at /missing/config.json (this is expected if MCP is not used)"
             );
             expect(getMCPServerConfigs()).toEqual({});
         });
@@ -240,7 +241,7 @@ describe("MCP Registry", () => {
             loadMCPConfig("/invalid/config.json");
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                "[MCP] Error loading config from /invalid/config.json:",
+                "Error loading config from /invalid/config.json:",
                 expect.any(Error)
             );
             expect(getMCPServerConfigs()).toEqual({});
@@ -254,8 +255,8 @@ describe("MCP Registry", () => {
 
             loadMCPConfig("/test/config.json");
 
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                "[MCP] Invalid config format in /test/config.json"
+            expect(mockLogger.debug).toHaveBeenCalledWith(
+                "Invalid config format in /test/config.json"
             );
             expect(getMCPServerConfigs()).toEqual({});
         });
@@ -268,8 +269,8 @@ describe("MCP Registry", () => {
 
             loadMCPConfig("/test/config.json");
 
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                "[MCP] Invalid config format in /test/config.json"
+            expect(mockLogger.debug).toHaveBeenCalledWith(
+                "Invalid config format in /test/config.json"
             );
             expect(getMCPServerConfigs()).toEqual({});
         });
@@ -283,7 +284,7 @@ describe("MCP Registry", () => {
             loadMCPConfig("/error/config.json");
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                "[MCP] Error loading config from /error/config.json:",
+                "Error loading config from /error/config.json:",
                 expect.any(Error)
             );
             expect(getMCPServerConfigs()).toEqual({});
