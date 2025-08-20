@@ -9,14 +9,14 @@ const config: AgentConfig = {
 
 const modelConfig: ModelConfig = {
   temperature: 0.7,
-  maxTokens: 8000, 
+  maxTokens: 12000, 
   maxToolRounds: 20, // Allow tool rounds for MCP interactions
 };
 
 // Create and configure your MCP-enabled agent
 const GitMCPAgent = new AgentForceAgent(config)
-  .useLLM("openrouter", "z-ai/glm-4.5v", modelConfig)
-  .prompt(`Give me a list of repos from the https://github.com/agentforcezone organization.`)
+  .useLLM("ollama", "gpt-oss:20b", modelConfig)
+  .prompt(`Give me a list of all public repos from the https://github.com/orgs/agentforcezone organization.`)
 
 const response = await GitMCPAgent.saveToFile("examples/files/responses/git-mcp-agent.md");
 console.log(response);
