@@ -40,15 +40,34 @@ export function loadMCPConfig(configPath?: string): void {
                 for (const [name, serverConfig] of Object.entries(config.mcpServers)) {
                     const typedConfig = serverConfig as any;
                     
+                    // Helper function to resolve environment variables in strings
+                    const resolveEnvVars = (value: any): any => {
+                        if (typeof value === 'string') {
+                            return value.replace(/\$\{([^}]+)\}/g, (_, varName) => {
+                                const envValue = process.env[varName];
+                                if (envValue === undefined) {
+                                    registryLogger.warn(`Environment variable ${varName} not found in config, using empty string`);
+                                    return '';
+                                }
+                                return envValue;
+                            });
+                        }
+                        return value;
+                    };
+                    
                     // Resolve environment variables in env object
                     const resolvedEnv: Record<string, string> = {};
                     if (typedConfig.env) {
                         for (const [key, value] of Object.entries(typedConfig.env)) {
-                            const stringValue = String(value);
-                            // Replace ${VAR_NAME} with actual environment variable
-                            resolvedEnv[key] = stringValue.replace(/\$\{([^}]+)\}/g, (_, varName) => {
-                                return process.env[varName] || "";
-                            });
+                            resolvedEnv[key] = resolveEnvVars(value);
+                        }
+                    }
+                    
+                    // Resolve environment variables in headers object
+                    const resolvedHeaders: Record<string, string> = {};
+                    if (typedConfig.headers) {
+                        for (const [key, value] of Object.entries(typedConfig.headers)) {
+                            resolvedHeaders[key] = resolveEnvVars(value);
                         }
                     }
                     
@@ -57,8 +76,9 @@ export function loadMCPConfig(configPath?: string): void {
                         type: typedConfig.type || "local",
                         command: typedConfig.command,
                         args: typedConfig.args || [],
-                        url: typedConfig.url,
+                        url: resolveEnvVars(typedConfig.url),
                         env: resolvedEnv,
+                        headers: Object.keys(resolvedHeaders).length > 0 ? resolvedHeaders : undefined,
                         workingDirectory: typedConfig.workingDirectory,
                         timeout: typedConfig.timeout || 10000,
                     };

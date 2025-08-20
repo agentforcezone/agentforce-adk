@@ -218,7 +218,8 @@ export interface ToolRegistry {
  * @property {string} [command] - Command to execute the MCP server (required for local servers)
  * @property {string[]} [args] - Arguments to pass to the command (for local servers)
  * @property {string} [url] - URL for remote MCP servers (required for sse/http servers)
- * @property {Record<string, string>} [env] - Environment variables for the server process or headers for remote servers
+ * @property {Record<string, string>} [headers] - HTTP headers for remote MCP servers (sse/http servers only)
+ * @property {Record<string, any>} [env] - Environment variables for the server process
  * @property {string} [workingDirectory] - Working directory for the server process (local servers only)
  * @property {number} [timeout] - Connection timeout in milliseconds (default: 30000)
  */
@@ -228,7 +229,8 @@ export interface MCPServerConfig {
     command?: string;
     args?: string[];
     url?: string;
-    env?: Record<string, string>;
+    headers?: Record<string, string>;
+    env?: Record<string, any>;
     workingDirectory?: string;
     timeout?: number;
 }
