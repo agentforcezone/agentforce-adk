@@ -71,6 +71,7 @@
     "lint:check": "eslint . --ext .ts,.tsx --max-warnings 0"
   },
   "dependencies": {
+    "@github/copilot-language-server": "^1.362.0",
     "@google/genai": "1.14.0",
     "@modelcontextprotocol/sdk": "^1.17.3",
     "cheerio": "1.1.2",

@@ -2,6 +2,7 @@ import type { AgentForceAgent } from "../../../agent";
 import { GoogleProvider } from "../../../provider/google";
 import { OllamaProvider } from "../../../provider/ollama";
 import { OpenRouterProvider } from "../../../provider/openrouter";
+import { GitHubCopilotProvider } from "../../../provider/github-copilot";
 import { loadSkills } from "../../functions/skills";
 import { loadTools } from "../../functions/tools";
 import { loadMCPs, getMCPTools, disconnectMCPs } from "../../functions/mcp";
@@ -249,7 +250,7 @@ async function executeProviderCallWithChatHistory(
     switch (provider.toLowerCase()) {
         case "ollama":
             // Initialize Ollama provider with model config
-            const ollamaProvider = new OllamaProvider(model, modelConfig);
+            const ollamaProvider = new OllamaProvider(logger, model, modelConfig);
             // Generate response using Ollama with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using Ollama with tools and chat history", { 
@@ -268,7 +269,7 @@ async function executeProviderCallWithChatHistory(
 
         case "openrouter":
             // Initialize OpenRouter provider
-            const openRouterProvider = new OpenRouterProvider(model, modelConfig);
+            const openRouterProvider = new OpenRouterProvider(logger, model, modelConfig);
             // Generate response using OpenRouter with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using OpenRouter with tools and chat history", { 
@@ -287,13 +288,34 @@ async function executeProviderCallWithChatHistory(
 
         case "google":
             // Initialize Google provider
-            const googleProvider = new GoogleProvider(model, modelConfig);
+            const googleProvider = new GoogleProvider(logger, model, modelConfig);
             // Generate response using Google with chat history
             logger.debug("Using Google with chat history", { 
                 chatHistoryLength: chatHistory.length,
                 totalMessages: messages.length,
             });
             return await googleProvider.chat(messages);
+
+        case "github-copilot":
+            // Initialize GitHub Copilot provider with LSP enabled
+            const githubCopilotProvider = new GitHubCopilotProvider(logger, model, modelConfig, true); // Enable LSP
+            // Generate response using GitHub Copilot with tools if available
+            if (loadedTools && loadedTools.length > 0) {
+                logger.debug("Using GitHub Copilot with tools and chat history", { 
+                    toolCount: loadedTools.length,
+                    chatHistoryLength: chatHistory.length,
+                    totalMessages: messages.length,
+                });
+                return await githubCopilotProvider.chatWithTools(messages, loadedTools, logger, agent);
+            } else {
+                logger.debug("Using GitHub Copilot with chat history", { 
+                    chatHistoryLength: chatHistory.length,
+                    totalMessages: messages.length,
+                });
+                return await githubCopilotProvider.chat(messages);
+            }
+
+
 
         case "openai":
             return "OpenAI integration not implemented yet.";
@@ -324,7 +346,7 @@ async function executeProviderCall(
     switch (provider.toLowerCase()) {
         case "ollama":
             // Initialize Ollama provider with model config
-            const ollamaProvider = new OllamaProvider(model, modelConfig);
+            const ollamaProvider = new OllamaProvider(logger, model, modelConfig);
             // Generate response using Ollama with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using Ollama with tools", { toolCount: loadedTools.length });
@@ -335,7 +357,7 @@ async function executeProviderCall(
 
         case "openrouter":
             // Initialize OpenRouter provider
-            const openRouterProvider = new OpenRouterProvider(model, modelConfig);
+            const openRouterProvider = new OpenRouterProvider(logger, model, modelConfig);
             // Generate response using OpenRouter with tools if available
             if (loadedTools && loadedTools.length > 0) {
                 logger.debug("Using OpenRouter with tools", { toolCount: loadedTools.length });
@@ -346,9 +368,22 @@ async function executeProviderCall(
 
         case "google":
             // Initialize Google provider
-            const googleProvider = new GoogleProvider(model, modelConfig);
+            const googleProvider = new GoogleProvider(logger, model, modelConfig);
             // Generate response using Google
-            return await googleProvider.generate(userPrompt, systemPrompt);    
+            return await googleProvider.generate(userPrompt, systemPrompt);
+
+        case "github-copilot":
+            // Initialize GitHub Copilot provider with LSP enabled
+            const githubCopilotProvider = new GitHubCopilotProvider(logger, model, modelConfig, true); // Enable LSP
+            // Generate response using GitHub Copilot with tools if available
+            if (loadedTools && loadedTools.length > 0) {
+                logger.debug("Using GitHub Copilot with tools", { toolCount: loadedTools.length });
+                return await githubCopilotProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger, _agent);
+            } else {
+                return await githubCopilotProvider.generate(userPrompt, systemPrompt);
+            }
+
+
 
         case "openai":
             return "OpenAI integration not implemented yet.";

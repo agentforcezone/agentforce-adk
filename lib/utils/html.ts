@@ -62,7 +62,7 @@ export function safeParseHtml(htmlString: string): cheerio.CheerioAPI | null {
     try {
         const trimmed = htmlString.trim();
         if (!trimmed) return null;
-        return cheerio.load(trimmed);
+        return cheerio.load(trimmed) as cheerio.CheerioAPI;
     } catch {
         return null;
     }

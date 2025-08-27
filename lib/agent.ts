@@ -147,9 +147,9 @@ export class AgentForceAgent {
                 
                 // Convert old "default" to "stdout" for backward compatibility
                 const loggerTypes = config.logger.map((type: string) => 
-                    type === "default" ? "stdout" as const : type as ("stdout" | "file")
+                    type === "default" ? "stdout" as const : type as ("stdout" | "file"),
                 ).filter((type): type is ("stdout" | "file") => 
-                    type === "stdout" || type === "file"
+                    type === "stdout" || type === "file",
                 );
                 
                 this.logger = logger.loggerType(loggerTypes.length > 0 ? loggerTypes : ["stdout"]);

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Content } from "@google/genai";
-import type { ModelConfig } from "../types";
+import type { ModelConfig, AgentForceLogger } from "../types";
 
 /**
  * Interface for Google provider functionality
@@ -25,7 +25,7 @@ export class GoogleProvider implements GoogleProviderInterface {
     private modelConfig?: ModelConfig;
     private ai: GoogleGenAI;
 
-    constructor(model: string, modelConfig?: ModelConfig) {
+    constructor(logger: AgentForceLogger, model: string, modelConfig?: ModelConfig) {
         this.model = model;
         this.modelConfig = modelConfig;
 

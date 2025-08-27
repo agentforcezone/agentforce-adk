@@ -379,6 +379,7 @@ For detailed API documentation, visit the [AgentForce ADK API Reference](https:/
 - [x] Comprehensive JSDoc examples and type documentation
 - [x] Improved tool organization and directory structure
 - [x] Enhanced MCP Client integration with automatic tool loading
+- [x] Experimental Github Copilot LSP integration
 
 ## Coming soon - until 1.0.0
 

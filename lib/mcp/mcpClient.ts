@@ -101,7 +101,7 @@ export class McpClient implements MCPClient {
                 
                 // Filter out empty headers
                 const filteredHeaders = Object.fromEntries(
-                    Object.entries(allHeaders).filter(([_, value]) => value)
+                    Object.entries(allHeaders).filter(([_, value]) => value),
                 );
 
                 this.transport = new SSEClientTransport(new URL(serverUrl), {
@@ -200,16 +200,16 @@ export class McpClient implements MCPClient {
         // First, add headers from the headers field (official MCP standard)
         if (this.config.headers) {
             for (const [key, value] of Object.entries(this.config.headers)) {
-                if (typeof value === 'string') {
+                if (typeof value === "string") {
                     headers[key] = this.resolveEnvironmentVariable(value);
                 }
             }
         }
         
         // Legacy support: check for env.headers object (deprecated)
-        if (this.config.env && this.config.env.headers && typeof this.config.env.headers === 'object') {
+        if (this.config.env && this.config.env.headers && typeof this.config.env.headers === "object") {
             for (const [key, value] of Object.entries(this.config.env.headers)) {
-                if (typeof value === 'string') {
+                if (typeof value === "string") {
                     headers[key] = this.resolveEnvironmentVariable(value);
                 }
             }
@@ -218,7 +218,7 @@ export class McpClient implements MCPClient {
         // Legacy support: add headers from env with MCP_HEADER_ prefix (deprecated)
         if (this.config.env) {
             for (const [key, value] of Object.entries(this.config.env)) {
-                if (key.startsWith("MCP_HEADER_") && typeof value === 'string') {
+                if (key.startsWith("MCP_HEADER_") && typeof value === "string") {
                     const headerName = key.replace("MCP_HEADER_", "").replace(/_/g, "-");
                     headers[headerName] = this.resolveEnvironmentVariable(value);
                 }
@@ -239,7 +239,7 @@ export class McpClient implements MCPClient {
             const envValue = process.env[varName];
             if (envValue === undefined) {
                 this.logger.warn(`Environment variable ${varName} not found, using empty string`);
-                return '';
+                return "";
             }
             return envValue;
         });
@@ -250,7 +250,7 @@ export class McpClient implements MCPClient {
             const envValue = process.env[varName];
             if (envValue === undefined) {
                 this.logger.warn(`Environment variable ${varName} not found, using empty string`);
-                return '';
+                return "";
             }
             return envValue;
         });

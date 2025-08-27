@@ -34,7 +34,7 @@ export class OpenRouterProvider implements OpenRouterProviderInterface {
     private client: OpenAI;
     private toolUse: OpenRouterToolUse;
 
-    constructor(model: string, modelConfig?: ModelConfig) {
+    constructor(logger: AgentForceLogger, model: string, modelConfig?: ModelConfig) {
         this.model = model;
         this.modelConfig = modelConfig;
         

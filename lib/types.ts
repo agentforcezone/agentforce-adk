@@ -88,7 +88,7 @@ export type OutputType = "text" | "json" | "md" | "yaml" | "html";
 /**
  * Type definition for supported AI providers
  */
-export type ProviderType = "ollama" | "openai" | "anthropic" | "google" | "openrouter";
+export type ProviderType = "ollama" | "openai" | "anthropic" | "google" | "openrouter" | "github-copilot";
 
 /**
  * Union type for all available tool types

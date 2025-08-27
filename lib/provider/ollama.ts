@@ -27,7 +27,7 @@ export class OllamaProvider implements OllamaProviderInterface {
     private modelConfig?: ModelConfig;
     private toolUse: OllamaToolUse;
 
-    constructor(model: string, modelConfig?: ModelConfig) {
+    constructor(logger: AgentForceLogger, model: string, modelConfig?: ModelConfig) {
         this.model = model;
         this.modelConfig = modelConfig;
         this.toolUse = new OllamaToolUse(model, modelConfig);

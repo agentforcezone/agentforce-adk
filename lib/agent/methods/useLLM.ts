@@ -2,6 +2,7 @@ import type { AgentForceAgent } from "../../agent";
 import { OllamaProvider } from "../../provider/ollama";
 import { OpenRouterProvider } from "../../provider/openrouter";
 import { GoogleProvider } from "../../provider/google";
+import { GitHubCopilotProvider } from "../../provider/github-copilot";
 import type { ProviderType, ModelConfig } from "../../types";
 
 /**
@@ -29,6 +30,7 @@ import type { ProviderType, ModelConfig } from "../../types";
  * agent.useLLM("openai", "gpt-3.5-turbo");
  * agent.useLLM("anthropic", "claude-3");
  * agent.useLLM("openrouter", "moonshotai/kimi-k2:free");
+ * agent.useLLM("github-copilot", "gpt-4");
  * 
  * // Method chaining
  * agent.useLLM("google", "gemini-1.5-flash").useLLM("ollama", "llama2");
@@ -46,17 +48,24 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
     switch ((provider || "ollama").toLowerCase()) {
         case "ollama":
             // Initialize Ollama provider
-            new OllamaProvider(model, modelConfig);
+            new OllamaProvider(logger, model, modelConfig);
             break;
         
         case "openrouter":
             // Initialize OpenRouter provider
-            new OpenRouterProvider(model, modelConfig);
+            new OpenRouterProvider(logger, model, modelConfig);
             break;
         
         case "google":
-            new GoogleProvider(model, modelConfig);
+            new GoogleProvider(logger, model, modelConfig);
             break;
+        
+        case "github-copilot":
+            // Initialize GitHub Copilot provider
+            new GitHubCopilotProvider(logger, model, modelConfig);
+            break;
+        
+
         
         case "openai":
             logger.debug(`⚠️  OpenAI provider not implemented yet. Model: ${model}`);

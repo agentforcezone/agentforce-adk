@@ -42,12 +42,12 @@ export function loadMCPConfig(configPath?: string): void {
                     
                     // Helper function to resolve environment variables in strings
                     const resolveEnvVars = (value: any): any => {
-                        if (typeof value === 'string') {
+                        if (typeof value === "string") {
                             return value.replace(/\$\{([^}]+)\}/g, (_, varName) => {
                                 const envValue = process.env[varName];
                                 if (envValue === undefined) {
                                     registryLogger.warn(`Environment variable ${varName} not found in config, using empty string`);
-                                    return '';
+                                    return "";
                                 }
                                 return envValue;
                             });
