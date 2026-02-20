@@ -2,6 +2,7 @@ import type { AgentForceAgent } from "../../../agent";
 import { GoogleProvider } from "../../../provider/google";
 import { OllamaProvider } from "../../../provider/ollama";
 import { OpenRouterProvider } from "../../../provider/openrouter";
+import { ZAiProvider } from "../../../provider/z-ai";
 import { loadSkills } from "../../functions/skills";
 import { loadTools } from "../../functions/tools";
 import { loadMCPs, getMCPTools, disconnectMCPs } from "../../functions/mcp";
@@ -208,6 +209,9 @@ export async function execute(this: AgentForceAgent): Promise<string> {
         if (mcps && mcps.length > 0) {
             try {
                 await disconnectMCPs(this);
+                
+                // Give a brief moment for cleanup to complete
+                await new Promise(resolve => setTimeout(resolve, 100));
             } catch (cleanupError) {
                 logger.error("MCP cleanup error:", cleanupError);
             }
@@ -289,11 +293,30 @@ async function executeProviderCallWithChatHistory(
             // Initialize Google provider
             const googleProvider = new GoogleProvider(model, modelConfig);
             // Generate response using Google with chat history
-            logger.debug("Using Google with chat history", { 
+            logger.debug("Using Google with chat history", {
                 chatHistoryLength: chatHistory.length,
                 totalMessages: messages.length,
             });
             return await googleProvider.chat(messages);
+
+        case "z-ai":
+            // Initialize Z.AI provider
+            const zAiProvider = new ZAiProvider(model, modelConfig);
+            // Generate response using Z.AI with tools if available
+            if (loadedTools && loadedTools.length > 0) {
+                logger.debug("Using Z.AI with tools and chat history", {
+                    toolCount: loadedTools.length,
+                    chatHistoryLength: chatHistory.length,
+                    totalMessages: messages.length,
+                });
+                return await zAiProvider.chatWithTools(messages, loadedTools, logger, agent);
+            } else {
+                logger.debug("Using Z.AI with chat history", {
+                    chatHistoryLength: chatHistory.length,
+                    totalMessages: messages.length,
+                });
+                return await zAiProvider.chat(messages);
+            }
 
         case "openai":
             return "OpenAI integration not implemented yet.";
@@ -348,7 +371,18 @@ async function executeProviderCall(
             // Initialize Google provider
             const googleProvider = new GoogleProvider(model, modelConfig);
             // Generate response using Google
-            return await googleProvider.generate(userPrompt, systemPrompt);    
+            return await googleProvider.generate(userPrompt, systemPrompt);
+
+        case "z-ai":
+            // Initialize Z.AI provider
+            const zAiProvider = new ZAiProvider(model, modelConfig);
+            // Generate response using Z.AI with tools if available
+            if (loadedTools && loadedTools.length > 0) {
+                logger.debug("Using Z.AI with tools", { toolCount: loadedTools.length });
+                return await zAiProvider.generateWithTools(userPrompt, loadedTools, systemPrompt, logger, _agent);
+            } else {
+                return await zAiProvider.generate(userPrompt, systemPrompt);
+            }    
 
         case "openai":
             return "OpenAI integration not implemented yet.";

@@ -6,7 +6,7 @@ const Dispatcher = new AgentForceAgent({ name: "DispatcherAgent" })
 
 const GCPAgent = new AgentForceAgent({
     name: "gcpAgent",
-    skills: ["devops"]
+    skills: ["devops"],
 })
     .useLLM("ollama", "gemma3:12b")
     .systemPrompt("You are a GCP expert. You will run gcloud commands to create resources in GCP.")

@@ -268,6 +268,18 @@ export class McpClient implements MCPClient {
                 await this.mcp.close();
             }
 
+            // Explicitly close the transport if it exists
+            if (this.transport) {
+                try {
+                    // StdioClientTransport has a close method that kills the child process
+                    if ('close' in this.transport && typeof this.transport.close === 'function') {
+                        await this.transport.close();
+                    }
+                } catch (transportError) {
+                    this.logger.warn(`Transport close warning for ${this.name}:`, transportError);
+                }
+            }
+
             this.transport = null;
             this.isConnectedState = false;
             

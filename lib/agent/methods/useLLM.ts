@@ -2,6 +2,7 @@ import type { AgentForceAgent } from "../../agent";
 import { OllamaProvider } from "../../provider/ollama";
 import { OpenRouterProvider } from "../../provider/openrouter";
 import { GoogleProvider } from "../../provider/google";
+import { ZAiProvider } from "../../provider/z-ai";
 import type { ProviderType, ModelConfig } from "../../types";
 
 /**
@@ -56,6 +57,11 @@ export function useLLM(this: AgentForceAgent, provider: ProviderType = "ollama",
         
         case "google":
             new GoogleProvider(model, modelConfig);
+            break;
+
+        case "z-ai":
+            // Initialize Z.AI provider
+            new ZAiProvider(model, modelConfig);
             break;
         
         case "openai":

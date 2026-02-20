@@ -5,6 +5,16 @@ import type { AgentForceLogger, ModelConfig } from "../types";
 import { truncate } from "../utils/truncate";
 
 /**
+ * Sanitize JSON string by removing common LLM-generated errors
+ * - Removes trailing commas before closing braces/brackets
+ * - Fixes other common JSON formatting issues
+ */
+function sanitizeJSON(jsonString: string): string {
+    // Remove trailing commas before closing braces or brackets
+    return jsonString.replace(/,(\s*[}\]])/g, "$1");
+}
+
+/**
  * Interface for Ollama tool use functionality
  * @interface OllamaToolUseInterface
  * @property {function} generateWithTools - Generate response with tool support using a prompt
